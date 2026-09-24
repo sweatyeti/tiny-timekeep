@@ -30,7 +30,7 @@ gate below stops a stale copy from running silently.
 
 ```
 main.py                   the only meeting point: builds the core, starts pywebview
-src/timetracker_core/     the core, vendored verbatim (stdlib-only; do not edit here)
+timetracker_core/         the core, vendored verbatim at the repo root (stdlib-only; do not edit here)
 web/                      the frontend (drop-in)
 tests/                    the core's 79 tests, unmodified, plus tests/test_boundary.py
 specs/                    the contract (v1.4) and the functional spec (v2.0)

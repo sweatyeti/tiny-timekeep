@@ -7,9 +7,9 @@ import threading
 import unittest
 from datetime import datetime, timedelta, timezone
 
-SRC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
-if SRC not in sys.path:
-    sys.path.insert(0, SRC)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 
 from timetracker_core import CONTRACT_VERSION, UNNAMED_TASK, TimeTrackerCore  # noqa: E402
 

@@ -11,8 +11,8 @@ import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CORE = os.path.join(ROOT, "src", "timetracker_core")
-sys.path.insert(0, os.path.join(ROOT, "src"))
+CORE = os.path.join(ROOT, "timetracker_core")
+sys.path.insert(0, ROOT)
 
 import main as app_main  # noqa: E402
 from timetracker_core import CONTRACT_VERSION  # noqa: E402

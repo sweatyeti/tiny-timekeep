@@ -1,13 +1,16 @@
 Vendored core: keeper-of-time-core  (the `timetracker_core` package)
   source repo : keeper-of-time-core (branch dev)
-  core commit : 0dcfb98  ("Rename app to Keeper of Time (docs only)")
+  core commit : 1afc7fa  ("Layout: package at repo root, drop the src/ wrapper")
   contract    : v1.4  (specs/core-logic-contract.md, specs/functional-spec.md)
-  tests       : 79 in this repo - the core's 73 plus 6 boundary tests - run from tests/ with
+  tests       : 81 in this repo - the core's 73 plus 8 boundary tests - run from tests/ with
                 python3.11 -m unittest discover -s tests
 
-The core under src/timetracker_core/ is a verbatim copy. Do not edit it here: change it in the
-core repo, then re-copy (or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to
-match. If this note and the code disagree, the code wins - check the constant.
+Layout: the core package sits at the repo ROOT (`timetracker_core/`), not under `src/`. Both
+repos use that flat layout, so this copy stays byte-identical to its source.
+
+The core is a verbatim copy. Do not edit it here: change it in the core repo, then re-copy
+(or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to match. If this note and
+the code disagree, the code wins - check the constant.
 
 Naming: the app is **Keeper of Time**. The package (`timetracker_core`) and the class
 (`TimeTrackerCore`) keep their names on purpose - they are an import path and a contract-fixed

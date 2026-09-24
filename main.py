@@ -27,11 +27,12 @@ WINDOW_TITLE = "Keeper of Time"    # what a person sees
 CONTRACT_VERSION_EXPECTED = "v1.4"
 
 HERE = Path(__file__).resolve().parent
-VENDORED_CORE = HERE / "src"
 UI_INDEX = HERE / "web" / "index.html"
 
-if str(VENDORED_CORE) not in sys.path:
-    sys.path.insert(0, str(VENDORED_CORE))
+# The core package sits at the repo root, so the root is the import root. Running this file puts
+# HERE on sys.path anyway; being explicit keeps it working when the working directory differs.
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
 from timetracker_core import CONTRACT_VERSION, TimeTrackerCore  # noqa: E402
 

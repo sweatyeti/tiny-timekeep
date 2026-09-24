@@ -19,7 +19,7 @@ hiddenimports = ["clr", "clr_loader"] + collect_submodules("webview")
 
 a = Analysis(
     [str(ROOT / "main.py")],
-    pathex=[str(ROOT), str(ROOT / "src")],
+    pathex=[str(ROOT)],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
