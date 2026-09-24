@@ -1,7 +1,11 @@
-# TinyTimesheet
+# Keeper of Time
 
 A desktop time tracker: a stdlib-only Python **core** (sessions, entries, rules, storage) and a
 **pywebview frontend**. One repo, one build, one `.exe`.
+
+The app is called **Keeper of Time**. The Python package (`timetracker_core`) and the core class
+(`TimeTrackerCore`) keep their names deliberately — an import path and a contract-fixed interface
+are not the app's name, and renaming either would be a contract change for no benefit.
 
 The core and the UI are separate layers by contract (`specs/core-logic-contract.md`, **v1.4**).
 Combining them into one project does not merge the layers: `main.py` is the only place they meet,
@@ -51,7 +55,7 @@ python main.py --check        # prints the contract version, replays the golden 
 python -m unittest discover -s tests
 ```
 
-Sessions live in `%LOCALAPPDATA%\TinyTimesheet\sessions` (`TIMETRACKER_DATA_DIR` overrides it).
+Sessions live in `%LOCALAPPDATA%\KeeperOfTime\sessions` (`KEEPER_OF_TIME_DATA_DIR` overrides it).
 They are deliberately **not** stored beside the executable: a one-file build unpacks to a temp
 directory and starts empty each run.
 
@@ -62,15 +66,15 @@ directory and starts empty each run.
 ```
 
 Creates the venv, installs the pinned versions, runs `main.py --check` and the test suite, and
-**refuses to package if either fails**, then produces `dist\TinyTimesheet.exe` via
-`packaging\timetracker.spec`. The spec bundles `ui/` and collects pywebview's assets and its
+**refuses to package if either fails**, then produces `dist\KeeperOfTime.exe` via
+`packaging\keeper-of-time.spec`. The spec bundles `ui/` and collects pywebview's assets and its
 Windows backend (`clr`/WebView2), which is the part that otherwise bites a `--onefile` build.
 
 Target machines need the WebView2 runtime — present by default on Win10/11.
 
 ## The rules that keep the split honest
 
-- The core directory is a **verbatim copy** of `timetracker-core-python`. Change it there, re-copy
+- The core directory is a **verbatim copy** of `keeper-of-time-core`. Change it there, re-copy
   (or `git subtree pull`), and bump `CONTRACT_VERSION_EXPECTED` in `main.py` to match.
 - The UI imports nothing from the core except `TimeTrackerCore` and `CONTRACT_VERSION`.
 - `tests/test_boundary.py` enforces the rest: the core must import **only** the standard library,
@@ -80,7 +84,7 @@ Target machines need the WebView2 runtime — present by default on Win10/11.
 
 - `python -m unittest discover -s tests` → **79 tests, OK** on a bare Python 3.11 (no venv, no
   installed packages): the core's 73 plus 6 boundary tests.
-- `python main.py --check` → contract `v1.4`, golden fixture matching the contract's §2 view model
+- `python main.py --check` → `Keeper of Time: contract v1.4`, golden fixture matching the contract's §2 view model
   exactly (weeding 2/30/75 callout true; unnamed 1/15/15 callout false; totals 30/75), no
   `isActive` in the session object, and the sessions directory reported.
 - The PyInstaller path has **not** been exercised here — there is no Windows host and no

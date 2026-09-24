@@ -1,4 +1,4 @@
-# Build the Windows app: one self-contained TinyTimesheet.exe in dist/.
+# Build the Windows app: one self-contained KeeperOfTime.exe in dist/.
 # Run from the project root in PowerShell:  .\packaging\build.ps1
 $ErrorActionPreference = "Stop"
 
@@ -16,9 +16,9 @@ Write-Host "Running the core test suite..."
 & .venv\Scripts\python -m unittest discover -s tests
 if ($LASTEXITCODE -ne 0) { throw "core tests failed - not packaging a broken build." }
 
-& .venv\Scripts\python -m PyInstaller packaging\timetracker.spec --noconfirm
+& .venv\Scripts\python -m PyInstaller packaging\keeper-of-time.spec --noconfirm
 
 Write-Host ""
-Write-Host "Built: dist\TinyTimesheet.exe"
-Write-Host "Sessions will be written to: $env:LOCALAPPDATA\TinyTimesheet\sessions"
+Write-Host "Built: dist\KeeperOfTime.exe"
+Write-Host "Sessions will be written to: $env:LOCALAPPDATA\KeeperOfTime\sessions"
 Write-Host "Target machine needs the WebView2 runtime (present by default on Win10/11)."

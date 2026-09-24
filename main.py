@@ -1,4 +1,4 @@
-"""TinyTimesheet — desktop entry point.
+"""Keeper of Time — desktop entry point.
 
 This file is the one place the two layers meet: it builds the tracking core and hands it to
 pywebview as `js_api`. The core never imports anything from here, and the UI reaches the core
@@ -6,7 +6,7 @@ only through that object.
 
 Run:      python main.py
 Check:    python main.py --check      (no window, no pywebview — verifies the core wiring)
-Build:    packaging/build.ps1         (Windows, produces dist/TinyTimesheet.exe)
+Build:    packaging/build.ps1         (Windows, produces dist/KeeperOfTime.exe)
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
-APP_NAME = "TinyTimesheet"
-WINDOW_TITLE = "TinyTimesheet"
+APP_NAME = "KeeperOfTime"          # technical identifier: data folder, process name
+WINDOW_TITLE = "Keeper of Time"    # what a person sees
 # The contract version this app was built against (contract 6.3: a mismatch is a build-time
 # check, not a runtime surprise). Bump this together with the vendored core, never separately.
 CONTRACT_VERSION_EXPECTED = "v1.4"
@@ -46,7 +46,7 @@ def default_sessions_dir() -> Path:
     A one-file PyInstaller build unpacks to a temp directory and starts empty each run, so the
     storage path has to be somewhere that outlives the process.
     """
-    override = os.environ.get("TIMETRACKER_DATA_DIR")
+    override = os.environ.get("KEEPER_OF_TIME_DATA_DIR")
     if override:
         return Path(override).expanduser()
     local_appdata = os.environ.get("LOCALAPPDATA")          # Windows
@@ -70,7 +70,7 @@ def ensure_usable_sessions_dir(directory: Path) -> None:
     except OSError as exc:
         raise SystemExit(
             f"Cannot use the sessions directory:\n  {directory}\n  {exc}\n"
-            f"Set TIMETRACKER_DATA_DIR to a writable folder and try again."
+            f"Set KEEPER_OF_TIME_DATA_DIR to a writable folder and try again."
         )
 
 
@@ -107,10 +107,10 @@ class _FixedClock:
 
 def run_checks() -> int:
     """Exercise the core end to end in a throwaway directory. Never opens a window."""
-    print(f"{APP_NAME}: contract {CONTRACT_VERSION} (expected {CONTRACT_VERSION_EXPECTED})")
+    print(f"{WINDOW_TITLE}: contract {CONTRACT_VERSION} (expected {CONTRACT_VERSION_EXPECTED})")
     check_contract_version()
 
-    workdir = Path(tempfile.mkdtemp(prefix="timetracker-check-"))
+    workdir = Path(tempfile.mkdtemp(prefix="keeper-of-time-check-"))
     try:
         clock = _FixedClock(datetime(2026, 9, 23, 9, 0, 0, tzinfo=timezone.utc))
         core = TimeTrackerCore(workdir, clock=clock)
@@ -167,7 +167,7 @@ def run_checks() -> int:
 # ---------------------------------------------------------------------------
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=f"{APP_NAME} - desktop time tracker")
+    parser = argparse.ArgumentParser(description=f"{WINDOW_TITLE} - desktop time tracker")
     parser.add_argument("--check", action="store_true",
                         help="verify the core wiring and exit without opening a window")
     parser.add_argument("--sessions-dir", type=Path, default=None,

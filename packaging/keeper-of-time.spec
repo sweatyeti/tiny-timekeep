@@ -1,5 +1,5 @@
 # PyInstaller spec - one-file Windows build.
-#   python -m PyInstaller packaging/timetracker.spec --noconfirm
+#   python -m PyInstaller packaging/keeper-of-time.spec --noconfirm
 # Run from the project root so the paths below resolve.
 
 from pathlib import Path
@@ -36,7 +36,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="TinyTimesheet",
+    name="KeeperOfTime",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

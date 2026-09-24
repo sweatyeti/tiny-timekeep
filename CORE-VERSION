@@ -1,10 +1,14 @@
-Vendored core: timetracker-core-python
-  source repo : timetracker-core-python (branch dev)
-  core commit : 5d4c8ee  ("contract v1.4: list_deleted_entries returns description")
+Vendored core: keeper-of-time-core  (the `timetracker_core` package)
+  source repo : keeper-of-time-core (branch dev)
+  core commit : 0dcfb98  ("Rename app to Keeper of Time (docs only)")
   contract    : v1.4  (specs/core-logic-contract.md, specs/functional-spec.md)
-  tests       : 73, stdlib unittest, run from tests/ with
+  tests       : 79 in this repo - the core's 73 plus 6 boundary tests - run from tests/ with
                 python3.11 -m unittest discover -s tests
 
 The core under src/timetracker_core/ is a verbatim copy. Do not edit it here: change it in the
 core repo, then re-copy (or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to
 match. If this note and the code disagree, the code wins - check the constant.
+
+Naming: the app is **Keeper of Time**. The package (`timetracker_core`) and the class
+(`TimeTrackerCore`) keep their names on purpose - they are an import path and a contract-fixed
+interface, not the app's name. See specs/core-logic-contract.md section 1.

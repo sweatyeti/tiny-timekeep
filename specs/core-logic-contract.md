@@ -9,7 +9,7 @@ created: 2026-09-23
 updated: 2026-09-23
 frozen: 2026-09-23
 ---
-# Core logic contract — time tracker
+# Core logic contract — Keeper of Time
 
 **Purpose.** Defines the exact boundary between the Python core (sessions, entries, rules, storage) and the UI (pywebview frontend). Whoever builds the core only has to satisfy this document — no UI knowledge required. The UI is being built separately against a mock of this same contract, so the two sides can be swapped together with no other changes.
 

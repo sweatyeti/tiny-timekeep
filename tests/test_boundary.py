@@ -68,6 +68,19 @@ class TestVersionGate(unittest.TestCase):
         assert CONTRACT_VERSION.startswith("v"), CONTRACT_VERSION
 
 
+class TestNaming(unittest.TestCase):
+    """The app is Keeper of Time; the import path and the class are not renamed with it."""
+
+    def test_display_name_and_technical_identifier(self):
+        assert app_main.WINDOW_TITLE == "Keeper of Time", app_main.WINDOW_TITLE
+        assert app_main.APP_NAME == "KeeperOfTime", app_main.APP_NAME
+
+    def test_package_and_class_names_are_unchanged_by_the_rename(self):
+        from timetracker_core import TimeTrackerCore
+        assert TimeTrackerCore.__name__ == "TimeTrackerCore"
+        assert TimeTrackerCore.__module__.startswith("timetracker_core")
+
+
 class TestAppWiring(unittest.TestCase):
     def test_sessions_dir_is_not_beside_the_executable(self):
         """A one-file build unpacks to a temp dir, so storage must not live next to the exe."""
