@@ -1,0 +1,10 @@
+Vendored core: timetracker-core-python
+  source repo : /home/hermes/timetracker-core-python (branch dev)
+  core commit : 5d4c8ee  ("contract v1.4: list_deleted_entries returns description")
+  contract    : v1.4  (specs/core-logic-contract.md, specs/functional-spec.md)
+  tests       : 73, stdlib unittest, run from tests/ with
+                python3.11 -m unittest discover -s tests
+
+The core under src/timetracker_core/ is a verbatim copy. Do not edit it here: change it in the
+core repo, then re-copy (or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to
+match. If this note and the code disagree, the code wins - check the constant.

@@ -1,0 +1,4 @@
+# Runtime dependency of the UI layer only. The core is stdlib-only and needs nothing here.
+# Pinned exactly (contract 6.1): pywebview's JS-bridge behaviour is what the entire contract
+# rides on, and it has changed across major versions.
+pywebview==6.2.1
