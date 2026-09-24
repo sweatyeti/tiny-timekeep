@@ -50,7 +50,7 @@ class TestCoreStaysIsolated(unittest.TestCase):
         assert offenders == {}, f"core imports non-stdlib modules: {offenders}"
 
     def test_core_never_imports_the_ui_or_its_dependencies(self):
-        forbidden = {"webview", "main", "pywebview", "ui"}
+        forbidden = {"webview", "main", "pywebview", "ui", "web"}
         for name in sorted(os.listdir(CORE)):
             if not name.endswith(".py"):
                 continue

@@ -13,16 +13,16 @@ and the UI reaches the core solely through the object passed as `js_api`.
 
 ## Drop your UI in
 
-The frontend is the one thing not in this repository yet. Put it in `ui/` with `index.html` at
-its root:
+The frontend is the one thing not in this repository yet. Put it in `web/` with `index.html` at
+its root — the layout the UI layer already uses:
 
 ```
-ui/
+web/
   index.html        <- loaded by main.py
-  app.js  styles.css  ...   <- whatever your mock project already has
+  app.js  styles.css  ...   <- the frontend's own files, unchanged
 ```
 
-Then `python main.py`. If `ui/index.html` is missing, `main.py` says so instead of opening a
+Then `python main.py`. If `web/index.html` is missing, `main.py` says so instead of opening a
 blank window. **Your mock object is now retired** — the real core replaces it, and the version
 gate below stops a stale copy from running silently.
 
@@ -31,7 +31,7 @@ gate below stops a stale copy from running silently.
 ```
 main.py                   the only meeting point: builds the core, starts pywebview
 src/timetracker_core/     the core, vendored verbatim (stdlib-only; do not edit here)
-ui/                       the frontend (drop-in)
+web/                      the frontend (drop-in)
 tests/                    the core's 79 tests, unmodified, plus tests/test_boundary.py
 specs/                    the contract (v1.4) and the functional spec (v2.0)
 packaging/                pyinstaller spec + build.ps1
@@ -67,7 +67,7 @@ directory and starts empty each run.
 
 Creates the venv, installs the pinned versions, runs `main.py --check` and the test suite, and
 **refuses to package if either fails**, then produces `dist\KeeperOfTime.exe` via
-`packaging\keeper-of-time.spec`. The spec bundles `ui/` and collects pywebview's assets and its
+`packaging\keeper-of-time.spec`. The spec bundles `web/` and collects pywebview's assets and its
 Windows backend (`clr`/WebView2), which is the part that otherwise bites a `--onefile` build.
 
 Target machines need the WebView2 runtime — present by default on Win10/11.

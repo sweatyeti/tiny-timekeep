@@ -12,7 +12,7 @@ ROOT = Path(SPECPATH).resolve().parent  # project root (SPECPATH is packaging/)
 # hook normally covers this, but collecting explicitly is what makes the Windows backend
 # (pythonnet/clr -> WebView2) survive --onefile without a hidden-import guessing game.
 datas = [
-    (str(ROOT / "ui"), "ui"),           # the frontend, loaded from a path relative to the exe
+    (str(ROOT / "web"), "web"),         # the frontend, loaded from a path relative to the exe
 ] + collect_data_files("webview")
 
 hiddenimports = ["clr", "clr_loader"] + collect_submodules("webview")

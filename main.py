@@ -28,7 +28,7 @@ CONTRACT_VERSION_EXPECTED = "v1.4"
 
 HERE = Path(__file__).resolve().parent
 VENDORED_CORE = HERE / "src"
-UI_INDEX = HERE / "ui" / "index.html"
+UI_INDEX = HERE / "web" / "index.html"
 
 if str(VENDORED_CORE) not in sys.path:
     sys.path.insert(0, str(VENDORED_CORE))
@@ -187,7 +187,7 @@ def main(argv=None) -> int:
     if not UI_INDEX.exists():
         raise SystemExit(
             f"No frontend found at {UI_INDEX}.\n"
-            f"Put the UI files in {HERE / 'ui'} (index.html at its root) and try again."
+            f"Put the UI files in {HERE / 'web'} (index.html at its root) and try again."
         )
 
     try:
