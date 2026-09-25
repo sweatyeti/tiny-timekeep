@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Keeper of Time</title>
+<title>tinyTimekeep</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -10,7 +10,7 @@
 <body>
 
   <div id="titlebar">
-    <span id="titlebar-label">✦ Keeper of Time</span>
+    <span id="titlebar-label">✦ tinyTimekeep</span>
     <button id="min-btn" class="chrome-btn" title="Minimize">-</button>
     <button id="close-btn" class="chrome-btn" title="Stop &amp; exit">✕</button>
   </div>
@@ -78,6 +78,12 @@
     </section>
 
   </main>
+
+  <div id="theme-picker" aria-label="Theme">
+    <span class="theme-picker-label" aria-hidden="true">THEME</span>
+    <button class="theme-btn" type="button" data-theme="cute" title="Use cute theme" aria-label="Use cute theme" aria-pressed="false">♥</button>
+    <button class="theme-btn" type="button" data-theme="cyber" title="Use cyber theme" aria-label="Use cyber theme" aria-pressed="false">◈</button>
+  </div>
 
   <!-- Overlays -->
   <div id="overlay" class="overlay hidden">

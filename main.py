@@ -39,10 +39,10 @@ if BASE_DIR not in sys.path:
 from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
-# Display name vs technical identifier: the window and title bar say "Keeper of Time", while the
+# Display name vs technical identifier: the window and title bar say "tinyTimekeep", while the
 # executable, the data folder and the process name stay space-free.
 APP_NAME = "KeeperOfTime"
-WINDOW_TITLE = "Keeper of Time"
+WINDOW_TITLE = "tinyTimekeep"
 DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
 
 # Keep in lockstep with specs/core-logic-contract.md's frontmatter `version:`. This

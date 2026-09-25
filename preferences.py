@@ -16,8 +16,10 @@ import os
 
 DEFAULT_PREFERENCES = {
     "activeTab": "tasks",
+    "theme": "cute",
 }
 
+VALID_THEMES = ("cute", "cyber")
 
 class PreferencesStore:
     def __init__(self, path):
@@ -39,11 +41,20 @@ class PreferencesStore:
             # data over — but this isn't session data, so "just reset it" is
             # an acceptable failure mode here (unlike the core's session files).
             pass
+        self._validate_theme()
 
     def get_all(self):
         return dict(self._data)
 
+    def _validate_theme(self):
+        theme = self._data.get("theme")
+        if not isinstance(theme, str) or theme not in VALID_THEMES:
+            self._data["theme"] = "cute"
+
     def set(self, key, value):
+        if key == "theme":
+            if not isinstance(value, str) or value not in VALID_THEMES:
+                value = "cute"
         self._data[key] = value
         self._save()
         return dict(self._data)

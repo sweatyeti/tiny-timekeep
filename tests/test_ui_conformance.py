@@ -13,6 +13,7 @@ the actual frontend source and assert it against the actual core:
 """
 
 import os
+import json
 import re
 import shutil
 import sys
@@ -156,16 +157,52 @@ class TestWrapperPassesArgumentsThrough(FrontendCase):
         assert reopened.get_all()["activeTab"] == "log", "preference did not persist"
 
 
+class TestThemePreference(FrontendCase):
+    """Theme preference: default, validation, and persistence."""
+
+    def test_default_theme_is_cute(self):
+        prefs = self.api.get_preferences()
+        assert prefs["theme"] == "cute", prefs
+        assert prefs["activeTab"] == "tasks", prefs
+
+    def test_set_theme_cyber_persists_and_reloads(self):
+        result = self.api.set_preference("theme", "cyber")
+        assert result["theme"] == "cyber", result
+        assert result["activeTab"] == "tasks", result
+        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
+        assert reopened.get_all()["theme"] == "cyber", "cyber theme did not persist"
+
+    def test_unknown_theme_falls_back_to_cute_on_set(self):
+        result = self.api.set_preference("theme", "dark")
+        assert result["theme"] == "cute", result
+        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
+        assert reopened.get_all()["theme"] == "cute", "invalid theme was persisted as-is"
+
+    def test_corrupt_persisted_theme_falls_back_to_cute(self):
+        prefs_path = os.path.join(self.tmp, "preferences.json")
+        with open(prefs_path, "w", encoding="utf-8") as f:
+            json.dump({"activeTab": "tasks", "theme": 42}, f)
+        reopened = app_main.PreferencesStore(prefs_path)
+        assert reopened.get_all()["theme"] == "cute"
+
+    def test_non_string_persisted_theme_falls_back_to_cute(self):
+        prefs_path = os.path.join(self.tmp, "preferences.json")
+        with open(prefs_path, "w", encoding="utf-8") as f:
+            json.dump({"activeTab": "tasks", "theme": None}, f)
+        reopened = app_main.PreferencesStore(prefs_path)
+        assert reopened.get_all()["theme"] == "cute"
+
+
 class TestFrontendNamesTheApp(unittest.TestCase):
-    def test_page_and_title_bar_use_the_display_name(self):
+    def test_page_and_title_bar_use_tinytimekeep(self):
         html = _read(INDEX_HTML)
-        assert "<title>Keeper of Time</title>" in html, "page title is not the display name"
-        assert "Keeper of Time" in html.split('id="titlebar"')[1].split("</div>")[0], (
-            "title bar label is not the display name"
+        assert "<title>tinyTimekeep</title>" in html, "page title is not tinyTimekeep"
+        assert "tinyTimekeep" in html.split('id="titlebar"')[1].split("</div>")[0], (
+            "title bar label is not tinyTimekeep"
         )
 
     def test_window_title_constant_matches(self):
-        assert app_main.WINDOW_TITLE == "Keeper of Time", app_main.WINDOW_TITLE
+        assert app_main.WINDOW_TITLE == "tinyTimekeep", app_main.WINDOW_TITLE
 
     def test_contract_version_pinned_by_the_app_is_the_contract_in_the_specs(self):
         spec = _read(os.path.join(ROOT, "specs", "core-logic-contract.md"))

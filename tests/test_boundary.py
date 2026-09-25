@@ -69,10 +69,10 @@ class TestVersionGate(unittest.TestCase):
 
 
 class TestNaming(unittest.TestCase):
-    """The app is Keeper of Time; the import path and the class are not renamed with it."""
+    """The window title is tinyTimekeep; technical identifiers stay space-free."""
 
     def test_display_name_and_technical_identifier(self):
-        assert app_main.WINDOW_TITLE == "Keeper of Time", app_main.WINDOW_TITLE
+        assert app_main.WINDOW_TITLE == "tinyTimekeep", app_main.WINDOW_TITLE
         assert app_main.APP_NAME == "KeeperOfTime", app_main.APP_NAME
 
     def test_package_and_class_names_are_unchanged_by_the_rename(self):
