@@ -1,0 +1,108 @@
+name: Windows Release Build
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-validate:
+    runs-on: windows-2022
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          # Keep tag builds pinned to the event SHA rather than a branch tip.
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify tagged commit is merged to main
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          $ErrorActionPreference = "Stop"
+          Write-Host "Validating that tag $env:GITHUB_REF_NAME ($env:GITHUB_SHA) is reachable from origin/main."
+          git fetch --no-tags origin "+refs/heads/main:refs/remotes/origin/main"
+          git rev-parse --verify "refs/remotes/origin/main^{commit}" | Out-Null
+          git merge-base --is-ancestor $env:GITHUB_SHA refs/remotes/origin/main
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Release tag $env:GITHUB_REF_NAME does not point to a commit merged to main; refusing to publish."
+            exit 1
+          }
+          Write-Host "Release tag commit is merged to main."
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          $ErrorActionPreference = "Stop"
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run check gate
+        run: python main.py --check
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Build with PyInstaller
+        run: python -m PyInstaller packaging/keeper-of-time.spec --noconfirm
+
+      - name: Verify executable exists
+        run: |
+          $ErrorActionPreference = "Stop"
+          if (-not (Test-Path "dist/KeeperOfTime.exe")) {
+            Write-Error "dist/KeeperOfTime.exe not found after build"
+            exit 1
+          }
+          Write-Host "dist/KeeperOfTime.exe confirmed"
+
+      - name: Upload release asset
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeeperOfTime-exe
+          path: dist/KeeperOfTime.exe
+          if-no-files-found: error
+
+  publish-release:
+    needs: build-and-validate
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - name: Download release asset
+        uses: actions/download-artifact@v4
+        with:
+          name: KeeperOfTime-exe
+          path: dist
+
+      - name: Determine release type
+        id: release-type
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tagName = $env:GITHUB_REF_NAME
+          if ($tagName -match '-') {
+            Write-Host "prerelease=true" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "prerelease=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tagName = $env:GITHUB_REF_NAME
+          $args = @("release", "create", $tagName, "dist/KeeperOfTime.exe", "--repo", $env:GITHUB_REPOSITORY, "--generate-notes", "--verify-tag")
+          if ("${{ steps.release-type.outputs.prerelease }}" -eq "true") {
+            $args += "--prerelease"
+          }
+          gh @args

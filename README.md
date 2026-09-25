@@ -72,6 +72,36 @@ Windows backend (`clr`/WebView2), which is the part that otherwise bites a `--on
 
 Target machines need the WebView2 runtime — present by default on Win10/11.
 
+## Releases
+
+Pushing a version tag starts the Windows release workflow. It checks out the tagged commit (not
+the current branch tip), installs the pinned build requirements with Python 3.11, runs
+`main.py --check` and the full unittest suite, then builds `dist\KeeperOfTime.exe` from
+`packaging\keeper-of-time.spec`. A failed gate prevents the release from being created.
+
+Promote the release commit from `dev` through a reviewed PR and ensure it is merged to `main`
+before tagging. After that `main` commit is on the remote, create and push a tag such as:
+
+```powershell
+git tag -a v1.2.3 -m "Keeper of Time v1.2.3"
+git push origin v1.2.3
+```
+
+Tags matching `v*` publish a GitHub Release. A tag name containing a hyphen, such as
+`v1.2.3-rc.1`, is published as a prerelease; a tag without a hyphen is a stable release. The
+workflow needs no personal access token or user-specific secret: only its release-publishing job
+uses the scoped `GITHUB_TOKEN` with `contents: write`. You can also start **Windows Release Build**
+manually from the Actions page to run the same build and test gates without publishing a release.
+
+GitHub automatically supplies source-code ZIP and TAR archives for every release tag. The workflow
+adds the Windows-only `KeeperOfTime.exe` asset; it does not create an installer or macOS/Linux
+executables. The executable is currently **unsigned**—Windows may show a SmartScreen warning.
+Target machines still need the WebView2 runtime (normally present on Windows 10/11).
+
+For the first release tag, confirm in the Actions log that the `Windows Release Build` workflow
+ran against that tag, that all gates passed, and that `KeeperOfTime.exe` is attached to the new
+GitHub Release before announcing it.
+
 ## The rules that keep the split honest
 
 - The core directory is a **verbatim copy** of `keeper-of-time-core`. Change it there, re-copy

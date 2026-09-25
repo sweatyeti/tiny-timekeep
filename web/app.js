@@ -22,6 +22,7 @@ function init() {
   wireActiveScreen();
   wireOverlay();
   wireEnterToSubmit();
+  wireThemePicker();
   loadPreferences();
   refresh();
   setInterval(refresh, 4000);       // resync state from the core
@@ -36,6 +37,10 @@ async function loadPreferences() {
     ['tasks', 'log', 'summary'].forEach((t) =>
       document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
   }
+  const theme = (typeof prefs.theme === 'string' && (prefs.theme === 'cute' || prefs.theme === 'cyber')) ? prefs.theme : 'cute';
+  document.body.dataset.theme = theme;
+  document.querySelectorAll('.theme-btn').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
 }
 
 async function refresh() {
@@ -271,6 +276,23 @@ function wireActiveScreen() {
   });
   document.getElementById('log-group-btn').onclick = openLogGroup;
   document.getElementById('deleted-btn').onclick = openDeletedEntries;
+}
+
+function wireThemePicker() {
+  document.querySelectorAll('.theme-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      const theme = btn.dataset.theme;
+      if (theme !== 'cute' && theme !== 'cyber') return;
+      document.body.dataset.theme = theme;
+      document.querySelectorAll('.theme-btn').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+      const stored = await api().set_preference('theme', theme);
+      const finalTheme = (typeof stored.theme === 'string' && (stored.theme === 'cute' || stored.theme === 'cyber')) ? stored.theme : 'cute';
+      document.body.dataset.theme = finalTheme;
+      document.querySelectorAll('.theme-btn').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.dataset.theme === finalTheme)));
+    };
+  });
 }
 
 // ---------- overlays ----------

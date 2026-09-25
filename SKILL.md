@@ -117,7 +117,9 @@ major versions. Core has zero non-stdlib dependencies (`json`, `uuid`,
 - UI preferences: `%LOCALAPPDATA%\KeeperOfTime\preferences.json` — a
   sibling file, deliberately *not* inside the sessions folder, since it's
   app/UI settings, not session data. Atomic writes (temp file + `os.replace`),
-  same pattern as the core uses for session files.
+  same pattern as the core uses for session files. `theme` defaults to `cute`;
+  the compact bottom picker can select `cute` or `cyber`, and invalid stored
+  values safely fall back to `cute`.
 
 **Frontend:** vanilla HTML/CSS/JS, no build step, no framework. Fonts:
 'Press Start 2P' (headers, banner, buttons) and 'VT323' (body/list text),
