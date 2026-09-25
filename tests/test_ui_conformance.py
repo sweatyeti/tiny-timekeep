@@ -1,0 +1,179 @@
+"""UI ⇄ core conformance: the checks that catch a swap mismatch without a screen.
+
+The frontend talks to `pywebview.api`, which is `main.Api` — a wrapper that carries window chrome
+and UI preferences around the core. Nothing verifies that contract at runtime, so these tests read
+the actual frontend source and assert it against the actual core:
+
+  * every `api().<method>` the frontend calls exists on `Api`
+  * `Api` exposes no method outside the core contract's surface plus a small app-level allowlist
+  * every view-model / query-row field the frontend reads exists in a live payload
+  * the frontend never reads a field the contract removed (`isActive` since v1.3)
+  * the wrapper passes arguments through in the right positions (a swapped pair would show up in
+    the UI as "renaming a task changed its description")
+"""
+
+import os
+import re
+import shutil
+import sys
+import tempfile
+import unittest
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+
+import main as app_main  # noqa: E402
+from timetracker_core import CONTRACT_VERSION  # noqa: E402
+
+WEB = os.path.join(ROOT, "web")
+APP_JS = os.path.join(WEB, "app.js")
+INDEX_HTML = os.path.join(WEB, "index.html")
+
+# Methods on Api that are NOT part of the core contract: window chrome and UI preferences.
+APP_LEVEL_METHODS = {
+    "set_window",            # internal wiring, not reachable from JS in practice
+    "move_window_to", "resize_window_to", "exit_app",
+    "get_preferences", "set_preference",
+}
+
+# Fields the frontend reads, by payload. Every one must be present in a live payload.
+FIELDS_READ = {
+    "session": {"id", "name", "startedAt"},
+    "currentEntry": {"id", "task", "startTime"},
+    "entries[]": {"id", "task", "description", "startTime", "endTime", "isComplete",
+                  "loggedStatus"},
+    "summary[]": {"task", "count", "unloggedMinutes", "totalMinutes", "callout"},
+    "totals": {"unloggedMinutes", "totalMinutes"},
+    "list_sessions[]": {"id", "name", "isUnfinished"},
+    "list_loggable_task_groups[]": {"task", "unloggedCount"},
+    "list_deleted_entries[]": {"id", "task", "startTime", "endTime", "description"},
+}
+
+
+def _read(path):
+    with open(path, encoding="utf-8") as handle:
+        return handle.read()
+
+
+class FrontendCase(unittest.TestCase):
+    """Shared fixture: a real Api over a throwaway data directory."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="koot-ui-conformance-")
+        self.api = app_main.Api(storage_path=os.path.join(self.tmp, "sessions"),
+                                preferences_path=os.path.join(self.tmp, "preferences.json"))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.api.start_session("Garden work", "weeding")
+        self.api.edit_entry(1, None, "front bed", None)
+        self.api.stop_and_start_entry("weeding")
+        self.api.edit_entry(2, None, "back bed", None)
+
+
+class TestFrontendCallsExist(unittest.TestCase):
+    def test_every_api_call_in_app_js_exists_on_api(self):
+        called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
+        assert called, "no api() calls found in app.js — the extractor or the frontend changed"
+        missing = sorted(m for m in called if not hasattr(app_main.Api, m))
+        assert missing == [], f"app.js calls methods Api does not have: {missing}"
+
+    def test_api_surface_is_the_contract_plus_the_app_level_methods(self):
+        public = {name for name in dir(app_main.Api) if not name.startswith("_")}
+        public.discard("core")        # attributes, not bridge methods
+        public.discard("prefs")
+        core_surface = {name for name in dir(app_main.Api)
+                        if not name.startswith("_")} & set(dir(app_main.TimeTrackerCore))
+        unexpected = sorted(public - core_surface - APP_LEVEL_METHODS)
+        assert unexpected == [], (
+            f"Api grew methods that are neither core contract nor declared app-level: {unexpected}"
+        )
+
+    def test_core_passthrough_methods_exist_on_the_core(self):
+        for name in ("get_state", "list_sessions", "start_session", "resume_session",
+                     "stop_and_start_entry", "edit_entry", "delete_entry", "restore_entry",
+                     "list_loggable_task_groups", "log_task_group", "list_deleted_entries",
+                     "stop_tracking", "stop_and_exit"):
+            assert hasattr(app_main.TimeTrackerCore, name), f"core is missing {name}"
+
+
+class TestFrontendFieldsExist(FrontendCase):
+    def test_live_view_model_carries_every_field_the_frontend_reads(self):
+        state = self.api.get_state()
+        for group in ("session", "currentEntry", "totals"):
+            missing = FIELDS_READ[group] - set(state[group])
+            assert missing == set(), f"{group} is missing {sorted(missing)}"
+        for group, payload in (("entries[]", state["entries"]), ("summary[]", state["summary"])):
+            missing = FIELDS_READ[group] - set(payload[0])
+            assert missing == set(), f"{group} is missing {sorted(missing)}"
+
+    def test_query_rows_carry_every_field_the_frontend_reads(self):
+        rows = {
+            "list_sessions[]": self.api.list_sessions(),
+            "list_loggable_task_groups[]": self.api.list_loggable_task_groups(),
+        }
+        self.api.stop_tracking()          # a running entry cannot be deleted
+        self.api.delete_entry(2)
+        rows["list_deleted_entries[]"] = self.api.list_deleted_entries()
+        for group, payload in rows.items():
+            assert payload, f"{group} came back empty — cannot check its shape"
+            missing = FIELDS_READ[group] - set(payload[0])
+            assert missing == set(), f"{group} is missing {sorted(missing)}"
+
+    def test_frontend_never_reads_a_field_the_contract_removed(self):
+        for path in (APP_JS, INDEX_HTML, os.path.join(WEB, "style.css")):
+            assert "isActive" not in _read(path), (
+                f"{os.path.basename(path)} still reads isActive, removed in contract v1.3"
+            )
+
+
+class TestWrapperPassesArgumentsThrough(FrontendCase):
+    """The wrapper's positional argument order is what the frontend depends on."""
+
+    def test_description_edit_does_not_touch_the_task(self):
+        self.api.edit_entry(2, None, "back bed, weeded")
+        entry = next(e for e in self.api.get_state()["entries"] if e["id"] == 2)
+        assert entry["task"] == "weeding", entry
+        assert entry["description"] == "back bed, weeded", entry
+
+    def test_task_edit_does_not_touch_the_description(self):
+        self.api.edit_entry(2, "mulching")
+        entry = next(e for e in self.api.get_state()["entries"] if e["id"] == 2)
+        assert entry["task"] == "mulching", entry
+        assert entry["description"] == "back bed", entry
+
+    def test_logged_flag_only_applies_to_completed_named_entries(self):
+        result = self.api.edit_entry(1, None, None, True)
+        assert result["ok"] is True, result
+        entry = next(e for e in self.api.get_state()["entries"] if e["id"] == 1)
+        assert entry["loggedStatus"] == "Logged", entry
+        running = self.api.edit_entry(2, None, None, True)
+        assert running["ok"] is False and running["error"] == "logged_not_applicable", running
+
+    def test_preferences_round_trip_through_the_bridge(self):
+        assert self.api.get_preferences()["activeTab"] == "tasks"     # default
+        self.api.set_preference("activeTab", "log")
+        assert self.api.get_preferences()["activeTab"] == "log"
+        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
+        assert reopened.get_all()["activeTab"] == "log", "preference did not persist"
+
+
+class TestFrontendNamesTheApp(unittest.TestCase):
+    def test_page_and_title_bar_use_the_display_name(self):
+        html = _read(INDEX_HTML)
+        assert "<title>Keeper of Time</title>" in html, "page title is not the display name"
+        assert "Keeper of Time" in html.split('id="titlebar"')[1].split("</div>")[0], (
+            "title bar label is not the display name"
+        )
+
+    def test_window_title_constant_matches(self):
+        assert app_main.WINDOW_TITLE == "Keeper of Time", app_main.WINDOW_TITLE
+
+    def test_contract_version_pinned_by_the_app_is_the_contract_in_the_specs(self):
+        spec = _read(os.path.join(ROOT, "specs", "core-logic-contract.md"))
+        assert f"version: {CONTRACT_VERSION}" in spec, (
+            f"specs do not declare {CONTRACT_VERSION} — the gate would pass on a stale spec"
+        )
+        assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION
+
+
+if __name__ == "__main__":
+    unittest.main()

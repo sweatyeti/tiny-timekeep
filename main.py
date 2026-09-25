@@ -1,92 +1,201 @@
-"""Keeper of Time — desktop entry point.
-
-This file is the one place the two layers meet: it builds the tracking core and hands it to
-pywebview as `js_api`. The core never imports anything from here, and the UI reaches the core
-only through that object.
-
-Run:      python main.py
-Check:    python main.py --check      (no window, no pywebview — verifies the core wiring)
-Build:    packaging/build.ps1         (Windows, produces dist/KeeperOfTime.exe)
 """
+Keeper of Time — pywebview host.
 
-from __future__ import annotations
+Wires the web UI (web/) to the real TimeTrackerCore (timetracker_core package), and exposes the
+app-level surface the UI also needs: window chrome (frameless drag/resize) and UI preferences.
 
+This file is the only place the two layers meet. `Api` carries three kinds of methods:
+
+  * window chrome (move_window_to, resize_window_to, exit_app) — not part of the core contract
+  * UI preferences (get_preferences, set_preference) — app settings, see preferences.py
+  * the core contract's commands/queries — delegated straight through to the core
+
+Provenance: the `Api` class, the window flags and the preference store come from the UI layer's
+own bootstrap. The version gate, `--check` mode, the writability probe and the data-dir override
+come from the scaffold that stood in for this file before the UI arrived. `core_mock.py`, the
+dev-time stand-in for the core, was deleted at integration — the real core is the only
+implementation now.
+
+Run:    python main.py
+Check:  python main.py --check      (no window, no pywebview — verifies the core wiring)
+Build:  packaging/build.ps1         (Windows, produces dist/KeeperOfTime.exe)
+"""
 import argparse
 import json
 import os
 import shutil
 import sys
 import tempfile
-from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
-APP_NAME = "KeeperOfTime"          # technical identifier: data folder, process name
-WINDOW_TITLE = "Keeper of Time"    # what a person sees
-# The contract version this app was built against (contract 6.3: a mismatch is a build-time
-# check, not a runtime surprise). Bump this together with the vendored core, never separately.
-CONTRACT_VERSION_EXPECTED = "v1.4"
+# The core package and preferences.py sit at the repo root, so the root is the import root.
+# Running this file puts BASE_DIR on sys.path anyway; doing it explicitly keeps `python -m` and
+# imported-from-tests runs working, and it has to happen before the local imports below.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
-HERE = Path(__file__).resolve().parent
-UI_INDEX = HERE / "web" / "index.html"
+from preferences import PreferencesStore  # noqa: E402
+from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
-# The core package sits at the repo root, so the root is the import root. Running this file puts
-# HERE on sys.path anyway; being explicit keeps it working when the working directory differs.
-if str(HERE) not in sys.path:
-    sys.path.insert(0, str(HERE))
+# Display name vs technical identifier: the window and title bar say "Keeper of Time", while the
+# executable, the data folder and the process name stay space-free.
+APP_NAME = "KeeperOfTime"
+WINDOW_TITLE = "Keeper of Time"
+DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
 
-from timetracker_core import CONTRACT_VERSION, TimeTrackerCore  # noqa: E402
+# Keep in lockstep with specs/core-logic-contract.md's frontmatter `version:`. This
+# is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
+# if timetracker_core ships a contract change this UI hasn't been updated
+# for, fail loudly here rather than disagree silently at runtime.
+EXPECTED_CONTRACT_VERSION = "v1.4"
+
+# Resolved relative to this file, not the current working directory — matters
+# once this is launched via a shortcut/startup entry rather than a terminal
+# already cd'd into this folder.
+INDEX_HTML = os.path.join(BASE_DIR, "web", "index.html")
 
 
-# ---------------------------------------------------------------------------
-# Where sessions live
-# ---------------------------------------------------------------------------
+def _user_data_base():
+    base = os.environ.get("LOCALAPPDATA")
+    if not base:
+        # Not on Windows (or LOCALAPPDATA unset) — dev-machine fallback only;
+        # the real target is Windows per contract §6.1.
+        base = os.path.expanduser("~/.local/share")
+    return base
 
-def default_sessions_dir() -> Path:
+
+def _default_storage_path():
     """Per-user data, never beside the executable.
 
     A one-file PyInstaller build unpacks to a temp directory and starts empty each run, so the
     storage path has to be somewhere that outlives the process.
     """
-    override = os.environ.get("KEEPER_OF_TIME_DATA_DIR")
+    override = os.environ.get(DATA_DIR_ENV)
     if override:
-        return Path(override).expanduser()
-    local_appdata = os.environ.get("LOCALAPPDATA")          # Windows
-    if local_appdata:
-        return Path(local_appdata) / APP_NAME / "sessions"
-    return Path.home() / ".local" / "share" / APP_NAME / "sessions"   # dev on other platforms
+        return os.path.expanduser(override)
+    path = os.path.join(_user_data_base(), APP_NAME, "sessions")
+    os.makedirs(path, exist_ok=True)
+    return path
 
 
-def ensure_usable_sessions_dir(directory: Path) -> None:
+def _default_preferences_path():
+    override = os.environ.get(DATA_DIR_ENV)
+    if override:
+        return os.path.join(os.path.expanduser(override), "preferences.json")
+    return os.path.join(_user_data_base(), APP_NAME, "preferences.json")
+
+
+def ensure_usable_sessions_dir(path):
     """Create the directory and prove we can write to it.
 
     The core deliberately does not raise on an unusable path (it answers `internal_error` on the
-    first command instead), so the check belongs here, where it can stop the app at startup with a
-    message a person can act on.
+    first command instead), so the loud, human-readable failure belongs here, at startup.
     """
     try:
-        directory.mkdir(parents=True, exist_ok=True)
-        probe = directory / ".write-probe"
-        probe.write_text("ok", encoding="utf-8")
-        probe.unlink()
+        os.makedirs(path, exist_ok=True)
+        probe = os.path.join(path, ".write-probe")
+        with open(probe, "w", encoding="utf-8") as f:
+            f.write("ok")
+        os.remove(probe)
     except OSError as exc:
         raise SystemExit(
-            f"Cannot use the sessions directory:\n  {directory}\n  {exc}\n"
-            f"Set KEEPER_OF_TIME_DATA_DIR to a writable folder and try again."
+            f"Cannot use the sessions directory:\n  {path}\n  {exc}\n"
+            f"Set {DATA_DIR_ENV} to a writable folder and try again."
         )
 
 
-# ---------------------------------------------------------------------------
-# The version gate (contract 6.3)
-# ---------------------------------------------------------------------------
-
-def check_contract_version() -> None:
-    if CONTRACT_VERSION != CONTRACT_VERSION_EXPECTED:
+def check_contract_version():
+    if CONTRACT_VERSION != EXPECTED_CONTRACT_VERSION:
         raise SystemExit(
-            f"Contract version mismatch: the app expects {CONTRACT_VERSION_EXPECTED}, "
-            f"the vendored core says {CONTRACT_VERSION}.\n"
-            f"The core and the UI were built against different contracts - update whichever is "
-            f"behind before running."
+            f"Contract version mismatch: this UI build expects "
+            f"{EXPECTED_CONTRACT_VERSION!r}, but timetracker_core reports "
+            f"{CONTRACT_VERSION!r}. Re-check specs/core-logic-contract.md against "
+            f"both sides before running — see §6.3's compatibility rule."
         )
+
+
+class Api:
+    """Exposed to the frontend as `pywebview.api`. Three kinds of methods:
+    window chrome (move_window_to, exit_app), UI preferences (get/set_preference,
+    separate from the core contract), and the core contract commands/queries,
+    delegated straight through to the core implementation.
+    """
+
+    def __init__(self, storage_path=None, preferences_path=None):
+        self.core = TimeTrackerCore(storage_path or _default_storage_path())
+        self.prefs = PreferencesStore(preferences_path or _default_preferences_path())
+        self._window = None
+
+    def set_window(self, window):
+        self._window = window
+
+    # --- window chrome (not part of the core contract) ---
+
+    def move_window_to(self, x, y):
+        if self._window is not None:
+            self._window.move(int(x), int(y))
+
+    def resize_window_to(self, width, height):
+        # Frameless windows have no OS-drawn resize handles, so resizable=True
+        # alone does nothing — this backs a hand-built resize grip in the UI,
+        # same reason the title bar needs hand-built drag.
+        if self._window is not None:
+            self._window.resize(int(width), int(height))
+
+    def exit_app(self):
+        if self._window is not None:
+            self._window.destroy()
+
+    # --- UI preferences (separate from the core contract — see preferences.py) ---
+
+    def get_preferences(self):
+        return self.prefs.get_all()
+
+    def set_preference(self, key, value):
+        return self.prefs.set(key, value)
+
+    # --- core contract passthrough ---
+
+    def get_state(self):
+        return self.core.get_state()
+
+    def list_sessions(self):
+        return self.core.list_sessions()
+
+    def start_session(self, name=None, first_task=None):
+        return self.core.start_session(name, first_task)
+
+    def resume_session(self, session_id):
+        return self.core.resume_session(session_id)
+
+    def stop_and_start_entry(self, next_task=None):
+        return self.core.stop_and_start_entry(next_task)
+
+    def edit_entry(self, entry_id, task=None, description=None, logged=None):
+        return self.core.edit_entry(entry_id, task, description, logged)
+
+    def delete_entry(self, entry_id):
+        return self.core.delete_entry(entry_id)
+
+    def restore_entry(self, entry_id):
+        return self.core.restore_entry(entry_id)
+
+    def list_loggable_task_groups(self):
+        return self.core.list_loggable_task_groups()
+
+    def log_task_group(self, task):
+        return self.core.log_task_group(task)
+
+    def list_deleted_entries(self):
+        return self.core.list_deleted_entries()
+
+    def stop_tracking(self):
+        return self.core.stop_tracking()
+
+    def stop_and_exit(self):
+        return self.core.stop_and_exit()
 
 
 # ---------------------------------------------------------------------------
@@ -96,22 +205,22 @@ def check_contract_version() -> None:
 class _FixedClock:
     """Deterministic clock so --check prints the same numbers every time."""
 
-    def __init__(self, start: datetime) -> None:
+    def __init__(self, start):
         self._now = start
 
-    def __call__(self) -> datetime:
+    def __call__(self):
         return self._now
 
-    def advance(self, **kwargs) -> None:
+    def advance(self, **kwargs):
         self._now = self._now + timedelta(**kwargs)
 
 
-def run_checks() -> int:
+def run_checks():
     """Exercise the core end to end in a throwaway directory. Never opens a window."""
-    print(f"{WINDOW_TITLE}: contract {CONTRACT_VERSION} (expected {CONTRACT_VERSION_EXPECTED})")
+    print(f"{WINDOW_TITLE}: contract {CONTRACT_VERSION} (expected {EXPECTED_CONTRACT_VERSION})")
     check_contract_version()
 
-    workdir = Path(tempfile.mkdtemp(prefix="keeper-of-time-check-"))
+    workdir = tempfile.mkdtemp(prefix="keeper-of-time-check-")
     try:
         clock = _FixedClock(datetime(2026, 9, 23, 9, 0, 0, tzinfo=timezone.utc))
         core = TimeTrackerCore(workdir, clock=clock)
@@ -152,11 +261,21 @@ def run_checks() -> int:
         if "isActive" in state["session"]:
             print("FAIL: 'isActive' is not part of contract v1.4", file=sys.stderr)
             return 1
-        if not UI_INDEX.exists():
-            print(f"note: no UI yet at {UI_INDEX} (drop your frontend folder in to run the app)")
+
+        # v1.4: a deleted row carries the description the restore screen renders.
+        core.delete_entry(2)
+        deleted = core.list_deleted_entries()
+        if not deleted or sorted(deleted[0].keys()) != ["description", "endTime", "id",
+                                                        "startTime", "task"]:
+            print(f"FAIL: list_deleted_entries row shape wrong: {json.dumps(deleted)}",
+                  file=sys.stderr)
+            return 1
+
+        if not os.path.exists(INDEX_HTML):
+            print(f"note: no UI yet at {INDEX_HTML}")
         else:
-            print(f"ui: {UI_INDEX} present")
-        print(f"sessions dir would be: {default_sessions_dir()}")
+            print(f"ui: {INDEX_HTML} present")
+        print(f"sessions dir would be: {_default_storage_path()}")
         print("OK")
         return 0
     finally:
@@ -167,12 +286,12 @@ def run_checks() -> int:
 # Run
 # ---------------------------------------------------------------------------
 
-def main(argv=None) -> int:
+def main(argv=None):
     parser = argparse.ArgumentParser(description=f"{WINDOW_TITLE} - desktop time tracker")
     parser.add_argument("--check", action="store_true",
                         help="verify the core wiring and exit without opening a window")
     parser.add_argument("--sessions-dir", type=Path, default=None,
-                        help=f"where session documents live (default: {default_sessions_dir()})")
+                        help=f"where session documents live (default: {_default_storage_path()})")
     parser.add_argument("--debug", action="store_true", help="open the webview with devtools")
     args = parser.parse_args(argv)
 
@@ -181,17 +300,18 @@ def main(argv=None) -> int:
 
     check_contract_version()
 
-    sessions_dir = args.sessions_dir or default_sessions_dir()
+    sessions_dir = str(args.sessions_dir) if args.sessions_dir else _default_storage_path()
     ensure_usable_sessions_dir(sessions_dir)
-    core = TimeTrackerCore(sessions_dir)
-
-    if not UI_INDEX.exists():
+    if not os.path.exists(INDEX_HTML):
         raise SystemExit(
-            f"No frontend found at {UI_INDEX}.\n"
-            f"Put the UI files in {HERE / 'web'} (index.html at its root) and try again."
+            f"No frontend found at {INDEX_HTML}.\n"
+            f"Put the UI files in {os.path.join(BASE_DIR, 'web')} (index.html at its root) "
+            f"and try again."
         )
 
     try:
+        # Imported here rather than at module level so --check runs on a machine with no
+        # pywebview installed and no display.
         import webview
     except ImportError as exc:
         raise SystemExit(
@@ -199,8 +319,21 @@ def main(argv=None) -> int:
             f"Install the pinned version:  python -m pip install -r requirements.txt"
         )
 
-    window = webview.create_window(WINDOW_TITLE, str(UI_INDEX), js_api=core)
-    _ = window
+    api = Api(storage_path=sessions_dir)
+    window = webview.create_window(
+        WINDOW_TITLE,
+        INDEX_HTML,
+        js_api=api,
+        frameless=True,
+        easy_drag=False,  # we implement our own title-bar drag in JS
+        resizable=True,
+        width=380,
+        height=680,
+        min_size=(300, 420),
+        background_color="#1b1330",
+        on_top=False,
+    )
+    api.set_window(window)
     webview.start(debug=args.debug)
     return 0
 

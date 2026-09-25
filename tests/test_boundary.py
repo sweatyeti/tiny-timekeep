@@ -60,8 +60,8 @@ class TestCoreStaysIsolated(unittest.TestCase):
 
 class TestVersionGate(unittest.TestCase):
     def test_app_expects_the_contract_the_core_declares(self):
-        assert app_main.CONTRACT_VERSION_EXPECTED == CONTRACT_VERSION, (
-            f"app expects {app_main.CONTRACT_VERSION_EXPECTED}, core declares {CONTRACT_VERSION}"
+        assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION, (
+            f"app expects {app_main.EXPECTED_CONTRACT_VERSION}, core declares {CONTRACT_VERSION}"
         )
 
     def test_core_version_constant_is_importable_from_the_app_path(self):
@@ -84,7 +84,7 @@ class TestNaming(unittest.TestCase):
 class TestAppWiring(unittest.TestCase):
     def test_sessions_dir_is_not_beside_the_executable(self):
         """A one-file build unpacks to a temp dir, so storage must not live next to the exe."""
-        candidate = app_main.default_sessions_dir()
+        candidate = app_main._default_storage_path()
         assert str(candidate).startswith(str(ROOT)) is False, candidate
 
     def test_check_mode_reports_ok(self):

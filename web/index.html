@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Keeper of Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="titlebar">
+    <span id="titlebar-label">✦ Keeper of Time</span>
+    <button id="close-btn" class="chrome-btn" title="Stop &amp; exit">✕</button>
+  </div>
+
+  <main id="app">
+
+    <!-- No session loaded: choose start / resume -->
+    <section id="screen-start" class="screen hidden">
+      <h2>Start tracking</h2>
+      <div class="field-row">
+        <input id="new-session-name" placeholder="Session name (optional)">
+      </div>
+      <div class="field-row">
+        <input id="new-session-task" placeholder="First task (optional)">
+      </div>
+      <button id="start-session-btn" class="btn btn-primary">Start new session</button>
+
+      <h2 class="mt">Resume a session</h2>
+      <div id="session-list" class="session-list"></div>
+    </section>
+
+    <!-- Active session -->
+    <section id="screen-active" class="screen hidden">
+
+      <div class="now-tracking">
+        <div class="status-banner inactive" id="status-banner">○ NOT TRACKING</div>
+        <div class="now-tracking-top">
+          <div class="now-tracking-label" id="current-label">Not tracking</div>
+          <div class="now-tracking-start" id="current-start"></div>
+        </div>
+        <div class="now-tracking-actions">
+          <button id="stop-btn" class="btn btn-mini hidden">■ Stop</button>
+          <button id="stop-start-btn" class="btn btn-mini btn-mini-accent">▶ Start new</button>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button id="log-group-btn" class="btn btn-mini">Log group</button>
+        <button id="deleted-btn" class="btn btn-mini">Deleted</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tasks">Tasks</button>
+        <button class="tab-btn" data-tab="log">Log</button>
+        <button class="tab-btn" data-tab="summary">Summary</button>
+      </div>
+
+      <div id="tab-tasks" class="tab-panel">
+        <div id="task-rows" class="rows"></div>
+        <div class="hint-text">▶ starts tracking that task (stopping whatever's currently running)</div>
+      </div>
+
+      <div id="tab-log" class="tab-panel hidden">
+        <div id="entry-rows" class="rows"></div>
+      </div>
+
+      <div id="tab-summary" class="tab-panel hidden">
+        <div class="summary-head">
+          <span>Task</span><span>Count</span><span>Unlogged</span><span>Total</span>
+        </div>
+        <div id="summary-rows" class="rows"></div>
+        <div class="summary-totals" id="summary-totals"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Overlays -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-panel">
+      <div class="overlay-head">
+        <span id="overlay-title">Title</span>
+        <button id="overlay-close" class="chrome-btn">✕</button>
+      </div>
+      <div id="overlay-body"></div>
+    </div>
+  </div>
+
+  <div id="resize-grip" title="Drag to resize"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
