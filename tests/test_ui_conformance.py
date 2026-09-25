@@ -32,7 +32,7 @@ INDEX_HTML = os.path.join(WEB, "index.html")
 # Methods on Api that are NOT part of the core contract: window chrome and UI preferences.
 APP_LEVEL_METHODS = {
     "set_window",            # internal wiring, not reachable from JS in practice
-    "move_window_to", "resize_window_to", "exit_app",
+    "move_window_to", "resize_window_to", "minimize_window", "exit_app",
     "get_preferences", "set_preference",
 }
 
@@ -173,6 +173,49 @@ class TestFrontendNamesTheApp(unittest.TestCase):
             f"specs do not declare {CONTRACT_VERSION} — the gate would pass on a stale spec"
         )
         assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION
+
+
+class TestChromeAndTheming(unittest.TestCase):
+    """Window chrome and themed surfaces — the parts a contract test cannot see."""
+
+    def test_title_bar_has_a_minimize_control_and_it_is_wired(self):
+        assert 'id="min-btn"' in _read(INDEX_HTML), "no minimize control in the title bar"
+        assert "api().minimize_window()" in _read(APP_JS), "the minimize control is not wired"
+
+    def test_minimize_is_a_window_action_not_a_tray_action(self):
+        """The ask was a normal minimize to the taskbar. A tray minimize hides the window
+        and drops it off the taskbar, which is a different behaviour — pin the distinction."""
+        import inspect
+        src = inspect.getsource(app_main.Api.minimize_window)
+        body = src.split('"""')[-1]      # the docstring names the alternative on purpose
+        assert "self._window.minimize()" in body, src
+        assert "hide()" not in body, src
+
+    def test_the_scrolling_containers_style_their_scrollbars(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        assert "::-webkit-scrollbar" in css, "scrollbar left at the platform default"
+        tail = css.split("::-webkit-scrollbar", 1)[1]
+        for token in ("--panel-row", "--text-dim", "--accent-mint"):
+            assert token in tail, f"{token} missing from the scrollbar styling"
+
+    def test_scrollbar_width_is_not_overridden_by_the_standard_properties(self):
+        """Chromium ignores ::-webkit-scrollbar entirely when scrollbar-width is set, so a
+        stray standard property would silently undo the theming."""
+        css = _read(os.path.join(WEB, "style.css"))
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)   # the comment below names them
+        for prop in ("scrollbar-width", "scrollbar-color"):
+            assert prop not in css, f"{prop} would disable the webkit scrollbar rules"
+
+    def test_inactive_banner_does_not_reuse_the_title_bar_pink(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        rules = [line for line in css.splitlines() if ".status-banner.inactive" in line]
+        assert rules, "the inactive banner rule is missing"
+        rule = rules[0]
+        assert "--inactive" in rule, rule
+        assert "--titlebar" not in rule and "--accent-pink" not in rule, (
+            f"the inactive banner is sharing a token again: {rule}"
+        )
+        assert "--inactive:" in css, "the --inactive token is not defined on :root"
 
 
 if __name__ == "__main__":
