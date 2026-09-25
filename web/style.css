@@ -8,6 +8,10 @@
   --titlebar-text: #2a1f3d;
   --accent-pink: #ff8fa3;
   --accent-mint: #7de8c8;
+  --inactive: #dd6f97;    /* NOT TRACKING banner. A deeper, richer rose on purpose: it must
+                             read as "in the same family as" the title bar without being the
+                             same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
+                             at #ff8fa3). Do not collapse these back into one token. */
   --text-main: #f2e9da;
   --text-dim: #b9a9d1;
   --callout: #ff6b6b;
@@ -55,6 +59,26 @@ html, body {
   height: calc(100% - 52px);
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Scrollbars. The platform default is a rounded grey bar that breaks the pixel look the
+   moment the window is smaller than the content. WebView2 is Chromium, so the
+   ::-webkit-scrollbar pseudo-elements are the mechanism that actually applies — and they
+   are silently ignored if `scrollbar-width`/`scrollbar-color` are also set, so don't. */
+#app::-webkit-scrollbar, #overlay-body::-webkit-scrollbar { width: 14px; }
+#app::-webkit-scrollbar-track, #overlay-body::-webkit-scrollbar-track {
+  background: var(--panel-row);
+  border-left: 2px solid var(--border-dark);
+}
+#app::-webkit-scrollbar-thumb, #overlay-body::-webkit-scrollbar-thumb {
+  background: var(--text-dim);              /* same chrome colour as the resize grip */
+  border: 2px solid var(--border-dark);
+}
+#app::-webkit-scrollbar-thumb:hover, #overlay-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-mint);
+}
+#app::-webkit-scrollbar-corner, #overlay-body::-webkit-scrollbar-corner {
+  background: var(--panel-row);
 }
 
 h2 {
@@ -115,7 +139,7 @@ input::placeholder { color: var(--text-dim); }
   border-bottom: 3px solid var(--border-dark);
 }
 .status-banner.active { background: var(--accent-mint); color: var(--border-dark); }
-.status-banner.inactive { background: var(--accent-pink); color: var(--border-dark); }
+.status-banner.inactive { background: var(--inactive); color: var(--border-dark); }
 .hint-text { font-size: 14px; color: var(--text-dim); padding: 10px 4px 0; }
 .now-tracking-top {
   display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;

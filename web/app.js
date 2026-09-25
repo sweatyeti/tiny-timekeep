@@ -237,6 +237,10 @@ function wireTitlebar() {
   });
   window.addEventListener('mouseup', () => { dragging = false; });
 
+  document.getElementById('min-btn').onclick = () => {
+    api().minimize_window();
+  };
+
   document.getElementById('close-btn').onclick = async () => {
     await api().stop_and_exit();
     await api().exit_app();

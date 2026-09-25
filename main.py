@@ -144,6 +144,12 @@ class Api:
         if self._window is not None:
             self._window.resize(int(width), int(height))
 
+    def minimize_window(self):
+        """Minimize to the taskbar (a normal minimize — this is deliberately not a
+        minimize-to-tray: nothing here hides the process or removes it from the taskbar)."""
+        if self._window is not None:
+            self._window.minimize()
+
     def exit_app(self):
         if self._window is not None:
             self._window.destroy()
