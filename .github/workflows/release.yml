@@ -84,17 +84,6 @@ jobs:
           name: KeeperOfTime-exe
           path: dist
 
-      - name: Determine release type
-        id: release-type
-        run: |
-          $ErrorActionPreference = "Stop"
-          $tagName = $env:GITHUB_REF_NAME
-          if ($tagName -match '-') {
-            Write-Host "prerelease=true" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Host "prerelease=false" >> $env:GITHUB_OUTPUT
-          }
-
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,7 +91,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $tagName = $env:GITHUB_REF_NAME
           $args = @("release", "create", $tagName, "dist/KeeperOfTime.exe", "--repo", $env:GITHUB_REPOSITORY, "--generate-notes", "--verify-tag")
-          if ("${{ steps.release-type.outputs.prerelease }}" -eq "true") {
+          if ($tagName -match '-') {
             $args += "--prerelease"
           }
           gh @args
