@@ -32,7 +32,7 @@ gate below stops a stale copy from running silently.
 main.py                   the only meeting point: builds the core, starts pywebview
 timetracker_core/         the core, vendored verbatim at the repo root (stdlib-only; do not edit here)
 web/                      the frontend (drop-in)
-tests/                    the core's 79 tests, unmodified, plus tests/test_boundary.py
+tests/                    the core's 73 tests, unmodified, plus boundary + UI-conformance tests (94 total)
 specs/                    the contract (v1.4) and the functional spec (v2.0)
 packaging/                pyinstaller spec + build.ps1
 CORE-VERSION              which core commit this copy came from
@@ -82,11 +82,22 @@ Target machines need the WebView2 runtime — present by default on Win10/11.
 
 ## Verified in this copy
 
-- `python -m unittest discover -s tests` → **79 tests, OK** on a bare Python 3.11 (no venv, no
-  installed packages): the core's 73 plus 6 boundary tests.
+- `python -m unittest discover -s tests` → **94 tests, OK** on a bare Python 3.11 (no venv, no
+  installed packages): the core's 73, 8 boundary tests, and 13 UI-conformance tests.
 - `python main.py --check` → `Keeper of Time: contract v1.4`, golden fixture matching the contract's §2 view model
   exactly (weeding 2/30/75 callout true; unnamed 1/15/15 callout false; totals 30/75), no
   `isActive` in the session object, and the sessions directory reported.
-- The PyInstaller path has **not** been exercised here — there is no Windows host and no
-  WebView2 on this machine. Build it on Windows and report what breaks; that is the one part of
-  this scaffold that is reasoned rather than proven.
+- **Windows, end to end** (Windows 11 Pro 26200, Python 3.11.9, WebView2 153): the suite passes
+  (94 OK) and `--check` prints the same golden fixture. Booted the real app and drove the frontend
+  through the bridge — 21 API methods exposed, and `get_state`, `list_sessions`,
+  `list_loggable_task_groups`, `get_preferences`, `set_preference`, `stop_and_start_entry`,
+  `delete_entry`, `list_deleted_entries` (deleted row carried its `description`), and `restore_entry`
+  all round-tripped. The DOM rendered 1 task row, 2 entry rows and 1 summary row with the real
+  colour tokens applied (`VT323`, titlebar `rgb(255,158,187)`), zero JS errors.
+- **The packaged exe was built and run**: `dist\KeeperOfTime.exe`, 13.8 MB, one-file, windowed
+  (sha256 `5F72E38F…`). Launched into `Session 1`, spawned 13 WebView2 child processes, rendered its
+  start screen, and wrote sessions to `%LOCALAPPDATA%\KeeperOfTime\sessions` — not the one-file
+  extraction directory.
+- Known gap: launch-to-loaded measured **25.9 s** on a cold first load, caused by `web/index.html`
+  fetching Google Fonts from the CDN. Vendoring the fonts locally removes the stall and the
+  offline dependency.

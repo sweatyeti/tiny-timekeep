@@ -28,13 +28,14 @@ the contract, currently on **contract v1.4**. Covers:
 
 **Core:** built and now **vendored into this repo** — `timetracker_core/` sits at the repo root
 (flat, no `src/`), a verbatim copy of `keeper-of-time-core` @ `1afc7fa`, contract **v1.4**.
-Verified here: **81 tests OK** on a bare Python 3.11 (the core's 73 plus 8 boundary tests), and
+Verified here: **94 tests OK** (the core's 73, 8 boundary tests, 13 UI-conformance tests), and
 `python main.py --check` prints `contract v1.4 (expected v1.4)` and the golden fixture exactly.
 
-**Still to merge:** the scaffold `main.py` in this repo is Hermes-built wiring (version gate,
-sessions-dir probe, `--check`, packaging scaffold). The UI layer's own `main.py` + `Api` replace it
-when they land — theirs owns window creation and chrome; the scaffold's `--check` and the boundary
-tests are worth folding in.
+**Merged:** the UI layer's `main.py` + `preferences.py` + `web/` are in this repo and the scaffold
+`main.py` is gone. Theirs owns window creation and chrome — `Api` wraps the real core and adds
+`move_window_to`/`resize_window_to`/`get_preferences`/`set_preference`. The scaffold's version gate
+and `--check` were folded in, and `tests/test_ui_conformance.py` pins every `pywebview.api.*` call
+in `app.js` to a real `Api` or core method. `core_mock.py` is deleted.
 
 ## Contract state — v1.4, full history
 
@@ -88,11 +89,17 @@ imports it anymore.
 - ~~pywebview version isn't pinned~~ — **done**: `pywebview==6.2.1` (exact, looked up live from
   PyPI) in `requirements.txt`, `pyinstaller==6.22.3` in `requirements-dev.txt`. No lockfile
   (`uv`/pip-tools) yet — exact top-level pins only.
-- ~~No packaging/distribution~~ — **scaffolded**: `packaging/keeper-of-time.spec` +
-  `packaging/build.ps1` (one-file, windowed, bundles `web/`, collects pywebview's WebView2 backend;
-  refuses to build unless the suite and `--check` pass). **Not verified on Windows** — no Windows
-  host or WebView2 here, so the exe has never actually been built. Still no installer and no
-  startup-shortcut setup.
+- ~~No packaging/distribution~~ — **built and run on Windows**: `packaging/keeper-of-time.spec`
+  (one-file, windowed, bundles `web/`, collects pywebview's WebView2 backend) produced
+  `dist\KeeperOfTime.exe` (13.8 MB) on Windows 11 / Python 3.11.9. It launched into the console
+  session, spawned 13 WebView2 child processes, rendered its start screen, and wrote sessions to
+  `%LOCALAPPDATA%\KeeperOfTime\sessions` rather than the one-file extraction directory.
+  `packaging/build.ps1` still refuses to build unless the suite and `--check` pass.
+  Remaining: no installer, no startup shortcut, no icon, no code signing.
+- **Google Fonts are fetched from the CDN** by `web/index.html`, so a cold first launch waits on
+  the network — measured **25.9 s** to `loaded` on a cold cache. Vendoring the font files into
+  `web/` and dropping the remote `@import`/`<link>` removes both the stall and the offline
+  dependency. This is the last known user-visible defect.
 - **Minimize-to-tray was requested but never built.** The original ask was
   "toggleable between always-on-top and minimize-to-tray." Always-on-top
   was implemented, then removed entirely after `w.on_top` hung/crashed the
