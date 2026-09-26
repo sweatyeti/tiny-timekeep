@@ -38,11 +38,12 @@ body[data-theme="cyber"] {
   --logged: #44ff88;
   --border-dark: #050510;
   --font-display: var(--font-body);
-  --cyber-size-title: 18px;
-  --cyber-size-control: 17px;
-  --cyber-size-compact: 16px;
-  --cyber-size-header: 15px;
-  --cyber-size-icon: 18px;
+  --cyber-size-bump: 2pt;
+  --cyber-size-title: calc(18px + var(--cyber-size-bump));
+  --cyber-size-control: calc(17px + var(--cyber-size-bump));
+  --cyber-size-compact: calc(16px + var(--cyber-size-bump));
+  --cyber-size-header: calc(15px + var(--cyber-size-bump));
+  --cyber-size-icon: calc(18px + var(--cyber-size-bump));
 }
 
 * { box-sizing: border-box; }

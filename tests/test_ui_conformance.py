@@ -291,11 +291,12 @@ class TestChromeAndTheming(unittest.TestCase):
     def test_cyber_size_tokens_and_overrides(self):
         css = _read(os.path.join(WEB, "style.css"))
         for token, val in [
-            ("--cyber-size-title", "18px"),
-            ("--cyber-size-control", "17px"),
-            ("--cyber-size-compact", "16px"),
-            ("--cyber-size-header", "15px"),
-            ("--cyber-size-icon", "18px"),
+            ("--cyber-size-bump", "2pt"),
+            ("--cyber-size-title", "calc(18px + var(--cyber-size-bump))"),
+            ("--cyber-size-control", "calc(17px + var(--cyber-size-bump))"),
+            ("--cyber-size-compact", "calc(16px + var(--cyber-size-bump))"),
+            ("--cyber-size-header", "calc(15px + var(--cyber-size-bump))"),
+            ("--cyber-size-icon", "calc(18px + var(--cyber-size-bump))"),
         ]:
             assert f"{token}: {val};" in css, f"missing {token}: {val};"
         marker = "/* Cyber VT323 readability overrides */"
