@@ -352,6 +352,31 @@ class TestPixelCompanionStyles(unittest.TestCase):
         found = any("awake" in sel for sel, _ in rules)
         self.assertTrue(found, "No companion rule for awake mode")
 
+    def test_companion_paw_is_attached_lower_body(self):
+        pattern = (
+            r'\.companion-paw\s*\{'
+            r'\s*position\s*:\s*absolute\s*;'
+            r'\s*bottom\s*:\s*0\s*;'
+            r'\s*left\s*:\s*50%\s*;'
+            r'\s*transform\s*:\s*translateX\(-50%\)\s*;'
+            r'\s*width\s*:\s*22px\s*;'
+            r'\s*height\s*:\s*11px\s*;'
+            r'\s*background\s*:\s*var\(--text-main\)\s*;'
+            r'\s*border\s*:\s*2px\s+solid\s+var\(--border-dark\)\s*;'
+            r'\s*box-sizing\s*:\s*border-box\s*;'
+            r'\s*\}'
+        )
+        self.assertRegex(self.css, pattern)
+
+        cat_height = 36
+        paw_height = 11
+        paw_bottom = 0
+        face_bottom = 27
+        expected_paw_top = 25
+        paw_top = cat_height - paw_height - paw_bottom
+        self.assertEqual(paw_top, expected_paw_top)
+        self.assertLess(paw_top, face_bottom)
+
     def test_reduced_motion_media_query(self):
         m = re.search(
             r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{",
