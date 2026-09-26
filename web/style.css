@@ -352,3 +352,47 @@ input::placeholder { color: var(--text-dim); }
   outline: 2px solid var(--accent-pink);
   outline-offset: 1px;
 }
+
+.save-location-choose {
+  background: var(--accent-pink);
+  color: var(--border-dark);
+  margin-top: 0.75rem;
+  padding: 0.45rem 1rem;
+}
+
+.save-location-confirmation {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg-top);
+}
+
+.save-location-confirmation-panel {
+  background: var(--panel);
+  border: 1px solid var(--border-dark);
+  border-top: 2px solid var(--accent-pink);
+  max-width: 28rem;
+  padding: 1.25rem 1.5rem;
+  color: var(--text-main);
+}
+
+.save-location-confirmation-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.save-location-confirmation .btn-mini {
+  background: var(--panel-row);
+  color: var(--text-main);
+  border: 1px solid var(--border-dark);
+}
+
+.save-location-confirmation button:focus-visible {
+  outline: 2px solid var(--accent-mint);
+  outline-offset: 2px;
+}

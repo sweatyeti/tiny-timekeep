@@ -323,6 +323,49 @@ function renderSaveLocation(prefs) {
   button.setAttribute('aria-label', button.title);
 }
 
+function confirmSaveLocation(message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'save-location-confirmation';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Confirm save location');
+    const panel = document.createElement('div');
+    panel.className = 'save-location-confirmation-panel';
+    const p = document.createElement('p');
+    p.textContent = message;
+    const actions = document.createElement('div');
+    actions.className = 'save-location-confirmation-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'btn btn-mini';
+    cancelBtn.type = 'button';
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Continue';
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.type = 'button';
+    actions.append(cancelBtn, confirmBtn);
+    panel.append(p, actions);
+    overlay.append(panel);
+    document.body.append(overlay);
+    let done = false;
+    function finish(value) {
+      if (done) return;
+      done = true;
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(value);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') finish(false);
+    }
+    document.addEventListener('keydown', onKey);
+    cancelBtn.addEventListener('click', () => finish(false));
+    confirmBtn.addEventListener('click', () => finish(true));
+    confirmBtn.focus();
+  });
+}
+
 function wireSaveLocation() {
   document.getElementById('save-location-btn').onclick = async () => {
     const prefs = await api().get_preferences();
@@ -335,6 +378,7 @@ function wireSaveLocation() {
     path.textContent = prefs.entrySaveLocation || '(default location)';
     const choose = document.createElement('button');
     choose.type = 'button';
+    choose.className = 'btn btn-primary save-location-choose';
     choose.id = 'choose-entry-save-location';
     choose.textContent = 'Choose folder…';
     choose.disabled = locked;
@@ -350,8 +394,8 @@ function wireSaveLocation() {
         if (!selection.cancelled) document.getElementById('entry-save-location-path').textContent = selection.message || 'Could not choose folder.';
         return;
       }
-      if (!window.confirm(`Use this folder for new sessions?\n${selection.path}`)) return;
-      const moveExisting = window.confirm('Move existing session files to this folder? Choose Cancel to leave them where they are.');
+      if (!await confirmSaveLocation(`Use this folder for new sessions?\n${selection.path}`)) return;
+      const moveExisting = await confirmSaveLocation('Move existing session files to this folder? Choose Cancel to leave them where they are.');
       const result = await api().set_preference('entrySaveLocation', selection.path, moveExisting);
       if (result.ok) {
         const latest = await api().get_preferences();

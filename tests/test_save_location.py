@@ -110,12 +110,28 @@ class SaveLocationTests(unittest.TestCase):
             html = handle.read()
         with open(os.path.join(main.BASE_DIR, "web", "app.js"), encoding="utf-8") as handle:
             js = handle.read()
+        with open(os.path.join(main.BASE_DIR, "web", "style.css"), encoding="utf-8") as handle:
+            css = handle.read()
         self.assertIn('id="save-location-btn"', html)
         self.assertIn('aria-label="Entry save location"', html)
-        self.assertIn("window.confirm(`Use this folder", js)
-        self.assertIn("Move existing session files", js)
+        self.assertIn("choose.className = 'btn btn-primary save-location-choose';", js)
+        self.assertIn("confirmSaveLocation", js)
+        self.assertIn("role', 'dialog'", js)
+        self.assertIn("aria-modal", js)
+        self.assertIn("Confirm save location", js)
+        self.assertIn("Use this folder for new sessions?", js)
+        self.assertIn("Move existing session files to this folder? Choose Cancel to leave them where they are.", js)
         self.assertIn("api().choose_entry_save_location()", js)
         self.assertIn("Current entry save location", js)
+        self.assertNotIn("window.confirm", js)
+        self.assertIn(".save-location-choose {", css)
+        self.assertIn(".save-location-confirmation {", css)
+        choose_rule = css.split('.save-location-choose {', 1)[1].split('}', 1)[0]
+        confirmation_rule = css.split('.save-location-confirmation {', 1)[1].split('}', 1)[0]
+        self.assertIn("var(--accent-pink)", choose_rule)
+        self.assertIn("var(--bg-top)", confirmation_rule)
+        self.assertIn("var(--panel)", css)
+        self.assertIn("var(--accent-mint)", css)
 
 
 if __name__ == "__main__":
