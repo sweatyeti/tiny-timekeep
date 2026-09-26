@@ -17,6 +17,8 @@
   --callout: #ff6b6b;
   --logged: #8de0a0;
   --border-dark: #1b1330;
+  --font-body: 'VT323', monospace;
+  --font-display: 'Press Start 2P', monospace;
 }
 
 body[data-theme="cyber"] {
@@ -35,6 +37,7 @@ body[data-theme="cyber"] {
   --callout: #ff4444;
   --logged: #44ff88;
   --border-dark: #050510;
+  --font-display: var(--font-body);
 }
 
 * { box-sizing: border-box; }
@@ -43,7 +46,7 @@ html, body {
   margin: 0; padding: 0; height: 100%;
   background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
   color: var(--text-main);
-  font-family: 'VT323', monospace;
+  font-family: var(--font-body);
   font-size: 20px;
   overflow: hidden;
   user-select: none;
@@ -55,7 +58,7 @@ html, body {
   color: var(--titlebar-text);
   padding: 10px 12px;
   border-bottom: 3px solid var(--border-dark);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 12px;
   cursor: grab;
 }
@@ -101,7 +104,7 @@ html, body {
 }
 
 h2 {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 12px;
   color: var(--accent-mint);
   margin: 0 0 10px;
@@ -114,14 +117,14 @@ input {
   background: var(--panel-row);
   border: 2px solid var(--border-dark);
   color: var(--text-main);
-  font-family: 'VT323', monospace;
+  font-family: var(--font-body);
   font-size: 19px;
   padding: 8px 10px;
 }
 input::placeholder { color: var(--text-dim); }
 
 .btn {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 11px;
   border: 2px solid var(--border-dark);
   padding: 10px;
@@ -139,7 +142,7 @@ input::placeholder { color: var(--text-dim); }
   padding: 10px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.session-item button { font-family: 'Press Start 2P'; font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; }
+.session-item button { font-family: var(--font-display); font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; }
 .session-item.deleted-item { align-items: flex-start; }
 
 .now-tracking {
@@ -150,7 +153,7 @@ input::placeholder { color: var(--text-dim); }
 }
 .status-banner {
   text-align: center;
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 11px;
   letter-spacing: 1px;
   padding: 9px;
@@ -174,7 +177,7 @@ input::placeholder { color: var(--text-dim); }
 
 .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
 .tab-btn {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 10px;
   background: transparent;
   color: var(--text-dim);
@@ -220,7 +223,7 @@ input::placeholder { color: var(--text-dim); }
   align-items: center;
 }
 .summary-head {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 9px;
   color: var(--text-dim);
   padding: 0 8px 8px;
@@ -255,7 +258,7 @@ input::placeholder { color: var(--text-dim); }
   display: flex; justify-content: space-between; align-items: center;
   background: var(--accent-pink);
   color: var(--border-dark);
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 11px;
   padding: 10px 10px;
 }
@@ -319,14 +322,14 @@ input::placeholder { color: var(--text-dim); }
   padding: 3px 5px;
 }
 .theme-picker-label {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 7px;
   color: var(--text-dim);
   letter-spacing: 0.5px;
   margin-right: 2px;
 }
 .theme-btn {
-  font-family: 'Press Start 2P', monospace;
+  font-family: var(--font-display);
   font-size: 10px;
   width: 22px;
   height: 22px;

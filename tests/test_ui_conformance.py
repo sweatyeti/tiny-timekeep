@@ -216,6 +216,29 @@ class TestFrontendNamesTheApp(unittest.TestCase):
 class TestChromeAndTheming(unittest.TestCase):
     """Window chrome and themed surfaces — the parts a contract test cannot see."""
 
+    def test_theme_font_tokens_keep_cute_display_and_make_cyber_vt323_only(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        css_nc = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+
+        root_m = re.search(r":root\s*\{([^}]*)\}", css_nc)
+        self.assertIsNotNone(root_m, "root block not found")
+        root_block = root_m.group(1)
+        self.assertIn("--font-body: 'VT323', monospace;", root_block)
+        self.assertIn("--font-display: 'Press Start 2P', monospace;", root_block)
+
+        cyber_m = re.search(r'body\[data-theme="cyber"\]\s*\{([^}]*)\}', css_nc)
+        self.assertIsNotNone(cyber_m, 'cyber block not found')
+        cyber_block = cyber_m.group(1)
+        self.assertIn("--font-display: var(--font-body);", cyber_block)
+
+        font_decls = re.findall(r"font-family\s*:\s*([^;]+);", css_nc)
+        self.assertIn("var(--font-body)", font_decls)
+        self.assertIn("var(--font-display)", font_decls)
+
+        allowed = {"var(--font-body)", "var(--font-display)"}
+        for val in font_decls:
+            self.assertIn(val.strip(), allowed, f"Unexpected font-family value: {val!r}")
+
     def test_deleted_button_shows_and_refreshes_the_deleted_entry_count(self):
         html = _read(INDEX_HTML)
         js = _read(APP_JS)
