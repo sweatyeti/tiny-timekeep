@@ -367,6 +367,14 @@ class TestPixelCompanionStyles(unittest.TestCase):
             find_display(".companion-cyber"),
             "none",
         )
+        self.assertEqual(
+            find_display('body[data-theme="poolside"] .companion-sun'),
+            "block",
+        )
+        self.assertEqual(
+            find_display(".companion-sun"),
+            "none",
+        )
 
     def test_cat_eye_color_literal(self):
         self.assertRegex(
@@ -443,6 +451,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
                       "Reduced-motion block does not target .companion-cat")
         self.assertIn("companion-cyber", block,
                       "Reduced-motion block does not target .companion-cyber")
+        self.assertIn("companion-sun", block,
+                      "Reduced-motion block does not target .companion-sun")
         self.assertRegex(block, r"animation\s*:\s*none",
                          "Reduced-motion block does not disable animation")
         self.assertRegex(block, r"transform\s*:\s*none",
@@ -511,11 +521,12 @@ const fs = require('fs');
 const vm = require('vm');
 const cat = fs.readFileSync(process.argv[1], 'utf8');
 const cyber = fs.readFileSync(process.argv[2], 'utf8');
-const registry = fs.readFileSync(process.argv[3], 'utf8');
+const sun = fs.readFileSync(process.argv[3], 'utf8');
+const registry = fs.readFileSync(process.argv[4], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + cyber + '\n' + registry, ctx);
+vm.runInContext(cat + '\n' + cyber + '\n' + sun + '\n' + registry, ctx);
 const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 const rendered = {};
 themes.forEach(theme => {
@@ -530,16 +541,23 @@ process.stdout.write(JSON.stringify({
             script,
             os.path.join(COMPANION_CSS, "cat.js"),
             os.path.join(COMPANION_CSS, "cyber.js"),
+            os.path.join(COMPANION_CSS, "sun.js"),
             COMPANION_REGISTRY_JS,
         )
-        self.assertEqual(result["mapping"], ["cat", "cyber", None, None, None])
+        self.assertEqual(result["mapping"], ["cat", "cyber", "sun", None, None])
         self.assertIn('class="companion-cat"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-cyber"', result["rendered"]["cute"])
+        self.assertNotIn('class="companion-sun"', result["rendered"]["cute"])
         self.assertIn('class="companion-cyber"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-cat"', result["rendered"]["cyber"])
-        for theme in ("poolside", "evergreen", "citrus-pop"):
+        self.assertNotIn('class="companion-sun"', result["rendered"]["cyber"])
+        self.assertIn('class="companion-sun"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-cat"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-cyber"', result["rendered"]["poolside"])
+        for theme in ("evergreen", "citrus-pop"):
             self.assertNotIn('class="companion-cat"', result["rendered"][theme])
             self.assertNotIn('class="companion-cyber"', result["rendered"][theme])
+            self.assertNotIn('class="companion-sun"', result["rendered"][theme])
             self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
 
     def test_extension_point_is_documented_in_registry(self):

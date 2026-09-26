@@ -41,6 +41,11 @@
   top: 11px;
 }
 
+#companion[data-mode="sleeping"] .companion-sun-eye {
+  height: 1px;
+  top: 5px;
+}
+
 #companion[data-mode="sleeping"] .companion-body {
   top: 25px;
 }
@@ -51,7 +56,8 @@
 }
 
 #companion[data-mode="sleeping"] .companion-cat,
-#companion[data-mode="sleeping"] .companion-cyber {
+#companion[data-mode="sleeping"] .companion-cyber,
+#companion[data-mode="sleeping"] .companion-sun {
   animation: companion-sleep-bob 4s ease-in-out infinite;
 }
 
@@ -65,12 +71,18 @@
   top: 10px;
 }
 
+#companion[data-mode="awake"] .companion-sun-eye {
+  height: 3px;
+  top: 4px;
+}
+
 #companion[data-mode="awake"] .companion-sleep-cue {
   display: none;
 }
 
 #companion[data-mode="awake"] .companion-cat,
-#companion[data-mode="awake"] .companion-cyber {
+#companion[data-mode="awake"] .companion-cyber,
+#companion[data-mode="awake"] .companion-sun {
   animation: companion-awake-bob 3s ease-in-out infinite;
 }
 
@@ -97,7 +109,8 @@
   }
 
   .companion-cat,
-  .companion-cyber {
+  .companion-cyber,
+  .companion-sun {
     transform: none;
     left: calc(50% - 16px);
     top: calc(50% - 18px);

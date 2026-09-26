@@ -5,12 +5,14 @@
  */
 const COMPANION_AVATARS = {
   cat: renderCatAvatar,
-  cyber: renderCyberAvatar
+  cyber: renderCyberAvatar,
+  sun: renderSunAvatar
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cat',
-  cyber: 'cyber'
+  cyber: 'cyber',
+  poolside: 'sun'
 };
 
 function resolveCompanionAvatar(theme) {
