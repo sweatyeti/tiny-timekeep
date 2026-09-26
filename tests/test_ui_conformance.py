@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -57,6 +58,45 @@ def _read(path):
         return handle.read()
 
 
+class _ThemeBarParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.bar = None
+        self.buttons = []
+        self.bar_text = []
+        self.in_app = False
+        self.in_bar = False
+        self.in_button = False
+        self.bar_inside_app = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "main" and attrs.get("id") == "app":
+            self.in_app = True
+        if attrs.get("id") == "theme-picker":
+            self.bar = attrs
+            self.bar_inside_app = self.in_app
+            self.in_bar = True
+        if self.in_bar:
+            if tag == "button":
+                self.buttons.append(attrs)
+                self.in_button = True
+            elif tag != "div":
+                self.bar_text.append(f"<{tag}>")
+
+    def handle_endtag(self, tag):
+        if tag == "main":
+            self.in_app = False
+        if tag == "button":
+            self.in_button = False
+        if tag == "div" and self.in_bar:
+            self.in_bar = False
+
+    def handle_data(self, data):
+        if self.in_bar and not self.in_button and data.strip():
+            self.bar_text.append(data.strip())
+
+
 class FrontendCase(unittest.TestCase):
     """Shared fixture: a real Api over a throwaway data directory."""
 
@@ -72,6 +112,34 @@ class FrontendCase(unittest.TestCase):
 
 
 class TestFrontendCallsExist(unittest.TestCase):
+    def test_bottom_status_bar_has_only_the_three_accessible_controls(self):
+        parser = _ThemeBarParser()
+        parser.feed(_read(INDEX_HTML))
+        self.assertEqual(parser.bar.get("role"), "toolbar")
+        self.assertTrue(parser.bar.get("aria-label"))
+        self.assertFalse(parser.bar_inside_app)
+        self.assertEqual(parser.bar_text, [])
+        self.assertEqual(len(parser.buttons), 3)
+        self.assertEqual([button.get("id") for button in parser.buttons],
+                         [None, None, "save-location-btn"])
+        self.assertEqual([button.get("data-theme") for button in parser.buttons],
+                         ["cute", "cyber", None])
+        self.assertTrue(all(button.get("aria-label") for button in parser.buttons))
+
+    def test_bottom_status_bar_layout_and_existing_control_wiring(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        bar = re.search(r"#theme-picker\s*\{([^}]*)\}", css).group(1)
+        for declaration in ("position: fixed", "left: 0", "right: 0", "bottom: 0",
+                            "justify-content: flex-end", "background: var(--panel)"):
+            self.assertIn(declaration, bar)
+        app = re.search(r"#app\s*\{([^}]*)\}", css).group(1)
+        self.assertIn("height: calc(100% - 90px)", app)
+        self.assertIn("#resize-grip", css)
+        self.assertIn("padding: 3px 24px 3px 8px", bar)
+        js = _read(APP_JS)
+        self.assertIn("document.querySelectorAll('.theme-btn').forEach", js)
+        self.assertIn("document.getElementById('save-location-btn').onclick", js)
+
     def test_every_api_call_in_app_js_exists_on_api(self):
         called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
         assert called, "no api() calls found in app.js — the extractor or the frontend changed"
@@ -320,7 +388,6 @@ class TestChromeAndTheming(unittest.TestCase):
             (".icon-btn", "13px"),
             (".summary-head", "9px"),
             (".overlay-head", "11px"),
-            (".theme-picker-label", "7px"),
             (".theme-btn", "10px"),
         ]
         for sel, size in base_sizes:
