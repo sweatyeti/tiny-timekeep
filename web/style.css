@@ -206,6 +206,11 @@ input::placeholder { color: var(--text-dim); }
   transform: translate(-50%, -50%);
   width: 32px;
   height: 36px;
+  display: none;
+}
+
+body[data-theme="cute"] .companion-cat {
+  display: block;
 }
 
 .companion-ear {
@@ -234,7 +239,7 @@ input::placeholder { color: var(--text-dim); }
   top: 7px;
   left: 0;
   width: 32px;
-  height: 20px;
+  height: 18px;
   background: var(--text-main);
   border: 2px solid var(--border-dark);
   box-sizing: border-box;
@@ -242,10 +247,10 @@ input::placeholder { color: var(--text-dim); }
 
 .companion-eye {
   position: absolute;
-  top: 7px;
-  width: 3px;
-  height: 3px;
-  background: var(--accent-mint);
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  background: #246b35;
 }
 
 .companion-eye-left {
@@ -256,16 +261,73 @@ input::placeholder { color: var(--text-dim); }
   right: 7px;
 }
 
-.companion-paw {
+.companion-body {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
+  top: 25px;
+  left: 4px;
+  width: 24px;
   height: 11px;
   background: var(--text-main);
   border: 2px solid var(--border-dark);
   box-sizing: border-box;
+}
+
+.companion-cyber {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 36px;
+  display: none;
+}
+
+body[data-theme="cyber"] .companion-cyber {
+  display: block;
+}
+
+.companion-cyber-hair {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 8px;
+  background: #1a1210;
+}
+
+.companion-cyber-face {
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  width: 28px;
+  height: 22px;
+  background: #986342;
+}
+
+.companion-cyber-eye {
+  position: absolute;
+  top: 10px;
+  width: 4px;
+  height: 4px;
+}
+
+.companion-cyber-eye-natural {
+  left: 5px;
+  background: #b87e5b;
+}
+
+.companion-cyber-eye-lens {
+  right: 5px;
+  background: #00e6c8;
+}
+
+.companion-cyber-jaw {
+  position: absolute;
+  top: 28px;
+  left: 8px;
+  width: 16px;
+  height: 8px;
+  background: #704630;
 }
 
 .companion-sleep-cue {
@@ -286,11 +348,16 @@ input::placeholder { color: var(--text-dim); }
 
 #companion[data-mode="sleeping"] .companion-eye {
   height: 1px;
-  top: 8px;
+  top: 7px;
 }
 
-#companion[data-mode="sleeping"] .companion-paw {
-  bottom: 2px;
+#companion[data-mode="sleeping"] .companion-cyber-eye {
+  height: 1px;
+  top: 11px;
+}
+
+#companion[data-mode="sleeping"] .companion-body {
+  top: 25px;
 }
 
 #companion[data-mode="sleeping"] .companion-sleep-cue {
@@ -298,20 +365,27 @@ input::placeholder { color: var(--text-dim); }
   animation: companion-sleep-cue 3.5s ease-in-out infinite;
 }
 
-#companion[data-mode="sleeping"] .companion-cat {
+#companion[data-mode="sleeping"] .companion-cat,
+#companion[data-mode="sleeping"] .companion-cyber {
   animation: companion-sleep-bob 4s ease-in-out infinite;
 }
 
 #companion[data-mode="awake"] .companion-eye {
-  height: 3px;
-  top: 7px;
+  height: 4px;
+  top: 6px;
+}
+
+#companion[data-mode="awake"] .companion-cyber-eye {
+  height: 4px;
+  top: 10px;
 }
 
 #companion[data-mode="awake"] .companion-sleep-cue {
   display: none;
 }
 
-#companion[data-mode="awake"] .companion-cat {
+#companion[data-mode="awake"] .companion-cat,
+#companion[data-mode="awake"] .companion-cyber {
   animation: companion-awake-bob 3s ease-in-out infinite;
 }
 
@@ -350,7 +424,8 @@ input::placeholder { color: var(--text-dim); }
     animation: none !important;
     transition: none !important;
   }
-  .companion-cat {
+  .companion-cat,
+  .companion-cyber {
     transform: none;
     left: calc(50% - 16px);
     top: calc(50% - 18px);

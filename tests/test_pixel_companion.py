@@ -332,15 +332,53 @@ class TestPixelCompanionStyles(unittest.TestCase):
         found = any("var(--panel-row)" in body for _, body in rules)
         self.assertTrue(found, "Companion section does not use var(--panel-row)")
 
-    def test_uses_text_main_token(self):
+    def test_cute_theme_scoping(self):
         rules = self._companion_rules()
-        found = any("var(--text-main)" in body for _, body in rules)
-        self.assertTrue(found, "Companion section does not use var(--text-main)")
 
-    def test_uses_accent_mint_token(self):
-        rules = self._companion_rules()
-        found = any("var(--accent-mint)" in body for _, body in rules)
-        self.assertTrue(found, "Companion section does not use var(--accent-mint)")
+        def find_display(selector):
+            for sel, body in rules:
+                if sel == selector:
+                    m = re.search(r"display\s*:\s*(\S+?);", body)
+                    self.assertIsNotNone(
+                        m,
+                        f"No display declaration in rule for {selector!r}",
+                    )
+                    return m.group(1)
+            self.fail(f"No rule found for selector {selector!r}")
+
+        self.assertEqual(
+            find_display('body[data-theme="cute"] .companion-cat'),
+            "block",
+        )
+        self.assertEqual(
+            find_display(".companion-cat"),
+            "none",
+        )
+        self.assertEqual(
+            find_display('body[data-theme="cyber"] .companion-cyber'),
+            "block",
+        )
+        self.assertEqual(
+            find_display(".companion-cyber"),
+            "none",
+        )
+
+    def test_cat_eye_color_literal(self):
+        self.assertRegex(
+            self.css,
+            r"\.companion-eye\s*\{[^}]*background\s*:\s*#246b35",
+        )
+
+    def test_cyber_lens_color(self):
+        self.assertRegex(
+            self.css,
+            r"\.companion-cyber-eye-lens\s*\{[^}]*background\s*:\s*#00e6c8",
+        )
+
+    def test_cyber_skin_tones(self):
+        self.assertIn("#986342", self.css)
+        self.assertIn("#b87e5b", self.css)
+        self.assertIn("#704630", self.css)
 
     def test_sleep_cue_uses_theme_font_token(self):
         self.assertRegex(
@@ -359,30 +397,26 @@ class TestPixelCompanionStyles(unittest.TestCase):
         found = any("awake" in sel for sel, _ in rules)
         self.assertTrue(found, "No companion rule for awake mode")
 
-    def test_companion_paw_is_attached_lower_body(self):
-        pattern = (
-            r'\.companion-paw\s*\{'
-            r'\s*position\s*:\s*absolute\s*;'
-            r'\s*bottom\s*:\s*0\s*;'
-            r'\s*left\s*:\s*50%\s*;'
-            r'\s*transform\s*:\s*translateX\(-50%\)\s*;'
-            r'\s*width\s*:\s*22px\s*;'
-            r'\s*height\s*:\s*11px\s*;'
-            r'\s*background\s*:\s*var\(--text-main\)\s*;'
-            r'\s*border\s*:\s*2px\s+solid\s+var\(--border-dark\)\s*;'
-            r'\s*box-sizing\s*:\s*border-box\s*;'
-            r'\s*\}'
-        )
-        self.assertRegex(self.css, pattern)
+    def test_cat_body_attached_below_face(self):
+        face_m = re.search(r"\.companion-face\s*\{([^}]*)\}", self.css)
+        body_m = re.search(r"\.companion-body\s*\{([^}]*)\}", self.css)
+        self.assertIsNotNone(face_m, "No .companion-face rule found")
+        self.assertIsNotNone(body_m, "No .companion-body rule found")
 
-        cat_height = 36
-        paw_height = 11
-        paw_bottom = 0
-        face_bottom = 27
-        expected_paw_top = 25
-        paw_top = cat_height - paw_height - paw_bottom
-        self.assertEqual(paw_top, expected_paw_top)
-        self.assertLess(paw_top, face_bottom)
+        face_top = int(re.search(r"top\s*:\s*(\d+)px", face_m.group(1)).group(1))
+        face_h = int(re.search(r"height\s*:\s*(\d+)px", face_m.group(1)).group(1))
+        body_top = int(re.search(r"top\s*:\s*(\d+)px", body_m.group(1)).group(1))
+        self.assertEqual(body_top, face_top + face_h)
+        sleeping_body_m = re.search(r'#companion\[data-mode="sleeping"\]\s*\.companion-body\s*\{([^}]*)\}', self.css)
+        self.assertIsNotNone(sleeping_body_m, "No sleeping .companion-body rule found")
+        sleeping_body_top = int(re.search(r"top\s*:\s*(\d+)px", sleeping_body_m.group(1)).group(1))
+        self.assertEqual(sleeping_body_top, face_top + face_h)
+
+    def test_cyber_jaw_plate(self):
+        self.assertRegex(
+            self.css,
+            r"\.companion-cyber-jaw\s*\{[^}]*background\s*:\s*#704630",
+        )
 
     def test_reduced_motion_media_query(self):
         m = re.search(
@@ -402,6 +436,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
         block = self.css[start : i - 1]
         self.assertIn("companion-cat", block,
                       "Reduced-motion block does not target .companion-cat")
+        self.assertIn("companion-cyber", block,
+                      "Reduced-motion block does not target .companion-cyber")
         self.assertRegex(block, r"animation\s*:\s*none",
                          "Reduced-motion block does not disable animation")
         self.assertRegex(block, r"transform\s*:\s*none",
