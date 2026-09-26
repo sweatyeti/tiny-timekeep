@@ -161,23 +161,19 @@ function renderEntries() {
     return;
   }
   for (const e of state.entries) {
-    const timeRange = e.endTime
-      ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}`
-      : `${fmtClock(e.startTime)}–in progress`;
+    const timeRange = e.endTime ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}` : `${fmtClock(e.startTime)}–in progress`;
     const canToggle = e.loggedStatus !== 'N/A';
-    const badgeClass = e.loggedStatus === 'Logged' ? 'badge-logged'
-      : e.loggedStatus === 'Unlogged' ? 'badge-unlogged' : 'badge-na';
+    const badgeClass = e.loggedStatus === 'Logged' ? 'badge-logged' : e.loggedStatus === 'Unlogged' ? 'badge-unlogged' : 'badge-na';
     const row = document.createElement('div');
-    row.className = 'row';
+    row.className = 'log-entry-row';
     row.innerHTML = `
-      <div class="row-main">
-        <div class="row-title">#${e.id} ${escapeHtml(e.task)}</div>
-        <div class="row-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</div>
+      <span class="log-entry-title">#${e.id} ${escapeHtml(e.task)}</span>
+      <span class="log-entry-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</span>
+      <div class="log-entry-actions">
+        <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}" title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
+        <button class="icon-btn" title="Edit">✎</button>
+        ${e.isComplete ? '<button class="icon-btn" title="Delete">🗑</button>' : ''}
       </div>
-      <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}"
-            title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
-      <button class="icon-btn" title="Edit">✎</button>
-      ${e.isComplete ? '<button class="icon-btn" title="Delete">🗑</button>' : ''}
     `;
     if (canToggle) {
       row.querySelector('.badge').onclick = async () => {

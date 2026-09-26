@@ -266,5 +266,74 @@ class TestChromeAndTheming(unittest.TestCase):
         assert "--inactive:" in css, "the --inactive token is not defined on :root"
 
 
+class TestLogEntryRow(unittest.TestCase):
+    def _split_render_entries(self, src):
+        start = src.index("function renderEntries")
+        depth = 0
+        i = src.index("{", start)
+        for j in range(i, len(src)):
+            if src[j] == "{":
+                depth += 1
+            elif src[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return src[start:j + 1]
+        raise ValueError("unbalanced braces in renderEntries")
+
+    def _split_render_tasks(self, src):
+        start = src.index("function renderTasks")
+        depth = 0
+        i = src.index("{", start)
+        for j in range(i, len(src)):
+            if src[j] == "{":
+                depth += 1
+            elif src[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return src[start:j + 1]
+        raise ValueError("unbalanced braces in renderTasks")
+
+    def _scoped_css(self, css):
+        marker = "/* Log entry row"
+        idx = css.index(marker)
+        return css[idx:]
+
+    def test_render_entries_structure(self):
+        src = _read(APP_JS)
+        fn = self._split_render_entries(src)
+        self.assertIn("row.className = 'log-entry-row'", fn)
+        self.assertIn('<span class="log-entry-title">', fn)
+        self.assertIn('<span class="log-entry-sub">', fn)
+        self.assertIn('<div class="log-entry-actions">', fn)
+        t = fn.index('log-entry-title')
+        s = fn.index('log-entry-sub')
+        a = fn.index('log-entry-actions')
+        self.assertLess(t, s)
+        self.assertLess(s, a)
+
+    def test_render_tasks_no_log_entry(self):
+        src = _read(APP_JS)
+        fn = self._split_render_tasks(src)
+        self.assertNotIn("log-entry-", fn)
+
+    def test_scoped_css_properties(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        scoped = self._scoped_css(css)
+        self.assertIn("flex-wrap: wrap", scoped)
+        self.assertIn("var(--panel-row-alt)", scoped)
+        self.assertIn("min-width: 0", scoped)
+        self.assertIn("overflow-wrap: anywhere", scoped)
+        self.assertIn("flex: 1 1 12rem", scoped)
+        self.assertIn("@media (max-width: 640px)", scoped)
+        self.assertIn("width: 100%", scoped)
+
+    def test_scoped_css_no_truncation(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        scoped = self._scoped_css(css)
+        self.assertNotIn("white-space: nowrap", scoped)
+        self.assertNotIn("text-overflow", scoped)
+        self.assertNotIn("ellipsis", scoped)
+
+
 if __name__ == "__main__":
     unittest.main()
