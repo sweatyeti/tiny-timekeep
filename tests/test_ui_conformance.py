@@ -216,7 +216,7 @@ class TestFrontendNamesTheApp(unittest.TestCase):
 class TestChromeAndTheming(unittest.TestCase):
     """Window chrome and themed surfaces — the parts a contract test cannot see."""
 
-    def test_theme_font_tokens_keep_cute_display_and_make_cyber_vt323_only(self):
+    def test_theme_font_families_match_between_cute_and_cyber(self):
         css = _read(os.path.join(WEB, "style.css"))
         css_nc = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
 
@@ -229,7 +229,8 @@ class TestChromeAndTheming(unittest.TestCase):
         cyber_m = re.search(r'body\[data-theme="cyber"\]\s*\{([^}]*)\}', css_nc)
         self.assertIsNotNone(cyber_m, 'cyber block not found')
         cyber_block = cyber_m.group(1)
-        self.assertIn("--font-display: var(--font-body);", cyber_block)
+        self.assertNotIn("--font-body:", cyber_block)
+        self.assertNotIn("--font-display:", cyber_block)
 
         font_decls = re.findall(r"font-family\s*:\s*([^;]+);", css_nc)
         self.assertIn("var(--font-body)", font_decls)
@@ -288,37 +289,22 @@ class TestChromeAndTheming(unittest.TestCase):
         )
         assert "--inactive:" in css, "the --inactive token is not defined on :root"
 
-    def test_cyber_size_tokens_and_overrides(self):
+    def test_cyber_uses_same_typography_sizes_as_cute(self):
         css = _read(os.path.join(WEB, "style.css"))
-        for token, val in [
-            ("--cyber-size-bump", "2pt"),
-            ("--cyber-size-title", "calc(18px + var(--cyber-size-bump))"),
-            ("--cyber-size-control", "calc(17px + var(--cyber-size-bump))"),
-            ("--cyber-size-compact", "calc(16px + var(--cyber-size-bump))"),
-            ("--cyber-size-header", "calc(15px + var(--cyber-size-bump))"),
-            ("--cyber-size-icon", "calc(18px + var(--cyber-size-bump))"),
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+        for token in [
+            "--cyber-size-bump",
+            "--cyber-size-title",
+            "--cyber-size-control",
+            "--cyber-size-compact",
+            "--cyber-size-header",
+            "--cyber-size-icon",
         ]:
-            assert f"{token}: {val};" in css, f"missing {token}: {val};"
-        marker = "/* Cyber VT323 readability overrides */"
-        assert marker in css, "cyber override marker comment is missing"
-        override_css = css.split(marker, 1)[1]
-        required_selectors = [
-            "#titlebar", "#titlebar-label",
-            ".chrome-btn", ".icon-btn",
-            "h2", ".summary-head", ".theme-picker-label",
-            ".btn", ".status-banner", ".overlay-head",
-            ".btn-mini", ".session-item button", ".tab-btn", ".theme-btn",
-        ]
-        for sel in required_selectors:
-            assert sel in override_css, f"selector {sel} missing from cyber overrides"
-        for var in [
-            "var(--cyber-size-title)",
-            "var(--cyber-size-control)",
-            "var(--cyber-size-compact)",
-            "var(--cyber-size-header)",
-            "var(--cyber-size-icon)",
-        ]:
-            assert f"font-size: {var}" in override_css, f"font-size: {var} missing from cyber overrides"
+            assert token not in css, f"obsolete cyber typography token remains: {token}"
+        assert "Cyber VT323 readability overrides" not in css
+        assert 'body[data-theme="cyber"]' not in css or not re.search(
+            r'body\[data-theme="cyber"\][^{]*\{[^}]*font-(?:family|size)\s*:', css
+        ), "cyber should not override the shared typography"
 
     def test_base_sizes_unchanged(self):
         css = _read(os.path.join(WEB, "style.css"))

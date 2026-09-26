@@ -37,6 +37,8 @@ body[data-theme="cyber"] {
   --callout: #ff4444;
   --logged: #44ff88;
   --border-dark: #050510;
+  /* Temporarily disabled: match the shared Cute typography and control sizing.
+     Keep these prior Cyber-specific settings here in case they are wanted again.
   --font-display: var(--font-body);
   --cyber-size-bump: 2pt;
   --cyber-size-title: calc(18px + var(--cyber-size-bump));
@@ -44,6 +46,7 @@ body[data-theme="cyber"] {
   --cyber-size-compact: calc(16px + var(--cyber-size-bump));
   --cyber-size-header: calc(15px + var(--cyber-size-bump));
   --cyber-size-icon: calc(18px + var(--cyber-size-bump));
+  */
 }
 
 * { box-sizing: border-box; }
@@ -536,7 +539,8 @@ input::placeholder { color: var(--text-dim); }
   padding: 0;
   line-height: 1;
 }
-/* Cyber VT323 readability overrides */
+/* Temporarily disabled for consistent typography between themes.
+   Restore these Cyber-only font size overrides if the themes diverge later.
 body[data-theme="cyber"] #titlebar,
 body[data-theme="cyber"] #titlebar-label {
   font-size: var(--cyber-size-title);
@@ -570,6 +574,7 @@ body[data-theme="cyber"] .theme-btn {
   font-size: var(--cyber-size-compact);
   line-height: 1;
 }
+*/
 .theme-btn:hover {
   background: var(--panel-row-alt);
 }
