@@ -13,6 +13,7 @@ the actual frontend source and assert it against the actual core:
 """
 
 import os
+import glob
 import json
 import re
 import shutil
@@ -130,7 +131,9 @@ class TestFrontendCallsExist(unittest.TestCase):
                             for button in parser.buttons[:-1]))
 
     def test_bottom_status_bar_layout_and_existing_control_wiring(self):
-        css = _read(os.path.join(WEB, "style.css"))
+        css = _read(os.path.join(WEB, "style.css")) + "\n" + "\n".join(
+            _read(path) for path in glob.glob(os.path.join(WEB, "companions", "*.css"))
+        )
         bar = re.search(r"#theme-picker\s*\{([^}]*)\}", css).group(1)
         for declaration in ("position: fixed", "left: 0", "right: 0", "bottom: 0",
                             "justify-content: flex-end", "background: var(--panel)"):

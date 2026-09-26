@@ -309,6 +309,9 @@ function applyTheme(theme) {
   document.body.dataset.theme = theme;
   document.querySelectorAll('.theme-btn').forEach((b) =>
     b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+  if (typeof renderCompanionScene === 'function') {
+    renderCompanionScene(theme);
+  }
 }
 
 function renderSaveLocation(prefs) {

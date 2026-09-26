@@ -3,12 +3,15 @@ import os
 import re
 import subprocess
 import unittest
+import glob
 from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX_HTML = os.path.join(ROOT, "web", "index.html")
 APP_JS = os.path.join(ROOT, "web", "app.js")
 STYLE_CSS = os.path.join(ROOT, "web", "style.css")
+COMPANION_CSS = os.path.join(ROOT, "web", "companions")
+COMPANION_REGISTRY_JS = os.path.join(COMPANION_CSS, "registry.js")
 
 _VOID_TAGS = frozenset(
     ("area", "base", "br", "col", "embed", "hr", "img", "input",
@@ -298,10 +301,12 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not os.path.isfile(STYLE_CSS):
-            raise unittest.SkipTest("style.css not found at {}".format(STYLE_CSS))
-        with open(STYLE_CSS, "r", encoding="utf-8") as f:
-            cls.css = f.read()
+        paths = [STYLE_CSS] + glob.glob(os.path.join(COMPANION_CSS, "*.css"))
+        contents = []
+        for path in paths:
+            with open(path, "r", encoding="utf-8") as f:
+                contents.append(f.read())
+        cls.css = "\n".join(contents)
 
     def _companion_rules(self):
         """Extract all rule blocks whose selector mentions companion."""
@@ -499,6 +504,70 @@ class TestPixelCompanionWiring(unittest.TestCase):
         fn_body = self.source[start : i - 1]
         self.assertIn("currentEntry", fn_body,
                       "getCompanionState does not reference viewModel.currentEntry")
+
+    def test_registry_renders_mapped_avatar_for_each_existing_theme(self):
+        script = r"""
+const fs = require('fs');
+const vm = require('vm');
+const cat = fs.readFileSync(process.argv[1], 'utf8');
+const cyber = fs.readFileSync(process.argv[2], 'utf8');
+const registry = fs.readFileSync(process.argv[3], 'utf8');
+const scene = { innerHTML: '' };
+const ctx = { document: { querySelector: () => scene } };
+vm.createContext(ctx);
+vm.runInContext(cat + '\n' + cyber + '\n' + registry, ctx);
+const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
+const rendered = {};
+themes.forEach(theme => {
+  ctx.renderCompanionScene(theme);
+  rendered[theme] = scene.innerHTML;
+});
+process.stdout.write(JSON.stringify({
+  mapping: themes.map(theme => ctx.resolveCompanionAvatar(theme)), rendered
+}));
+"""
+        result = _run_node_json(
+            script,
+            os.path.join(COMPANION_CSS, "cat.js"),
+            os.path.join(COMPANION_CSS, "cyber.js"),
+            COMPANION_REGISTRY_JS,
+        )
+        self.assertEqual(result["mapping"], ["cat", "cyber", None, None, None])
+        self.assertIn('class="companion-cat"', result["rendered"]["cute"])
+        self.assertNotIn('class="companion-cyber"', result["rendered"]["cute"])
+        self.assertIn('class="companion-cyber"', result["rendered"]["cyber"])
+        self.assertNotIn('class="companion-cat"', result["rendered"]["cyber"])
+        for theme in ("poolside", "evergreen", "citrus-pop"):
+            self.assertNotIn('class="companion-cat"', result["rendered"][theme])
+            self.assertNotIn('class="companion-cyber"', result["rendered"][theme])
+            self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
+
+    def test_extension_point_is_documented_in_registry(self):
+        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
+            source = f.read()
+        self.assertIn("extend COMPANION_AVATARS", source)
+        self.assertIn("theme(s) to COMPANION_REGISTRY", source)
+
+    def test_theme_application_loads_and_calls_registry_renderer(self):
+        with open(INDEX_HTML, "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertLess(html.index('src="companions/cat.js"'),
+                        html.index('src="companions/registry.js"'))
+        self.assertLess(html.index('src="companions/registry.js"'),
+                        html.index('src="app.js"'))
+        match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
+        if match is None:
+            self.fail("applyTheme() not found")
+        body_start = match.end()
+        depth = 1
+        index = body_start
+        while index < len(self.source) and depth:
+            if self.source[index] == "{":
+                depth += 1
+            elif self.source[index] == "}":
+                depth -= 1
+            index += 1
+        self.assertIn("renderCompanionScene(theme)", self.source[body_start:index - 1])
 
 
 if __name__ == "__main__":
