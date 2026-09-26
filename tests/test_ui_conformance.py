@@ -333,6 +333,8 @@ class TestLogEntryRow(unittest.TestCase):
         self.assertIn("flex-wrap: wrap", scoped)
         self.assertIn("margin-left: auto", scoped)
         self.assertIn("var(--panel-row-alt)", scoped)
+        self.assertIn("gap: 0.25rem 1rem", scoped)
+        self.assertIn("padding: 0.3rem 0", scoped)
         self.assertNotIn("width: 100%", scoped)
         self.assertNotIn("margin-left: 0", scoped)
         self.assertNotIn("@media (max-width: 640px)", scoped)
