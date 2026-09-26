@@ -674,6 +674,9 @@ body[data-theme="cyber"] .companion-cyber {
   padding: 0;
   line-height: 1;
 }
+button.theme-btn[data-theme] {
+  font-size: 16px;
+}
 /* Temporarily disabled for consistent typography between themes.
    Restore these Cyber-only font size overrides if the themes diverge later.
 body[data-theme="cyber"] #titlebar,

@@ -148,6 +148,24 @@ class TestFrontendCallsExist(unittest.TestCase):
             self.assertIn(f'body[data-theme="{theme}"]', css)
             self.assertIn(f"'{theme}'", js)
 
+    def test_theme_glyphs_are_larger_without_resizing_folder_or_buttons(self):
+        css = re.sub(r"/\*.*?\*/", "", _read(os.path.join(WEB, "style.css")), flags=re.DOTALL)
+        base = re.search(r"\.theme-btn\s*\{([^}]*)\}", css)
+        self.assertIsNotNone(base)
+        base_rules = base.group(1)
+        self.assertIn("font-size: 10px", base_rules)
+        self.assertIn("width: 22px", base_rules)
+        self.assertIn("height: 22px", base_rules)
+
+        icons = re.search(r"button\.theme-btn\[data-theme\]\s*\{([^}]*)\}", css)
+        self.assertIsNotNone(icons, "larger glyph rule must target theme buttons only")
+        self.assertIn("font-size: 16px", icons.group(1))
+        self.assertNotRegex(icons.group(1), r"(?:width|height|padding|gap|line-height)\s*:")
+        self.assertNotRegex(css, r"#save-location-btn\s*\{[^}]*font-size\s*:")
+        html = _read(INDEX_HTML)
+        self.assertEqual(len(re.findall(
+            r'data-theme="(?:cute|cyber|poolside|evergreen|citrus-pop)"', html)), 5)
+
     def test_every_api_call_in_app_js_exists_on_api(self):
         called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
         assert called, "no api() calls found in app.js — the extractor or the frontend changed"
