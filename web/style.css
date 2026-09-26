@@ -401,17 +401,25 @@ input::placeholder { color: var(--text-dim); }
 .log-entry-row {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem 1rem;
   padding: 0.5rem 0;
   border-bottom: 2px dashed var(--panel-row-alt);
+}
+.log-entry-content {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  overflow-wrap: anywhere;
 }
 .log-entry-title {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 .log-entry-sub {
-  flex: 1 1 12rem;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -420,11 +428,4 @@ input::placeholder { color: var(--text-dim); }
   flex-shrink: 0;
   margin-left: auto;
   gap: 0.4rem;
-}
-@media (max-width: 640px) {
-  .log-entry-actions {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-end;
-  }
 }

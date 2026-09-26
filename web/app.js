@@ -167,8 +167,10 @@ function renderEntries() {
     const row = document.createElement('div');
     row.className = 'log-entry-row';
     row.innerHTML = `
-      <span class="log-entry-title">#${e.id} ${escapeHtml(e.task)}</span>
-      <span class="log-entry-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</span>
+      <div class="log-entry-content">
+        <span class="log-entry-title">#${e.id} ${escapeHtml(e.task)}</span>
+        <span class="log-entry-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</span>
+      </div>
       <div class="log-entry-actions">
         <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}" title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
         <button class="icon-btn" title="Edit">✎</button>
