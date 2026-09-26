@@ -677,6 +677,14 @@ body[data-theme="cyber"] .companion-cyber {
 button.theme-btn[data-theme] {
   font-size: 16px;
 }
+.theme-icon {
+  display: block;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+button.theme-btn[data-theme="evergreen"] .theme-icon {
+  font-size: 18px;
+}
 /* Temporarily disabled for consistent typography between themes.
    Restore these Cyber-only font size overrides if the themes diverge later.
 body[data-theme="cyber"] #titlebar,

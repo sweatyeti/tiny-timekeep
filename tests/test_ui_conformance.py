@@ -81,7 +81,7 @@ class _ThemeBarParser(HTMLParser):
             if tag == "button":
                 self.buttons.append(attrs)
                 self.in_button = True
-            elif tag != "div":
+            elif tag not in ("div", "span"):
                 self.bar_text.append(f"<{tag}>")
 
     def handle_endtag(self, tag):
@@ -165,6 +165,20 @@ class TestFrontendCallsExist(unittest.TestCase):
         html = _read(INDEX_HTML)
         self.assertEqual(len(re.findall(
             r'data-theme="(?:cute|cyber|poolside|evergreen|citrus-pop)"', html)), 5)
+
+    def test_theme_tree_is_larger_and_all_button_glyphs_are_optically_centered(self):
+        html = _read(INDEX_HTML)
+        self.assertEqual(html.count('class="theme-icon"'), 6,
+                         "all five theme glyphs and the folder icon need a centering wrapper")
+        css = re.sub(r"/\*.*?\*/", "", _read(os.path.join(WEB, "style.css")), flags=re.DOTALL)
+        centered = re.search(r"\.theme-icon\s*\{([^}]*)\}", css)
+        self.assertIsNotNone(centered)
+        self.assertIn("transform: translateY(-2px)", centered.group(1))
+        tree = re.search(
+            r'button\.theme-btn\[data-theme="evergreen"\] \.theme-icon\s*\{([^}]*)\}', css)
+        self.assertIsNotNone(tree, "Evergreen's tree glyph needs its own larger size")
+        self.assertIn("font-size: 18px", tree.group(1))
+        self.assertNotRegex(tree.group(1), r"(?:width|height|padding|gap)\s*:")
 
     def test_every_api_call_in_app_js_exists_on_api(self):
         called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
