@@ -288,6 +288,72 @@ class TestChromeAndTheming(unittest.TestCase):
         )
         assert "--inactive:" in css, "the --inactive token is not defined on :root"
 
+    def test_cyber_size_tokens_and_overrides(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        for token, val in [
+            ("--cyber-size-title", "18px"),
+            ("--cyber-size-control", "17px"),
+            ("--cyber-size-compact", "16px"),
+            ("--cyber-size-header", "15px"),
+            ("--cyber-size-icon", "18px"),
+        ]:
+            assert f"{token}: {val};" in css, f"missing {token}: {val};"
+        marker = "/* Cyber VT323 readability overrides */"
+        assert marker in css, "cyber override marker comment is missing"
+        override_css = css.split(marker, 1)[1]
+        required_selectors = [
+            "#titlebar", "#titlebar-label",
+            ".chrome-btn", ".icon-btn",
+            "h2", ".summary-head", ".theme-picker-label",
+            ".btn", ".status-banner", ".overlay-head",
+            ".btn-mini", ".session-item button", ".tab-btn", ".theme-btn",
+        ]
+        for sel in required_selectors:
+            assert sel in override_css, f"selector {sel} missing from cyber overrides"
+        for var in [
+            "var(--cyber-size-title)",
+            "var(--cyber-size-control)",
+            "var(--cyber-size-compact)",
+            "var(--cyber-size-header)",
+            "var(--cyber-size-icon)",
+        ]:
+            assert f"font-size: {var}" in override_css, f"font-size: {var} missing from cyber overrides"
+
+    def test_base_sizes_unchanged(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        base_sizes = [
+            ("#titlebar", "12px"),
+            (".chrome-btn", "13px"),
+            ("h2", "12px"),
+            (".btn", "11px"),
+            (".btn-mini", "10px"),
+            (".session-item button", "10px"),
+            (".status-banner", "11px"),
+            (".tab-btn", "10px"),
+            (".icon-btn", "13px"),
+            (".summary-head", "9px"),
+            (".overlay-head", "11px"),
+            (".theme-picker-label", "7px"),
+            (".theme-btn", "10px"),
+        ]
+        for sel, size in base_sizes:
+            m = re.search(re.escape(sel) + r"\s*\{[^}]*font-size:\s*" + re.escape(size), css)
+            assert m, f"base font-size {size} for {sel} not found"
+        pane_sizes = [
+            (".row-title", "19px"),
+            (".row-sub", "15px"),
+            (".row-time", "15px"),
+            (".summary-row", "17px"),
+            (".summary-totals", "17px"),
+        ]
+        for sel, size in pane_sizes:
+            m = re.search(re.escape(sel) + r"\s*\{[^}]*font-size:\s*" + re.escape(size), css)
+            assert m, f"pane font-size {size} for {sel} not found"
+        m = re.search(r"\.log-entry-row\s*\{([^}]*)\}", css)
+        assert m, ".log-entry-row rule not found"
+        assert "flex-wrap: nowrap" in m.group(1), ".log-entry-row lost flex-wrap: nowrap"
+        assert "align-items: baseline" in m.group(1), ".log-entry-row lost align-items: baseline"
+
 
 class TestLogEntryRow(unittest.TestCase):
     def _split_render_entries(self, src):

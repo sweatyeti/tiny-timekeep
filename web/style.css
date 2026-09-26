@@ -38,6 +38,11 @@ body[data-theme="cyber"] {
   --logged: #44ff88;
   --border-dark: #050510;
   --font-display: var(--font-body);
+  --cyber-size-title: 18px;
+  --cyber-size-control: 17px;
+  --cyber-size-compact: 16px;
+  --cyber-size-header: 15px;
+  --cyber-size-icon: 18px;
 }
 
 * { box-sizing: border-box; }
@@ -341,6 +346,40 @@ input::placeholder { color: var(--text-dim); }
   border: 2px solid var(--border-dark);
   cursor: pointer;
   padding: 0;
+  line-height: 1;
+}
+/* Cyber VT323 readability overrides */
+body[data-theme="cyber"] #titlebar,
+body[data-theme="cyber"] #titlebar-label {
+  font-size: var(--cyber-size-title);
+  line-height: 1;
+}
+body[data-theme="cyber"] .chrome-btn,
+body[data-theme="cyber"] .icon-btn {
+  font-size: var(--cyber-size-icon);
+  line-height: 1;
+}
+body[data-theme="cyber"] h2,
+body[data-theme="cyber"] .summary-head,
+body[data-theme="cyber"] .theme-picker-label {
+  font-size: var(--cyber-size-header);
+}
+body[data-theme="cyber"] .theme-picker-label {
+  letter-spacing: 0.5px;
+}
+body[data-theme="cyber"] .btn,
+body[data-theme="cyber"] .status-banner,
+body[data-theme="cyber"] .overlay-head {
+  font-size: var(--cyber-size-control);
+}
+body[data-theme="cyber"] .status-banner {
+  letter-spacing: 0.5px;
+}
+body[data-theme="cyber"] .btn-mini,
+body[data-theme="cyber"] .session-item button,
+body[data-theme="cyber"] .tab-btn,
+body[data-theme="cyber"] .theme-btn {
+  font-size: var(--cyber-size-compact);
   line-height: 1;
 }
 .theme-btn:hover {
