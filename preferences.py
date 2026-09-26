@@ -17,6 +17,7 @@ import os
 DEFAULT_PREFERENCES = {
     "activeTab": "tasks",
     "theme": "cute",
+    "entrySaveLocation": None,
 }
 
 VALID_THEMES = ("cute", "cyber")
@@ -42,6 +43,9 @@ class PreferencesStore:
             # an acceptable failure mode here (unlike the core's session files).
             pass
         self._validate_theme()
+        location = self._data.get("entrySaveLocation")
+        if location is not None and (not isinstance(location, str) or not location.strip()):
+            self._data["entrySaveLocation"] = None
 
     def get_all(self):
         return dict(self._data)
@@ -52,9 +56,13 @@ class PreferencesStore:
             self._data["theme"] = "cute"
 
     def set(self, key, value):
+        if key not in DEFAULT_PREFERENCES:
+            return dict(self._data)
         if key == "theme":
             if not isinstance(value, str) or value not in VALID_THEMES:
                 value = "cute"
+        if key == "entrySaveLocation" and (not isinstance(value, str) or not value.strip()):
+            return dict(self._data)
         self._data[key] = value
         self._save()
         return dict(self._data)

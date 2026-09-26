@@ -6,6 +6,7 @@
 
 let state = null;
 let activeTab = 'tasks';
+let deletedCountRefresh = 0;
 
 function api() {
   return window.pywebview && window.pywebview.api;
@@ -23,6 +24,7 @@ function init() {
   wireOverlay();
   wireEnterToSubmit();
   wireThemePicker();
+  wireSaveLocation();
   loadPreferences();
   refresh();
   setInterval(refresh, 4000);       // resync state from the core
@@ -41,6 +43,7 @@ async function loadPreferences() {
   document.body.dataset.theme = theme;
   document.querySelectorAll('.theme-btn').forEach((b) =>
     b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+  renderSaveLocation(prefs);
 }
 
 async function refresh() {
@@ -54,6 +57,7 @@ function render() {
   const noSession = !state.session;
   document.getElementById('screen-start').classList.toggle('hidden', !noSession);
   document.getElementById('screen-active').classList.toggle('hidden', noSession);
+  refreshDeletedCount();
 
   if (noSession) {
     renderSessionList();
@@ -63,6 +67,20 @@ function render() {
     renderEntries();
     renderSummary();
   }
+}
+
+async function refreshDeletedCount() {
+  const request = ++deletedCountRefresh;
+  const deleted = await api().list_deleted_entries();
+  if (request !== deletedCountRefresh) return;
+  setDeletedCount(deleted.length);
+}
+
+function setDeletedCount(count) {
+  // Invalidate an older in-flight refresh so it cannot overwrite this newer result.
+  deletedCountRefresh += 1;
+  const countEl = document.getElementById('deleted-count');
+  if (countEl) countEl.textContent = String(count);
 }
 
 async function renderSessionList() {
@@ -295,6 +313,57 @@ function wireThemePicker() {
   });
 }
 
+function renderSaveLocation(prefs) {
+  const button = document.getElementById('save-location-btn');
+  if (!button) return;
+  button.disabled = prefs.entrySaveLocationLocked === true;
+  button.title = button.disabled
+    ? 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR'
+    : 'Change entry save location';
+  button.setAttribute('aria-label', button.title);
+}
+
+function wireSaveLocation() {
+  document.getElementById('save-location-btn').onclick = async () => {
+    const prefs = await api().get_preferences();
+    const locked = prefs.entrySaveLocationLocked === true;
+    const body = document.createElement('div');
+    body.setAttribute('aria-label', 'Entry save location preference');
+    const path = document.createElement('p');
+    path.id = 'entry-save-location-path';
+    path.setAttribute('aria-label', 'Current entry save location');
+    path.textContent = prefs.entrySaveLocation || '(default location)';
+    const choose = document.createElement('button');
+    choose.type = 'button';
+    choose.id = 'choose-entry-save-location';
+    choose.textContent = 'Choose folder…';
+    choose.disabled = locked;
+    const hint = document.createElement('p');
+    hint.textContent = locked
+      ? 'Folder is controlled by KEEPER_OF_TIME_DATA_DIR.'
+      : 'Choose whether to move existing session files when you change folders.';
+    body.append(path, choose, hint);
+    openOverlay('SAVE LOCATION', body.innerHTML);
+    document.getElementById('choose-entry-save-location').onclick = async () => {
+      const selection = await api().choose_entry_save_location();
+      if (!selection.ok) {
+        if (!selection.cancelled) document.getElementById('entry-save-location-path').textContent = selection.message || 'Could not choose folder.';
+        return;
+      }
+      if (!window.confirm(`Use this folder for new sessions?\n${selection.path}`)) return;
+      const moveExisting = window.confirm('Move existing session files to this folder? Choose Cancel to leave them where they are.');
+      const result = await api().set_preference('entrySaveLocation', selection.path, moveExisting);
+      if (result.ok) {
+        const latest = await api().get_preferences();
+        document.getElementById('entry-save-location-path').textContent = latest.entrySaveLocation;
+        renderSaveLocation(latest);
+      } else {
+        document.getElementById('entry-save-location-path').textContent = result.message || 'Could not set folder.';
+      }
+    };
+  };
+}
+
 // ---------- overlays ----------
 
 function wireOverlay() {
@@ -398,6 +467,7 @@ async function openLogGroup() {
 
 async function openDeletedEntries() {
   const deleted = await api().list_deleted_entries();
+  setDeletedCount(deleted.length);
   if (deleted.length === 0) {
     openOverlay('Deleted entries', '<div class="empty-state">No deleted entries.</div>');
     return;

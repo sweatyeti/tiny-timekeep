@@ -34,7 +34,8 @@ INDEX_HTML = os.path.join(WEB, "index.html")
 APP_LEVEL_METHODS = {
     "set_window",            # internal wiring, not reachable from JS in practice
     "move_window_to", "resize_window_to", "minimize_window", "exit_app",
-    "get_preferences", "set_preference",
+    "get_preferences", "set_preference", "choose_entry_save_location",
+    "set_entry_save_location",
 }
 
 # Fields the frontend reads, by payload. Every one must be present in a live payload.
@@ -214,6 +215,16 @@ class TestFrontendNamesTheApp(unittest.TestCase):
 
 class TestChromeAndTheming(unittest.TestCase):
     """Window chrome and themed surfaces — the parts a contract test cannot see."""
+
+    def test_deleted_button_shows_and_refreshes_the_deleted_entry_count(self):
+        html = _read(INDEX_HTML)
+        js = _read(APP_JS)
+        assert 'id="deleted-count">0</span>' in html, "deleted button count must start at zero"
+        render = js.split("function render()", 1)[1].split("\n}", 1)[0]
+        assert "refreshDeletedCount();" in render, "count must refresh whenever the app renders"
+        assert "api().list_deleted_entries()" in js
+        assert "setDeletedCount(deleted.length);" in js
+        assert "countEl.textContent = String(count);" in js
 
     def test_title_bar_has_a_minimize_control_and_it_is_wired(self):
         assert 'id="min-btn"' in _read(INDEX_HTML), "no minimize control in the title bar"

@@ -55,9 +55,15 @@ python main.py --check        # prints the contract version, replays the golden 
 python -m unittest discover -s tests
 ```
 
-Sessions live in `%LOCALAPPDATA%\KeeperOfTime\sessions` (`KEEPER_OF_TIME_DATA_DIR` overrides it).
-They are deliberately **not** stored beside the executable: a one-file build unpacks to a temp
-directory and starts empty each run.
+Sessions default to `%LOCALAPPDATA%\KeeperOfTime\sessions` on Windows. Change the entry save
+location from the folder button beside the theme controls; the choice persists in
+`%LOCALAPPDATA%\KeeperOfTime\preferences.json`, independently of the selected sessions folder.
+When changing folders, the app first confirms the new location and then asks whether to move
+existing session files. A move is copy-first, collision-safe, and verified before the old copies
+are removed. If you decline, existing files remain in the old folder and new sessions use the
+selected folder. `KEEPER_OF_TIME_DATA_DIR` takes precedence over the saved preference and disables
+the selector while set. Sessions are deliberately **not** stored beside the executable: a one-file
+build unpacks to a temp directory and starts empty each run.
 
 ## Build the .exe
 
