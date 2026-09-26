@@ -7,6 +7,7 @@
 let state = null;
 let activeTab = 'tasks';
 let deletedCountRefresh = 0;
+const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 
 function api() {
   return window.pywebview && window.pywebview.api;
@@ -39,10 +40,7 @@ async function loadPreferences() {
     ['tasks', 'log', 'summary'].forEach((t) =>
       document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
   }
-  const theme = (typeof prefs.theme === 'string' && (prefs.theme === 'cute' || prefs.theme === 'cyber')) ? prefs.theme : 'cute';
-  document.body.dataset.theme = theme;
-  document.querySelectorAll('.theme-btn').forEach((b) =>
-    b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+  applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme) ? prefs.theme : 'cute');
   renderSaveLocation(prefs);
 }
 
@@ -299,17 +297,18 @@ function wireThemePicker() {
   document.querySelectorAll('.theme-btn').forEach((btn) => {
     btn.onclick = async () => {
       const theme = btn.dataset.theme;
-      if (theme !== 'cute' && theme !== 'cyber') return;
-      document.body.dataset.theme = theme;
-      document.querySelectorAll('.theme-btn').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+      if (!THEMES.includes(theme)) return;
+      applyTheme(theme);
       const stored = await api().set_preference('theme', theme);
-      const finalTheme = (typeof stored.theme === 'string' && (stored.theme === 'cute' || stored.theme === 'cyber')) ? stored.theme : 'cute';
-      document.body.dataset.theme = finalTheme;
-      document.querySelectorAll('.theme-btn').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b.dataset.theme === finalTheme)));
+      applyTheme(typeof stored.theme === 'string' && THEMES.includes(stored.theme) ? stored.theme : 'cute');
     };
   });
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  document.querySelectorAll('.theme-btn').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
 }
 
 function renderSaveLocation(prefs) {

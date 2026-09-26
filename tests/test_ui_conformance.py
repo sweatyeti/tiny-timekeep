@@ -112,19 +112,22 @@ class FrontendCase(unittest.TestCase):
 
 
 class TestFrontendCallsExist(unittest.TestCase):
-    def test_bottom_status_bar_has_only_the_three_accessible_controls(self):
+    def test_bottom_status_bar_has_only_five_themes_and_folder_control(self):
         parser = _ThemeBarParser()
         parser.feed(_read(INDEX_HTML))
         self.assertEqual(parser.bar.get("role"), "toolbar")
         self.assertTrue(parser.bar.get("aria-label"))
         self.assertFalse(parser.bar_inside_app)
         self.assertEqual(parser.bar_text, [])
-        self.assertEqual(len(parser.buttons), 3)
+        self.assertEqual(len(parser.buttons), 6)
         self.assertEqual([button.get("id") for button in parser.buttons],
-                         [None, None, "save-location-btn"])
+                         [None, None, None, None, None, "save-location-btn"])
         self.assertEqual([button.get("data-theme") for button in parser.buttons],
-                         ["cute", "cyber", None])
-        self.assertTrue(all(button.get("aria-label") for button in parser.buttons))
+                         ["cute", "cyber", "poolside", "evergreen", "citrus-pop", None])
+        self.assertTrue(all(button.get("aria-label") and button.get("title")
+                            for button in parser.buttons))
+        self.assertTrue(all(button.get("aria-pressed") in ("true", "false")
+                            for button in parser.buttons[:-1]))
 
     def test_bottom_status_bar_layout_and_existing_control_wiring(self):
         css = _read(os.path.join(WEB, "style.css"))
@@ -139,6 +142,11 @@ class TestFrontendCallsExist(unittest.TestCase):
         js = _read(APP_JS)
         self.assertIn("document.querySelectorAll('.theme-btn').forEach", js)
         self.assertIn("document.getElementById('save-location-btn').onclick", js)
+        html = _read(INDEX_HTML)
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+            self.assertIn(f'data-theme="{theme}"', html)
+            self.assertIn(f'body[data-theme="{theme}"]', css)
+            self.assertIn(f"'{theme}'", js)
 
     def test_every_api_call_in_app_js_exists_on_api(self):
         called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
@@ -234,12 +242,13 @@ class TestThemePreference(FrontendCase):
         assert prefs["theme"] == "cute", prefs
         assert prefs["activeTab"] == "tasks", prefs
 
-    def test_set_theme_cyber_persists_and_reloads(self):
-        result = self.api.set_preference("theme", "cyber")
-        assert result["theme"] == "cyber", result
-        assert result["activeTab"] == "tasks", result
-        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
-        assert reopened.get_all()["theme"] == "cyber", "cyber theme did not persist"
+    def test_all_themes_round_trip_through_store_reopen(self):
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+            with self.subTest(theme=theme):
+                result = self.api.set_preference("theme", theme)
+                assert result["theme"] == theme, result
+                reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
+                assert reopened.get_all()["theme"] == theme, f"{theme} did not persist"
 
     def test_unknown_theme_falls_back_to_cute_on_set(self):
         result = self.api.set_preference("theme", "dark")
@@ -283,6 +292,27 @@ class TestFrontendNamesTheApp(unittest.TestCase):
 
 class TestChromeAndTheming(unittest.TestCase):
     """Window chrome and themed surfaces — the parts a contract test cannot see."""
+
+    def test_theme_selection_updates_persists_and_restores_after_reload(self):
+        js = _read(APP_JS)
+        self.assertIn("const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop']", js)
+        self.assertIn("if (!THEMES.includes(theme)) return;", js)
+        self.assertIn("applyTheme(theme);", js)
+        self.assertIn("api().set_preference('theme', theme)", js)
+        self.assertIn("applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme)", js)
+        for theme in ("poolside", "evergreen", "citrus-pop"):
+            self.assertIn(f'"{theme}"', _read(os.path.join(ROOT, "preferences.py")))
+
+    def test_new_palettes_split_accent_fill_and_text_roles(self):
+        css = _read(os.path.join(WEB, "style.css"))
+        for theme in ("poolside", "evergreen", "citrus-pop"):
+            match = re.search(rf'body\[data-theme="{theme}"\]\s*\{{([^}}]*)\}}', css)
+            self.assertIsNotNone(match, f"missing CSS palette for {theme}")
+            block = match.group(1) if match else ""
+            self.assertIn("--accent-pink-text:", block)
+            self.assertIn("--accent-mint-text:", block)
+        self.assertIn("color: var(--accent-mint-text)", css)
+        self.assertIn("color: var(--accent-pink-text)", css)
 
     def test_theme_font_families_match_between_cute_and_cyber(self):
         css = _read(os.path.join(WEB, "style.css"))

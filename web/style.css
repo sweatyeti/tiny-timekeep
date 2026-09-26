@@ -8,6 +8,8 @@
   --titlebar-text: #2a1f3d;
   --accent-pink: #ff8fa3;
   --accent-mint: #7de8c8;
+  --accent-pink-text: var(--accent-pink);
+  --accent-mint-text: var(--accent-mint);
   --inactive: #dd6f97;    /* NOT TRACKING banner. A deeper, richer rose on purpose: it must
                              read as "in the same family as" the title bar without being the
                              same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
@@ -31,6 +33,8 @@ body[data-theme="cyber"] {
   --titlebar-text: #000000;
   --accent-pink: #ff00ff;
   --accent-mint: #00ffff;
+  --accent-pink-text: #ff00ff;
+  --accent-mint-text: #00ffff;
   --inactive: #ff6600;
   --text-main: #e8e8ff;
   --text-dim: #7788aa;
@@ -47,6 +51,66 @@ body[data-theme="cyber"] {
   --cyber-size-header: calc(15px + var(--cyber-size-bump));
   --cyber-size-icon: calc(18px + var(--cyber-size-bump));
   */
+}
+
+body[data-theme="poolside"] {
+  --bg-top: #EAF8FF;
+  --bg-bottom: #B7E7F1;
+  --panel: #F5FCFF;
+  --panel-row: #D9F1F8;
+  --panel-row-alt: #B8DEE9;
+  --titlebar: #63C3D1;
+  --titlebar-text: #123A4A;
+  --accent-pink: #F7B35A;
+  --accent-mint: #A8DED9;
+  --accent-pink-text: #A45A12;
+  --accent-mint-text: #236F80;
+  --inactive: #F3AD7F;
+  --text-main: #123A4A;
+  --text-dim: #416779;
+  --callout: #AE3E4A;
+  --logged: #1D7254;
+  --border-dark: #123A4A;
+}
+
+body[data-theme="evergreen"] {
+  --bg-top: #071A16;
+  --bg-bottom: #12362B;
+  --panel: #18392F;
+  --panel-row: #0F2923;
+  --panel-row-alt: #204437;
+  --titlebar: #3A7255;
+  --titlebar-text: #FFF0D2;
+  --accent-pink: #D99056;
+  --accent-mint: #AED08B;
+  --accent-pink-text: #E6A86E;
+  --accent-mint-text: #AED08B;
+  --inactive: #C17A48;
+  --text-main: #F2EBDD;
+  --text-dim: #A5BEA9;
+  --callout: #F08472;
+  --logged: #AED08B;
+  --border-dark: #06110D;
+}
+
+body[data-theme="citrus-pop"] {
+  --bg-top: #FFFDEB;
+  --bg-bottom: #E8F29C;
+  --panel: #FFFFF8;
+  --panel-row: #F0F3C5;
+  --panel-row-alt: #DCE59C;
+  --titlebar: #B6D94A;
+  --titlebar-text: #22291B;
+  --accent-pink: #FDBA2D;
+  --accent-mint: #F0F3C5;
+  --accent-pink-text: #815400;
+  --accent-mint-text: #4B6A13;
+  --inactive: #F5CE6B;
+  --text-main: #26271D;
+  --text-dim: #5C6144;
+  --callout: #B3442D;
+  --logged: #496B1F;
+  --border-dark: #26271D;
 }
 
 * { box-sizing: border-box; }
@@ -115,7 +179,7 @@ html, body {
 h2 {
   font-family: var(--font-display);
   font-size: 12px;
-  color: var(--accent-mint);
+  color: var(--accent-mint-text);
   margin: 0 0 10px;
 }
 h2.mt { margin-top: 22px; }
@@ -457,7 +521,7 @@ body[data-theme="cyber"] .companion-cyber {
   padding: 8px 4px;
   cursor: pointer;
 }
-.tab-btn.active { color: var(--accent-pink); border-bottom-color: var(--accent-pink); }
+.tab-btn.active { color: var(--accent-pink-text); border-bottom-color: var(--accent-pink); }
 
 .rows { display: flex; flex-direction: column; }
 .row {

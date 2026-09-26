@@ -20,7 +20,7 @@ DEFAULT_PREFERENCES = {
     "entrySaveLocation": None,
 }
 
-VALID_THEMES = ("cute", "cyber")
+VALID_THEMES = ("cute", "cyber", "poolside", "evergreen", "citrus-pop")
 
 class PreferencesStore:
     def __init__(self, path):
