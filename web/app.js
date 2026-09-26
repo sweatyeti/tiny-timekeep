@@ -57,6 +57,7 @@ function render() {
   const noSession = !state.session;
   document.getElementById('screen-start').classList.toggle('hidden', !noSession);
   document.getElementById('screen-active').classList.toggle('hidden', noSession);
+  renderCompanion(state);
   refreshDeletedCount();
 
   if (noSession) {
@@ -515,6 +516,22 @@ function fmtHM(minutes) {
 function fmtClock(iso) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function getCompanionState(viewModel) {
+  if (viewModel && viewModel.currentEntry) {
+    return { mode: 'awake', label: 'Pixel Companion is awake while a task is being tracked.' };
+  }
+  return { mode: 'sleeping', label: 'Pixel Companion is sleeping because no task is being tracked.' };
+}
+
+function renderCompanion(viewModel) {
+  const model = getCompanionState(viewModel);
+  const companion = document.getElementById('companion');
+  const label = document.getElementById('companion-label');
+  if (!companion || !label) return;
+  companion.dataset.mode = model.mode;
+  label.textContent = model.label;
 }
 
 function escapeHtml(s) {

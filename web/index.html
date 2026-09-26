@@ -40,6 +40,21 @@
         <div class="now-tracking-top">
           <div class="now-tracking-label" id="current-label">Not tracking</div>
           <div class="now-tracking-start" id="current-start"></div>
+          <aside id="companion" class="companion" data-mode="sleeping" role="status" aria-live="polite">
+            <div class="companion-scene" aria-hidden="true">
+              <div class="companion-cat">
+                <span class="companion-ear companion-ear-left"></span>
+                <span class="companion-ear companion-ear-right"></span>
+                <span class="companion-face">
+                  <span class="companion-eye companion-eye-left"></span>
+                  <span class="companion-eye companion-eye-right"></span>
+                </span>
+                <span class="companion-paw"></span>
+              </div>
+              <span class="companion-sleep-cue"></span>
+            </div>
+            <span id="companion-label" class="sr-only">Pixel Companion is sleeping</span>
+          </aside>
         </div>
         <div class="now-tracking-actions">
           <button id="stop-btn" class="btn btn-mini hidden">■ Stop</button>
