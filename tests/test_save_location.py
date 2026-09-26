@@ -95,15 +95,59 @@ class SaveLocationTests(unittest.TestCase):
         self.assertEqual(str(self.api.core._store.directory), os.path.abspath(self.source))
         self.assertEqual(self.api.get_preferences()["entrySaveLocation"], os.path.abspath(self.source))
 
-    def test_declining_move_keeps_source_until_next_successful_active_save(self):
+    def test_declining_move_immediately_relocates_active_session(self):
         self.api.start_session("Garden work", "weeding")
         original = self.api.core._store.document_path(self.api.core._session.file_name)
+        session_id = self.api.core._session.session_id
         result = self.api.set_preference("entrySaveLocation", self.target, False)
         self.assertTrue(result["ok"], result)
+        self.assertTrue(self.api.core._session.is_active())
+        self.assertFalse(original.exists())
+        entries = list(os.scandir(self.target))
+        self.assertEqual(len(entries), 1)
+        target_name = entries[0].name
+        with open(os.path.join(self.target, target_name), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["sessionId"], session_id)
+        self.assertEqual(self.api.core._session.file_name, target_name)
+        self.assertIsNone(self.api._pending_source)
+
+    def test_declining_move_preserves_unrelated_historical_file(self):
+        self.api.start_session("Garden work", "weeding")
+        source_dir = str(self.api.core._store.directory)
+        historical = os.path.join(source_dir, "old-session.json")
+        with open(historical, "w", encoding="utf-8") as f:
+            json.dump({"sessionId": "old-id", "title": "Old"}, f)
+        result = self.api.set_preference("entrySaveLocation", self.target, False)
+        self.assertTrue(result["ok"], result)
+        self.assertTrue(os.path.exists(historical))
+
+    def test_immediate_copy_failure_falls_back_to_pending(self):
+        self.api.start_session("Garden work", "weeding")
+        original = self.api.core._store.document_path(self.api.core._session.file_name)
+        with patch("main.shutil.copyfileobj", side_effect=OSError("simulated")):
+            result = self.api.set_preference("entrySaveLocation", self.target, False)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(str(self.api.core._store.directory), os.path.abspath(self.target))
+        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], os.path.abspath(self.target))
         self.assertTrue(original.exists())
+        self.assertEqual(self.api._pending_source, original)
+        self.assertIsNone(self.api.core._session.file_name)
         self.assertTrue(self.api.stop_tracking()["ok"])
         self.assertFalse(original.exists())
         self.assertTrue(list(os.scandir(self.target)))
+
+    def test_immediate_move_collision_uses_distinct_name(self):
+        self.api.start_session("Garden work", "weeding")
+        original_name = self.api.core._session.file_name
+        os.makedirs(self.target, exist_ok=True)
+        collision_path = os.path.join(self.target, original_name)
+        with open(collision_path, "w", encoding="utf-8") as f:
+            json.dump({"sessionId": "other"}, f)
+        result = self.api.set_preference("entrySaveLocation", self.target, False)
+        self.assertTrue(result["ok"], result)
+        self.assertNotEqual(self.api.core._session.file_name, original_name)
+        self.assertTrue(os.path.exists(collision_path))
 
     def test_ui_exposes_accessible_selector_and_two_confirmations(self):
         with open(os.path.join(main.BASE_DIR, "web", "index.html"), encoding="utf-8") as handle:

@@ -249,12 +249,47 @@ class Api:
         if move_existing:
             if session is not None and session.file_name in name_map:
                 session.file_name = name_map[session.file_name]
-        elif session is not None and session.is_active():
-            if self._pending_source is None and session.file_name:
-                self._pending_source = self.core._store.document_path(session.file_name)
-            # Allocate a distinct destination filename on the next core save,
-            # preventing a same-name completed session from being overwritten.
-            session.file_name = None
+        elif session is not None and session.is_active() and session.file_name:
+            source = self.core._store.document_path(session.file_name)
+            if source.is_file():
+                destination = None
+                owned_destination = False
+                try:
+                    taken = {item.name for item in Path(target).iterdir() if item.is_file()}
+                    stem, suffix = os.path.splitext(source.name)
+                    candidate = source.name
+                    counter = 2
+                    while candidate in taken:
+                        candidate = f"{stem}-{counter}{suffix}"
+                        counter += 1
+                    destination = Path(target) / candidate
+                    with source.open("rb") as original:
+                        with destination.open("xb") as copied:
+                            owned_destination = True
+                            shutil.copyfileobj(original, copied)
+                            copied.flush()
+                            os.fsync(copied.fileno())
+                    with source.open("rb") as original, destination.open("rb") as copied:
+                        if original.read() != copied.read():
+                            raise OSError(f"Verification failed for {source.name}")
+                    with destination.open("r", encoding="utf-8") as handle:
+                        saved = json.load(handle)
+                    if saved.get("sessionId") != session.session_id:
+                        raise OSError(f"Session ID mismatch for {source.name}")
+                    session.file_name = candidate
+                    try:
+                        source.unlink()
+                    except OSError:
+                        pass
+                    self._pending_source = None
+                except (OSError, ValueError):
+                    if owned_destination:
+                        try:
+                            destination.unlink()
+                        except OSError:
+                            pass
+                    self._pending_source = source
+                    session.file_name = None
         self.core._store._directory = Path(target)
         if move_existing:
             for source, _ in migrated:
