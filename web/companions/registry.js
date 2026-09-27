@@ -20,6 +20,13 @@
  * are kept in the repository for reference, its script and stylesheet are no
  * longer loaded by index.html, and its entry below is commented out with an
  * explanation rather than left dangling.
+ *
+ * The Evergreen theme has never had an avatar of its own: before this change
+ * COMPANION_REGISTRY had no evergreen key at all, so Evergreen was one of the
+ * unknown themes that rendered no avatar (only the shared sleep cue). This
+ * change therefore ADDS the supplied Woodland Owl renderer (renderWoodlandOwl
+ * in companions/woodland-owl.js plus companions/woodland-owl.css) and parks
+ * nothing -- there is no retired Evergreen avatar file to keep for reference.
  */
 const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
@@ -31,12 +38,14 @@ const COMPANION_AVATARS = {
   'poolside-turtle': renderPoolsideTurtle,
   // The original Poolside sun avatar is parked (see top comment).
   // sun: renderSunAvatar,
+  'woodland-owl': renderWoodlandOwl,
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
   cyber: 'neon-robot',
-  poolside: 'poolside-turtle'
+  poolside: 'poolside-turtle',
+  evergreen: 'woodland-owl'
 };
 
 function resolveCompanionAvatar(theme) {
