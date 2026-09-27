@@ -111,8 +111,8 @@
   .companion-cat,
   .companion-cyber,
   .companion-sun {
-    transform: scale(2);
-    left: calc(50% - 32px);
-    top: calc(50% - 36px);
+    transform: translate(-50%, -50%) scale(2);
+    left: 50%;
+    top: 50%;
   }
 }

@@ -478,8 +478,15 @@ class TestPixelCompanionStyles(unittest.TestCase):
                       "Reduced-motion block does not target .companion-sun")
         self.assertRegex(block, r"animation\s*:\s*none",
                          "Reduced-motion block does not disable animation")
-        self.assertRegex(block, r"transform\s*:\s*scale\(2\)",
+        self.assertRegex(block, r"transform\s*:[^;]*scale\(2\)",
                          "Reduced-motion block must preserve the 2x sprite scale")
+        self.assertRegex(
+            block,
+            r"\.companion-cat,\s*\.companion-cyber,\s*\.companion-sun\s*\{\s*"
+            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*scale\(2\);\s*"
+            r"left\s*:\s*50%;\s*top\s*:\s*50%;",
+            "Reduced-motion sprites must retain the shared center anchor at 2x scale",
+        )
 
 
 class TestPixelCompanionWiring(unittest.TestCase):
