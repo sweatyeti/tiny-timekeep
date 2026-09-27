@@ -1,7 +1,7 @@
 #companion {
   box-sizing: border-box;
-  width: 64px;
-  height: 48px;
+  width: 128px;
+  height: 96px;
   border: 2px solid var(--border-dark);
   background: var(--panel-row);
   position: relative;
@@ -87,13 +87,13 @@
 }
 
 @keyframes companion-awake-bob {
-  0%, 100% { transform: translate(-50%, -50%); }
-  50% { transform: translate(-50%, calc(-50% - 2px)); }
+  0%, 100% { transform: translate(-50%, -50%) scale(2); }
+  50% { transform: translate(-50%, calc(-50% - 2px)) scale(2); }
 }
 
 @keyframes companion-sleep-bob {
-  0%, 100% { transform: translate(-50%, -50%); }
-  50% { transform: translate(-50%, calc(-50% - 1px)); }
+  0%, 100% { transform: translate(-50%, -50%) scale(2); }
+  50% { transform: translate(-50%, calc(-50% - 1px)) scale(2); }
 }
 
 @keyframes companion-sleep-cue {
@@ -111,8 +111,8 @@
   .companion-cat,
   .companion-cyber,
   .companion-sun {
-    transform: none;
-    left: calc(50% - 16px);
-    top: calc(50% - 18px);
+    transform: scale(2);
+    left: calc(50% - 32px);
+    top: calc(50% - 36px);
   }
 }

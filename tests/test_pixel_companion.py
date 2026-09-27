@@ -318,19 +318,42 @@ class TestPixelCompanionStyles(unittest.TestCase):
                 rules.append((selector, body))
         return rules
 
-    def test_width_64px(self):
+    def test_shared_frame_is_128_by_96_and_clips_nothing_within_sprite_bounds(self):
         rules = self._companion_rules()
-        found = any(
-            re.search(r"width\s*:\s*64px", body) for _, body in rules
-        )
-        self.assertTrue(found, "No companion rule sets width: 64px")
+        frame = next((
+            body for selector, body in rules
+            if selector == "#companion" and re.search(r"width\s*:\s*128px", body)
+        ), "")
+        self.assertRegex(frame, r"width\s*:\s*128px")
+        self.assertRegex(frame, r"height\s*:\s*96px")
+        self.assertRegex(frame, r"overflow\s*:\s*hidden")
 
-    def test_height_48px(self):
-        rules = self._companion_rules()
-        found = any(
-            re.search(r"height\s*:\s*48px", body) for _, body in rules
-        )
-        self.assertTrue(found, "No companion rule sets height: 48px")
+    def test_every_registered_sprite_is_doubled_and_motion_keeps_scale(self):
+        for avatar in ("cat", "cyber", "sun"):
+            path = os.path.join(COMPANION_CSS, avatar + ".css")
+            with open(path, "r", encoding="utf-8") as f:
+                source = f.read()
+            selector = ".companion-{} {{".format(avatar)
+            block = re.search(re.escape(selector) + r"([^}]*)}", source)
+            if block is None:
+                self.fail("Missing root sizing for {}".format(avatar))
+            self.assertRegex(block.group(1), r"width\s*:\s*32px")
+            self.assertRegex(block.group(1), r"height\s*:\s*36px")
+            self.assertRegex(block.group(1), r"scale\(2\)")
+        self.assertRegex(self.css, r"@keyframes companion-awake-bob\s*\{[^}]*scale\(2\)")
+        self.assertRegex(self.css, r"@keyframes companion-sleep-bob\s*\{[^}]*scale\(2\)")
+
+    def test_active_session_layout_keeps_text_and_actions_left_of_companion(self):
+        self.assertRegex(self.css, r'grid-template-areas\s*:\s*"label companion"\s+"start companion"')
+        self.assertRegex(self.css, r"#companion\s*\{\s*grid-area\s*:\s*companion")
+        self.assertRegex(self.css, r"\.now-tracking-label\s*\{\s*grid-area\s*:\s*label")
+        self.assertRegex(self.css, r"\.now-tracking-start\s*\{\s*grid-area\s*:\s*start")
+        self.assertRegex(self.css, r"\.now-tracking-actions\s*\{[^}]*justify-content\s*:\s*flex-start")
+        actions = re.search(r"\.now-tracking-actions\s+\.btn-mini\s*\{([^}]*)\}", self.css)
+        if actions is None:
+            self.fail("Missing compact action button rule")
+        self.assertRegex(actions.group(1), r"font-size\s*:\s*9px")
+        self.assertRegex(actions.group(1), r"padding\s*:\s*5px\s+7px")
 
     def test_uses_panel_row_token(self):
         rules = self._companion_rules()
@@ -455,8 +478,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
                       "Reduced-motion block does not target .companion-sun")
         self.assertRegex(block, r"animation\s*:\s*none",
                          "Reduced-motion block does not disable animation")
-        self.assertRegex(block, r"transform\s*:\s*none",
-                         "Reduced-motion block does not set transform: none")
+        self.assertRegex(block, r"transform\s*:\s*scale\(2\)",
+                         "Reduced-motion block must preserve the 2x sprite scale")
 
 
 class TestPixelCompanionWiring(unittest.TestCase):
