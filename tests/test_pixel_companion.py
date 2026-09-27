@@ -354,16 +354,26 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertRegex(self.css, r"@keyframes companion-sleep-bob\s*\{[^}]*scale\(2\)")
 
     def test_active_session_layout_keeps_text_and_actions_left_of_companion(self):
-        self.assertRegex(self.css, r'grid-template-areas\s*:\s*"label companion"\s+"start companion"')
+        self.assertRegex(self.css, r'grid-template-areas\s*:\s*"label companion"\s+"start companion"\s+"actions companion"')
         self.assertRegex(self.css, r"#companion\s*\{\s*grid-area\s*:\s*companion")
         self.assertRegex(self.css, r"\.now-tracking-label\s*\{\s*grid-area\s*:\s*label")
         self.assertRegex(self.css, r"\.now-tracking-start\s*\{\s*grid-area\s*:\s*start")
-        self.assertRegex(self.css, r"\.now-tracking-actions\s*\{[^}]*justify-content\s*:\s*flex-start")
-        actions = re.search(r"\.now-tracking-actions\s+\.btn-mini\s*\{([^}]*)\}", self.css)
+        actions = re.search(r"\.now-tracking-actions\s*\{([^}]*)\}", self.css)
         if actions is None:
-            self.fail("Missing compact action button rule")
-        self.assertRegex(actions.group(1), r"font-size\s*:\s*9px")
-        self.assertRegex(actions.group(1), r"padding\s*:\s*5px\s+7px")
+            self.fail("Missing grid-aligned timer action group")
+        self.assertRegex(actions.group(1), r"grid-area\s*:\s*actions")
+        self.assertRegex(actions.group(1), r"gap\s*:\s*4px")
+        self.assertRegex(actions.group(1), r"flex-wrap\s*:\s*nowrap")
+        stop = re.search(r"\.now-tracking-actions\s+#stop-btn\s*\{([^}]*)\}", self.css)
+        start = re.search(r"\.now-tracking-actions\s+#stop-start-btn\s*\{([^}]*)\}", self.css)
+        if stop is None:
+            self.fail("Missing fixed-size stop control")
+        if start is None:
+            self.fail("Missing fixed-size stop-and-start control")
+        self.assertRegex(stop.group(1), r"width\s*:\s*36px")
+        self.assertRegex(start.group(1), r"width\s*:\s*60px")
+        self.assertRegex(stop.group(1), r"height\s*:\s*32px")
+        self.assertRegex(start.group(1), r"height\s*:\s*32px")
 
     def test_uses_panel_row_token(self):
         rules = self._companion_rules()

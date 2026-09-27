@@ -48,10 +48,22 @@
             <div class="companion-scene" aria-hidden="true"></div>
             <span id="companion-label" class="sr-only">Pixel Companion is sleeping</span>
           </aside>
-        </div>
-        <div class="now-tracking-actions">
-          <button id="stop-btn" class="btn btn-mini hidden">■ Stop</button>
-          <button id="stop-start-btn" class="btn btn-mini btn-mini-accent">▶ Start new</button>
+          <div class="now-tracking-actions">
+            <button id="stop-btn" class="btn btn-mini hidden" type="button" aria-label="Stop tracking" title="Stop tracking">
+              <svg class="timer-stop-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <rect class="timer-stop-square" x="3" y="3" width="10" height="10" />
+              </svg>
+            </button>
+            <button id="stop-start-btn" class="btn btn-mini btn-mini-accent" type="button" aria-label="Stop and start a new task" title="Stop and start a new task">
+              <svg class="timer-play-refresh-icon" width="38" height="18" viewBox="0 0 38 18" aria-hidden="true" focusable="false">
+                <path class="timer-play" d="M3 2 L15 9 L3 16 Z" />
+                <g class="timer-refresh hidden">
+                  <path d="M34 7 A5 5 0 0 0 25 5 L24 6 M24 6 H28 M24 6 V3" />
+                  <path d="M25 11 A5 5 0 0 0 34 13 L35 12 M35 12 H31 M35 12 V15" />
+                </g>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

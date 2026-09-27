@@ -109,18 +109,28 @@ function renderCurrent() {
   const stopBtn = document.getElementById('stop-btn');
   const stopStartBtn = document.getElementById('stop-start-btn');
   const banner = document.getElementById('status-banner');
+  const isTracking = Boolean(state.currentEntry);
+  stopBtn.title = 'Stop tracking';
+  stopBtn.setAttribute('aria-label', 'Stop tracking');
+  const startActionLabel = isTracking ? 'Stop and start a new task' : 'Start a new task';
+  stopStartBtn.title = startActionLabel;
+  stopStartBtn.setAttribute('aria-label', startActionLabel);
+  const refreshIcon = stopStartBtn.querySelector('.timer-refresh');
+  if (refreshIcon) refreshIcon.classList.toggle('hidden', !isTracking);
   if (state.currentEntry) {
     label.textContent = state.currentEntry.task;
+    label.title = state.currentEntry.task;
+    label.setAttribute('aria-label', state.currentEntry.task);
     startEl.textContent = `Started ${fmtClock(state.currentEntry.startTime)}`;
     stopBtn.classList.remove('hidden');
-    stopStartBtn.textContent = '▶ Stop & start new';
     banner.textContent = '● ACTIVE';
     banner.className = 'status-banner active';
   } else {
     label.textContent = 'Not tracking';
+    label.title = 'Not tracking';
+    label.setAttribute('aria-label', 'Not tracking');
     startEl.textContent = '';
     stopBtn.classList.add('hidden');
-    stopStartBtn.textContent = '▶ Start new';
     banner.textContent = '○ NOT TRACKING';
     banner.className = 'status-banner inactive';
   }
@@ -130,7 +140,7 @@ function renderTasks() {
   const container = document.getElementById('task-rows');
   container.innerHTML = '';
   if (state.summary.length === 0) {
-    container.innerHTML = '<div class="empty-state">No tasks yet — use Start new below.</div>';
+    container.innerHTML = '<div class="empty-state">No tasks yet — use the play button above.</div>';
     return;
   }
   for (const g of state.summary) {

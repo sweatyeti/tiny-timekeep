@@ -17,6 +17,7 @@
   --text-main: #f2e9da;
   --text-dim: #b9a9d1;
   --callout: #ff6b6b;
+  --stop-ink: #1b1330;
   --logged: #8de0a0;
   --border-dark: #1b1330;
   --font-body: 'VT323', monospace;
@@ -39,6 +40,7 @@ body[data-theme="cyber"] {
   --text-main: #e8e8ff;
   --text-dim: #7788aa;
   --callout: #ff4444;
+  --stop-ink: #050510;
   --logged: #44ff88;
   --border-dark: #050510;
   /* Temporarily disabled: match the shared Cute typography and control sizing.
@@ -69,6 +71,7 @@ body[data-theme="poolside"] {
   --text-main: #123A4A;
   --text-dim: #416779;
   --callout: #AE3E4A;
+  --stop-ink: #FFFFFF;
   --logged: #1D7254;
   --border-dark: #123A4A;
 }
@@ -89,6 +92,7 @@ body[data-theme="evergreen"] {
   --text-main: #F2EBDD;
   --text-dim: #A5BEA9;
   --callout: #F08472;
+  --stop-ink: #06110D;
   --logged: #AED08B;
   --border-dark: #06110D;
 }
@@ -109,6 +113,7 @@ body[data-theme="citrus-pop"] {
   --text-main: #26271D;
   --text-dim: #5C6144;
   --callout: #B3442D;
+  --stop-ink: #FFFFFF;
   --logged: #496B1F;
   --border-dark: #26271D;
 }
@@ -239,17 +244,34 @@ input::placeholder { color: var(--text-dim); }
 .now-tracking-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 128px;
-  grid-template-areas: "label companion" "start companion";
+  grid-template-areas: "label companion" "start companion" "actions companion";
   align-items: center;
-  column-gap: 12px;
+  column-gap: 8px;
   margin-bottom: 12px;
 }
-.now-tracking-label { grid-area: label; min-width: 0; font-size: 19px; }
-.now-tracking-start { grid-area: start; font-size: 16px; color: var(--text-dim); }
+.now-tracking-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; }
+.now-tracking-start { grid-area: start; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--text-dim); }
 #companion { grid-area: companion; justify-self: end; }
-.now-tracking-actions { display: flex; justify-content: flex-start; gap: 6px; flex-wrap: wrap; }
-.now-tracking-actions .btn-mini { flex: 0 0 auto; min-width: 0; font-size: 9px; padding: 5px 7px; }
+.now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }
+.now-tracking-actions .btn-mini { display: flex; flex: 0 0 auto; min-width: 0; align-items: center; justify-content: center; font-size: 0; line-height: 1; padding: 0; }
+.now-tracking-actions #stop-btn { width: 36px; height: 32px; flex-basis: 36px; background: var(--callout); color: var(--stop-ink); border-color: var(--stop-ink); }
+.now-tracking-actions #stop-start-btn { width: 60px; height: 32px; flex-basis: 60px; }
+.now-tracking-actions .timer-stop-icon,
+.now-tracking-actions .timer-play-refresh-icon { display: block; flex: none; shape-rendering: crispEdges; }
+.now-tracking-actions .timer-stop-square,
+.now-tracking-actions .timer-play { fill: currentColor; }
+.now-tracking-actions .timer-refresh path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: square; stroke-linejoin: miter; }
+.now-tracking-actions .btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .btn-mini-accent { background: var(--accent-pink); }
+
+@media (max-width: 303px) {
+  /* WebView2's 14px #app scrollbar narrows the minimum-width grid. Borrow 6px
+     from each side of the card padding so both controls fit before the avatar. */
+  .now-tracking-top {
+    margin-left: -6px;
+    margin-right: -6px;
+  }
+}
 
 
 
