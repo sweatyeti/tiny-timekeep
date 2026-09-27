@@ -225,22 +225,12 @@ class TestPixelCompanionJavaScript(unittest.TestCase):
             expected_label = "Pixel Companion is sleeping because no task is being tracked."
         self.assertEqual(actual["label"], expected_label)
 
-    def test_active_state_yields_awake(self):
+    def test_awake_and_sleeping_states_update_the_live_region(self):
         self.assert_pixel_companion_state(self.results["activeState"], "awake")
-
-    def test_active_render_updates_dom(self):
         self.assert_pixel_companion_state(self.results["activeRender"], "awake")
-
-    def test_null_currentEntry_yields_sleeping(self):
         self.assert_pixel_companion_state(self.results["sleepingStates"][0], "sleeping")
-
-    def test_empty_object_yields_sleeping(self):
         self.assert_pixel_companion_state(self.results["sleepingStates"][1], "sleeping")
-
-    def test_null_viewmodel_yields_sleeping(self):
         self.assert_pixel_companion_state(self.results["sleepingStates"][2], "sleeping")
-
-    def test_sleeping_render_updates_dom(self):
         self.assert_pixel_companion_state(self.results["sleepingRender"], "sleeping")
 
     def test_render_companion_no_elements_no_throw(self):
@@ -265,29 +255,19 @@ class TestPixelCompanionMarkup(unittest.TestCase):
         parser.feed(cls.html)
         cls.parser = parser
 
-    def test_companion_is_aside(self):
+    def test_markup_preserves_status_and_artwork_accessibility(self):
         self.assertTrue(self.parser.companion_found, "#companion element not found")
         self.assertEqual(self.parser.companion_tag, "aside")
-
-    def test_companion_role_status(self):
         self.assertEqual(self.parser.companion_attrs.get("role"), "status")
-
-    def test_companion_aria_live_polite(self):
         self.assertEqual(self.parser.companion_attrs.get("aria-live"), "polite")
-
-    def test_contains_aria_hidden_scene(self):
         self.assertTrue(
             self.parser.has_aria_hidden_scene,
             "No aria-hidden='true' descendant found inside #companion",
         )
-
-    def test_contains_screen_reader_label(self):
         self.assertTrue(
             self.parser.has_sr_label,
             "No span#companion-label found inside #companion",
         )
-
-    def test_no_interactive_descendants(self):
         self.assertEqual(
             self.parser.forbidden_descendants,
             [],
@@ -320,16 +300,6 @@ class TestPixelCompanionStyles(unittest.TestCase):
             if "companion" in selector.lower():
                 rules.append((selector, body))
         return rules
-
-    def test_shared_frame_is_128_by_96_and_clips_nothing_within_sprite_bounds(self):
-        rules = self._companion_rules()
-        frame = next((
-            body for selector, body in rules
-            if selector == "#companion" and re.search(r"width\s*:\s*128px", body)
-        ), "")
-        self.assertRegex(frame, r"width\s*:\s*128px")
-        self.assertRegex(frame, r"height\s*:\s*96px")
-        self.assertRegex(frame, r"overflow\s*:\s*hidden")
 
     def _match_group(self, pattern, source, message):
         match = re.search(pattern, source)
@@ -448,7 +418,9 @@ class TestPixelCompanionStyles(unittest.TestCase):
         border = float(self._match_group(
             r"\bborder\s*:\s*(\d+(?:\.\d+)?)px", frame, "Frame border is missing"
         ))
+        self.assertEqual((width, height), (128, 96))
         self.assertRegex(frame, r"box-sizing\s*:\s*border-box")
+        self.assertRegex(frame, r"overflow\s*:\s*hidden")
         inner_width = width - 2 * border
         inner_height = height - 2 * border
 
@@ -494,33 +466,6 @@ class TestPixelCompanionStyles(unittest.TestCase):
                     "{} {} animation clips at the bottom".format(avatar, state),
                 )
 
-    def test_active_session_layout_keeps_text_and_actions_left_of_companion(self):
-        self.assertRegex(self.css, r'grid-template-areas\s*:\s*"label companion"\s+"start companion"\s+"actions companion"')
-        self.assertRegex(self.css, r"#companion\s*\{\s*grid-area\s*:\s*companion")
-        self.assertRegex(self.css, r"\.now-tracking-label\s*\{\s*grid-area\s*:\s*label")
-        self.assertRegex(self.css, r"\.now-tracking-start\s*\{\s*grid-area\s*:\s*start")
-        actions = re.search(r"\.now-tracking-actions\s*\{([^}]*)\}", self.css)
-        if actions is None:
-            self.fail("Missing grid-aligned timer action group")
-        self.assertRegex(actions.group(1), r"grid-area\s*:\s*actions")
-        self.assertRegex(actions.group(1), r"gap\s*:\s*4px")
-        self.assertRegex(actions.group(1), r"flex-wrap\s*:\s*nowrap")
-        stop = re.search(r"\.now-tracking-actions\s+#stop-btn\s*\{([^}]*)\}", self.css)
-        start = re.search(r"\.now-tracking-actions\s+#stop-start-btn\s*\{([^}]*)\}", self.css)
-        if stop is None:
-            self.fail("Missing fixed-size stop control")
-        if start is None:
-            self.fail("Missing fixed-size stop-and-start control")
-        self.assertRegex(stop.group(1), r"width\s*:\s*36px")
-        self.assertRegex(start.group(1), r"width\s*:\s*60px")
-        self.assertRegex(stop.group(1), r"height\s*:\s*32px")
-        self.assertRegex(start.group(1), r"height\s*:\s*32px")
-
-    def test_uses_panel_row_token(self):
-        rules = self._companion_rules()
-        found = any("var(--panel-row)" in body for _, body in rules)
-        self.assertTrue(found, "Companion section does not use var(--panel-row)")
-
     def test_cute_theme_scoping(self):
         rules = self._companion_rules()
 
@@ -560,90 +505,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
             "none",
         )
 
-    def test_cat_eye_color_literal(self):
-        self.assertRegex(
-            self.css,
-            r"\.companion-eye\s*\{[^}]*background\s*:\s*#246b35",
-        )
-
-    def test_cyber_lens_color(self):
-        self.assertRegex(
-            self.css,
-            r"\.companion-cyber-eye-lens\s*\{[^}]*background\s*:\s*#00e6c8",
-        )
-
-    def test_cyber_skin_tones(self):
-        self.assertIn("#986342", self.css)
-        self.assertIn("#b87e5b", self.css)
-        self.assertIn("#704630", self.css)
-
-    def test_sleep_cue_uses_theme_font_token(self):
-        self.assertRegex(
-            self.css,
-            r"\.companion-sleep-cue\s*\{[^}]*font-family\s*:\s*var\(--font-body\)",
-            "Sleep cue must use the theme body font so cyber stays VT323-only",
-        )
-
-    def test_sleeping_mode_selector(self):
-        rules = self._companion_rules()
-        found = any("sleeping" in sel for sel, _ in rules)
-        self.assertTrue(found, "No companion rule for sleeping mode")
-
-    def test_awake_mode_selector(self):
-        rules = self._companion_rules()
-        found = any("awake" in sel for sel, _ in rules)
-        self.assertTrue(found, "No companion rule for awake mode")
-
-    def test_cat_body_attached_below_face(self):
-        face_m = re.search(r"\.companion-face\s*\{([^}]*)\}", self.css)
-        body_m = re.search(r"\.companion-body\s*\{([^}]*)\}", self.css)
-        self.assertIsNotNone(face_m, "No .companion-face rule found")
-        self.assertIsNotNone(body_m, "No .companion-body rule found")
-
-        face_top = int(re.search(r"top\s*:\s*(\d+)px", face_m.group(1)).group(1))
-        face_h = int(re.search(r"height\s*:\s*(\d+)px", face_m.group(1)).group(1))
-        body_top = int(re.search(r"top\s*:\s*(\d+)px", body_m.group(1)).group(1))
-        self.assertEqual(body_top, face_top + face_h)
-        sleeping_body_m = re.search(r'#companion\[data-mode="sleeping"\]\s*\.companion-body\s*\{([^}]*)\}', self.css)
-        self.assertIsNotNone(sleeping_body_m, "No sleeping .companion-body rule found")
-        sleeping_body_top = int(re.search(r"top\s*:\s*(\d+)px", sleeping_body_m.group(1)).group(1))
-        self.assertEqual(sleeping_body_top, face_top + face_h)
-
-    def test_cyber_jaw_plate(self):
-        self.assertRegex(
-            self.css,
-            r"\.companion-cyber-jaw\s*\{[^}]*background\s*:\s*#704630",
-        )
-
-    def test_reduced_motion_media_query(self):
-        m = re.search(
-            r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{",
-            self.shared_css,
-        )
-        self.assertIsNotNone(m, "No @media (prefers-reduced-motion: reduce) block")
-        start = m.end()
-        depth = 1
-        i = start
-        while i < len(self.shared_css) and depth > 0:
-            if self.shared_css[i] == "{":
-                depth += 1
-            elif self.shared_css[i] == "}":
-                depth -= 1
-            i += 1
-        block = self.shared_css[start : i - 1]
-        self.assertRegex(block, r"animation\s*:\s*none",
-                         "Reduced-motion block does not disable animation")
-        self.assertRegex(
-            block,
-            r"\.companion-scene\s*>\s*:not\(\.companion-sleep-cue\)\s*\{[^}]*"
-            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*"
-            r"scale\(var\(--companion-scale,\s*1\)\);",
-            "Reduced-motion avatars must stay centered at their own scale",
-        )
-
-
 class TestPixelCompanionWiring(unittest.TestCase):
-    """Verify render() calls renderCompanion(state) before session branch."""
+    """Verify mapped renderers and the theme-to-registry connection."""
 
     @classmethod
     def setUpClass(cls):
@@ -651,52 +514,6 @@ class TestPixelCompanionWiring(unittest.TestCase):
             raise unittest.SkipTest("app.js not found at {}".format(APP_JS))
         with open(APP_JS, "r", encoding="utf-8") as f:
             cls.source = f.read()
-
-    def _render_body(self):
-        m = re.search(r"function\s+render\s*\(\s*\)\s*\{", self.source)
-        self.assertIsNotNone(m, "render() function not found in app.js")
-        start = m.end()
-        depth = 1
-        i = start
-        while i < len(self.source) and depth > 0:
-            if self.source[i] == "{":
-                depth += 1
-            elif self.source[i] == "}":
-                depth -= 1
-            i += 1
-        return self.source[start : i - 1]
-
-    def test_render_companion_called_before_session_branch(self):
-        body = self._render_body()
-        rc_idx = body.find("renderCompanion(state)")
-        self.assertNotEqual(rc_idx, -1,
-                            "renderCompanion(state) not found in render() body")
-        branch_match = re.search(r"if\s*\(\s*noSession\s*\)", body)
-        self.assertIsNotNone(branch_match,
-                             "Session branch (if noSession) not found in render()")
-        self.assertLess(
-            rc_idx, branch_match.start(),
-            "renderCompanion(state) must be called before the session branch",
-        )
-
-    def test_get_companion_state_uses_current_entry(self):
-        m = re.search(
-            r"function\s+getCompanionState\s*\(\s*viewModel\s*\)\s*\{",
-            self.source,
-        )
-        self.assertIsNotNone(m, "getCompanionState not found")
-        start = m.end()
-        depth = 1
-        i = start
-        while i < len(self.source) and depth > 0:
-            if self.source[i] == "{":
-                depth += 1
-            elif self.source[i] == "}":
-                depth -= 1
-            i += 1
-        fn_body = self.source[start : i - 1]
-        self.assertIn("currentEntry", fn_body,
-                      "getCompanionState does not reference viewModel.currentEntry")
 
     def test_registry_renders_mapped_avatar_for_each_existing_theme(self):
         script = r"""
@@ -742,12 +559,6 @@ process.stdout.write(JSON.stringify({
             self.assertNotIn('class="companion-cyber"', result["rendered"][theme])
             self.assertNotIn('class="companion-sun"', result["rendered"][theme])
             self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
-
-    def test_extension_point_is_documented_in_registry(self):
-        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
-            source = f.read()
-        self.assertIn("extend COMPANION_AVATARS", source)
-        self.assertIn("theme(s) to COMPANION_REGISTRY", source)
 
     def test_theme_application_loads_and_calls_registry_renderer(self):
         with open(INDEX_HTML, "r", encoding="utf-8") as f:

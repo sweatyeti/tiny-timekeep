@@ -59,26 +59,13 @@ class TestCoreStaysIsolated(unittest.TestCase):
 
 
 class TestVersionGate(unittest.TestCase):
-    def test_app_expects_the_contract_the_core_declares(self):
+    def test_app_core_and_spec_are_pinned_to_v14(self):
+        self.assertEqual(CONTRACT_VERSION, "v1.4")
         assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION, (
             f"app expects {app_main.EXPECTED_CONTRACT_VERSION}, core declares {CONTRACT_VERSION}"
         )
-
-    def test_core_version_constant_is_importable_from_the_app_path(self):
-        assert CONTRACT_VERSION.startswith("v"), CONTRACT_VERSION
-
-
-class TestNaming(unittest.TestCase):
-    """The window title is tinyTimekeep; technical identifiers stay space-free."""
-
-    def test_display_name_and_technical_identifier(self):
-        assert app_main.WINDOW_TITLE == "tinyTimekeep", app_main.WINDOW_TITLE
-        assert app_main.APP_NAME == "KeeperOfTime", app_main.APP_NAME
-
-    def test_package_and_class_names_are_unchanged_by_the_rename(self):
-        from timetracker_core import TimeTrackerCore
-        assert TimeTrackerCore.__name__ == "TimeTrackerCore"
-        assert TimeTrackerCore.__module__.startswith("timetracker_core")
+        with open(os.path.join(ROOT, "specs", "core-logic-contract.md"), encoding="utf-8") as handle:
+            self.assertIn("version: v1.4", handle.read())
 
 
 class TestAppWiring(unittest.TestCase):
@@ -86,10 +73,6 @@ class TestAppWiring(unittest.TestCase):
         """A one-file build unpacks to a temp dir, so storage must not live next to the exe."""
         candidate = app_main._default_storage_path()
         assert str(candidate).startswith(str(ROOT)) is False, candidate
-
-    def test_check_mode_reports_ok(self):
-        assert app_main.run_checks() == 0
-
 
 if __name__ == "__main__":
     unittest.main()

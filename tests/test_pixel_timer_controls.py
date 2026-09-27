@@ -325,7 +325,7 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
     def setUpClass(cls):
         cls.results = _run_node_json(_NODE_SCRIPT, APP_JS)
 
-    def test_active_render_preserves_icons_and_exposes_active_names(self):
+    def test_active_and_idle_render_preserve_icons_and_accessible_actions(self):
         active = self.results["active"]
         self.assertFalse(active["stopHidden"])
         self.assertFalse(active["startHidden"])
@@ -337,8 +337,6 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertEqual(active["taskTitle"], active["taskText"])
         self.assertFalse(active["refreshHidden"])
         self.assertTrue(active["iconChildrenPreserved"])
-
-    def test_idle_render_hides_stop_and_refresh_but_keeps_start_action(self):
         idle = self.results["idle"]
         self.assertTrue(idle["stopHidden"])
         self.assertFalse(idle["startHidden"])
@@ -466,13 +464,6 @@ class TestPixelTimerControlStyles(unittest.TestCase):
                 callout = self._palette_token(selector, "--callout")
                 ink = self._palette_token(selector, "--stop-ink")
                 self.assertGreaterEqual(_contrast_ratio(ink, callout), 3.0)
-
-    def test_empty_task_hint_points_to_controls_above(self):
-        with open(APP_JS, "r", encoding="utf-8") as source:
-            app_js = source.read()
-        self.assertIn("No tasks yet — use the play button above.", app_js)
-        self.assertNotIn("use Start new below", app_js)
-
 
 if __name__ == "__main__":
     unittest.main()

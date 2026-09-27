@@ -28,8 +28,9 @@ the contract, currently on **contract v1.4**. Covers:
 
 **Core:** built and now **vendored into this repo** — `timetracker_core/` sits at the repo root
 (flat, no `src/`), a verbatim copy of `keeper-of-time-core` @ `1afc7fa`, contract **v1.4**.
-Verified here: **94 tests OK** (the core's 73, 8 boundary tests, 13 UI-conformance tests), and
-`python main.py --check` prints `contract v1.4 (expected v1.4)` and the golden fixture exactly.
+The app repository now has **40 app-specific tests**; the core's 73 canonical tests run only in
+the separate core repository. `python main.py --check` prints `contract v1.4 (expected v1.4)` and
+the golden fixture exactly.
 
 **Merged:** the UI layer's `main.py` + `preferences.py` + `web/` are in this repo and the scaffold
 `main.py` is gone. Theirs owns window creation and chrome — `Api` wraps the real core and adds
