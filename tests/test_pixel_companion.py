@@ -329,8 +329,18 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertRegex(frame, r"overflow\s*:\s*hidden")
 
     def test_every_registered_sprite_is_doubled_and_motion_keeps_scale(self):
-        for avatar in ("cat", "cyber", "sun"):
+        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
+            registry = f.read()
+        avatars_block = re.search(
+            r"const\s+COMPANION_AVATARS\s*=\s*\{([^}]*)\}", registry, re.S
+        )
+        if avatars_block is None:
+            self.fail("Missing COMPANION_AVATARS registry")
+        avatars = re.findall(r"^\s*([a-z][a-z0-9-]*)\s*:", avatars_block.group(1), re.M)
+        self.assertTrue(avatars, "No avatar renderers are registered")
+        for avatar in avatars:
             path = os.path.join(COMPANION_CSS, avatar + ".css")
+            self.assertTrue(os.path.isfile(path), "Missing CSS for registered avatar {}".format(avatar))
             with open(path, "r", encoding="utf-8") as f:
                 source = f.read()
             selector = ".companion-{} {{".format(avatar)
