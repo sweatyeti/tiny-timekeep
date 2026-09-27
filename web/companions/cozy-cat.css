@@ -1,0 +1,30 @@
+/* 88 x 68 logical canvas; scale 1. Fit includes 2px outlines and shared 2px motion. */
+.companion-cozy-cat { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; image-rendering:pixelated; }
+body[data-theme="cute"] .companion-cozy-cat { display:block; }
+.companion-cozy-cat div { position:absolute; box-sizing:border-box; }
+.cozy-cat-moon { left:3px; top:4px; width:13px; height:13px; border-radius:50%; background:#FF9EBB; box-shadow:3px -3px 0 #3A2B52 inset; }
+.cozy-cat-star { width:3px; height:3px; background:#7DE8C8; box-shadow:0 -3px #7DE8C8,0 3px #7DE8C8,-3px 0 #7DE8C8,3px 0 #7DE8C8; }
+.cozy-cat-star-a { left:24px; top:8px; }.cozy-cat-star-b { left:78px; top:17px; transform:scale(.7); }
+.cozy-cat-cushion { left:10px; bottom:2px; width:57px; height:10px; background:#4A3668; border:2px solid #FF9EBB; border-radius:8px; }
+.cozy-cat-tail { left:11px; top:35px; width:19px; height:24px; border:7px solid #F2E9DA; border-right:0; border-top:0; border-radius:0 0 0 17px; filter:drop-shadow(-2px 0 #1B1330); }
+.cozy-cat-body { left:25px; top:34px; width:37px; height:27px; background:#F2E9DA; border:2px solid #1B1330; border-radius:13px 13px 10px 10px; }
+.cozy-cat-ear { width:17px; height:20px; top:9px; background:#F2E9DA; border:2px solid #1B1330; transform:rotate(-16deg); }
+.cozy-cat-ear-left { left:27px; }.cozy-cat-ear-right { left:50px; transform:rotate(16deg); }
+.cozy-cat-head { left:26px; top:17px; width:42px; height:32px; background:#F2E9DA; border:2px solid #1B1330; border-radius:14px 14px 15px 15px; }
+.cozy-cat-ear-inner { top:-3px; width:7px; height:9px; background:#FF9EBB; }.cozy-cat-inner-left { left:5px; transform:rotate(-15deg); }.cozy-cat-inner-right { right:5px; transform:rotate(15deg); }
+.cozy-cat-eye { top:12px; width:4px; height:6px; background:#1B1330; border-radius:2px; }.cozy-cat-eye-left { left:10px; }.cozy-cat-eye-right { right:10px; }
+.cozy-cat-nose { left:18px; top:19px; width:4px; height:3px; background:#FF8FA3; }
+.cozy-cat-mouth { left:17px; top:22px; width:6px; height:3px; border-bottom:1px solid #1B1330; border-radius:50%; }
+.cozy-cat-cheek { top:20px; width:5px; height:3px; background:#FF9EBB; opacity:.85; }.cozy-cat-cheek-left { left:5px; }.cozy-cat-cheek-right { right:5px; }
+.cozy-cat-scarf { left:39px; top:46px; width:20px; height:6px; background:#FF8FA3; border:1px solid #1B1330; border-radius:2px; }.cozy-cat-scarf-tail { left:53px; top:49px; width:6px; height:10px; background:#FF8FA3; border:1px solid #1B1330; }
+.cozy-cat-paw { top:56px; width:9px; height:6px; background:#F2E9DA; border:1px solid #1B1330; border-radius:4px; }.cozy-cat-paw-left { left:34px; }.cozy-cat-paw-right { left:51px; }
+.cozy-cat-hourglass { left:70px; top:38px; width:14px; height:24px; border-top:3px solid #7DE8C8; border-bottom:3px solid #7DE8C8; }
+.cozy-cat-hourglass:before,.cozy-cat-hourglass:after { content:""; position:absolute; width:2px; height:20px; top:-1px; background:#7DE8C8; }.cozy-cat-hourglass:before { left:0; transform:rotate(-30deg); transform-origin:top; }.cozy-cat-hourglass:after { right:0; transform:rotate(30deg); transform-origin:top; }
+.cozy-cat-hourglass-top { top:4px; left:4px; width:6px; height:5px; background:#FF9EBB; clip-path:polygon(0 0,100% 0,50% 100%); }.cozy-cat-hourglass-sand { top:10px; left:6px; width:2px; height:6px; background:#FF9EBB; }.cozy-cat-hourglass-bottom { bottom:2px; left:3px; width:8px; height:4px; background:#FF9EBB; clip-path:polygon(50% 0,100% 100%,0 100%); }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-head { top:26px; left:30px; transform:rotate(-12deg); }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-ear { top:18px; left:31px; }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-ear-right { left:54px; }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-eye { top:15px; height:2px; width:7px; border-radius:0 0 6px 6px; }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-scarf { top:54px; }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-scarf-tail { top:56px; height:5px; }
+@media (prefers-reduced-motion: reduce) { .companion-cozy-cat, .companion-cozy-cat * { animation:none !important; transition:none !important; } }

@@ -292,9 +292,15 @@ class TestPixelCompanionStyles(unittest.TestCase):
             cls.shared_css = f.read()
 
     def _companion_rules(self):
-        """Extract all rule blocks whose selector mentions companion."""
+        """Extract all rule blocks whose selector mentions companion.
+
+        Comments are stripped because an avatar stylesheet may open with a
+        block comment, which would otherwise become part of the first rule's
+        selector.
+        """
+        css = re.sub(r"/\*.*?\*/", "", self.css, flags=re.DOTALL)
         rules = []
-        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", self.css):
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
             selector = m.group(1).strip()
             body = m.group(2)
             if "companion" in selector.lower():
@@ -317,13 +323,27 @@ class TestPixelCompanionStyles(unittest.TestCase):
     def _registered_avatars(self):
         with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
             registry = f.read()
+        code_lines = [
+            line for line in registry.splitlines()
+            if not line.strip().startswith("//")
+        ]
         avatars_block = re.search(
-            r"const\s+COMPANION_AVATARS\s*=\s*\{([^}]*)\}", registry, re.S
+            r"const\s+COMPANION_AVATARS\s*=\s*\{([^}]*)\}",
+            "\n".join(code_lines),
+            re.S,
         )
         if avatars_block is None:
             self.fail("Missing COMPANION_AVATARS registry")
-        avatars = re.findall(r"^\s*([a-z][a-z0-9-]*)\s*:", avatars_block.group(1), re.M)
-        self.assertTrue(avatars, "No avatar renderers are registered")
+        avatars = re.findall(
+            r"^\s*['\"]?([a-z][a-z0-9-]*)['\"]?\s*:", avatars_block.group(1), re.M
+        )
+        self.assertIn("cozy-cat", avatars, "The Cute theme's Cozy Cat avatar must be registered")
+        self.assertNotIn(
+            "cat", avatars, "The parked cat renderer must not be registered"
+        )
+        self.assertEqual(
+            len(avatars), 3, "Unexpected registered avatar count: {}".format(avatars)
+        )
         for avatar in avatars:
             path = os.path.join(COMPANION_CSS, avatar + ".css")
             self.assertTrue(os.path.isfile(path), "Missing CSS for registered avatar {}".format(avatar))
@@ -481,11 +501,11 @@ class TestPixelCompanionStyles(unittest.TestCase):
             self.fail(f"No rule found for selector {selector!r}")
 
         self.assertEqual(
-            find_display('body[data-theme="cute"] .companion-cat'),
+            find_display('body[data-theme="cute"] .companion-cozy-cat'),
             "block",
         )
         self.assertEqual(
-            find_display(".companion-cat"),
+            find_display(".companion-cozy-cat"),
             "none",
         )
         self.assertEqual(
@@ -539,34 +559,43 @@ process.stdout.write(JSON.stringify({
 """
         result = _run_node_json(
             script,
-            os.path.join(COMPANION_CSS, "cat.js"),
+            os.path.join(COMPANION_CSS, "cozy-cat.js"),
             os.path.join(COMPANION_CSS, "cyber.js"),
             os.path.join(COMPANION_CSS, "sun.js"),
             COMPANION_REGISTRY_JS,
         )
-        self.assertEqual(result["mapping"], ["cat", "cyber", "sun", None, None])
-        self.assertIn('class="companion-cat"', result["rendered"]["cute"])
+        self.assertEqual(result["mapping"], ["cozy-cat", "cyber", "sun", None, None])
+        self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-cyber"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-sun"', result["rendered"]["cute"])
         self.assertIn('class="companion-cyber"', result["rendered"]["cyber"])
-        self.assertNotIn('class="companion-cat"', result["rendered"]["cyber"])
+        self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-sun"', result["rendered"]["cyber"])
         self.assertIn('class="companion-sun"', result["rendered"]["poolside"])
-        self.assertNotIn('class="companion-cat"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["poolside"])
         self.assertNotIn('class="companion-cyber"', result["rendered"]["poolside"])
         for theme in ("evergreen", "citrus-pop"):
-            self.assertNotIn('class="companion-cat"', result["rendered"][theme])
+            self.assertNotIn('class="companion-cozy-cat"', result["rendered"][theme])
             self.assertNotIn('class="companion-cyber"', result["rendered"][theme])
             self.assertNotIn('class="companion-sun"', result["rendered"][theme])
             self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|cyber|sun)"')
+        self.assertEqual(
+            {theme: len(root_pattern.findall(result["rendered"][theme]))
+             for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
+            {"cute": 1, "cyber": 1, "poolside": 1, "evergreen": 0, "citrus-pop": 0},
+            "Each mapped theme must render exactly one character root",
+        )
 
     def test_theme_application_loads_and_calls_registry_renderer(self):
         with open(INDEX_HTML, "r", encoding="utf-8") as f:
             html = f.read()
-        self.assertLess(html.index('src="companions/cat.js"'),
+        self.assertLess(html.index('src="companions/cozy-cat.js"'),
                         html.index('src="companions/registry.js"'))
         self.assertLess(html.index('src="companions/registry.js"'),
                         html.index('src="app.js"'))
+        self.assertLess(html.index('href="companions/companion.css"'),
+                        html.index('href="companions/cozy-cat.css"'))
         match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
         if match is None:
             self.fail("applyTheme() not found")
@@ -580,6 +609,34 @@ process.stdout.write(JSON.stringify({
                 depth -= 1
             index += 1
         self.assertIn("renderCompanionScene(theme)", self.source[body_start:index - 1])
+
+    def test_parked_cute_cat_is_kept_but_not_loaded(self):
+        """The retired Cute cat artwork is parked with a note, not deleted and not loaded."""
+        for name in ("cat.js", "cat.css"):
+            path = os.path.join(COMPANION_CSS, name)
+            self.assertTrue(
+                os.path.isfile(path),
+                "Parked {} must stay in the repository for reference".format(name),
+            )
+        with open(INDEX_HTML, "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertNotIn('src="companions/cat.js"', html)
+        self.assertNotIn('href="companions/cat.css"', html)
+        self.assertIn("Parked", html)
+        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
+            registry = f.read()
+        code = "\n".join(
+            line for line in registry.splitlines()
+            if not line.strip().startswith("//")
+        )
+        self.assertNotIn(
+            "renderCatAvatar", code,
+            "The parked cat renderer must not be referenced by executable registry code",
+        )
+        self.assertIn(
+            "renderCozyCat", code,
+            "The Cozy Cat renderer must be registered",
+        )
 
 
 if __name__ == "__main__":

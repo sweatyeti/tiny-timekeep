@@ -4,13 +4,19 @@
  * Unknown themes deliberately render no avatar while preserving the shared cue.
  */
 const COMPANION_AVATARS = {
-  cat: renderCatAvatar,
+  // The original Cute cat artwork (renderCatAvatar in companions/cat.js plus
+  // companions/cat.css) is parked: its files are kept for reference, its script
+  // and stylesheet are no longer loaded by index.html, and therefore the old
+  // cat: renderCatAvatar, entry is commented out below the explanation rather
+  // than left dangling.
+  // cat: renderCatAvatar,
+  'cozy-cat': renderCozyCat,
   cyber: renderCyberAvatar,
   sun: renderSunAvatar
 };
 
 const COMPANION_REGISTRY = {
-  cute: 'cat',
+  cute: 'cozy-cat',
   cyber: 'cyber',
   poolside: 'sun'
 };

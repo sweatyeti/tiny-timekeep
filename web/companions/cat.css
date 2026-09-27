@@ -1,3 +1,7 @@
+/* PARKED 2026-09-27: the original Cute cat artwork's styles. The Cute theme now paints the
+   supplied Cozy Cat (companions/cozy-cat.css, root class .companion-cozy-cat), and index.html
+   no longer loads this stylesheet, so none of these rules apply. Kept for reference; the
+   matching `cat: renderCatAvatar` registry entry is commented out in companions/registry.js. */
 .companion-cat {
   --companion-scale: 2;
   width: 32px;
