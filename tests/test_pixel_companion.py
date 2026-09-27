@@ -11,6 +11,7 @@ INDEX_HTML = os.path.join(ROOT, "web", "index.html")
 APP_JS = os.path.join(ROOT, "web", "app.js")
 STYLE_CSS = os.path.join(ROOT, "web", "style.css")
 COMPANION_CSS = os.path.join(ROOT, "web", "companions")
+COMPANION_SHARED_CSS = os.path.join(COMPANION_CSS, "companion.css")
 COMPANION_REGISTRY_JS = os.path.join(COMPANION_CSS, "registry.js")
 
 _VOID_TAGS = frozenset(
@@ -307,6 +308,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
             with open(path, "r", encoding="utf-8") as f:
                 contents.append(f.read())
         cls.css = "\n".join(contents)
+        with open(COMPANION_SHARED_CSS, "r", encoding="utf-8") as f:
+            cls.shared_css = f.read()
 
     def _companion_rules(self):
         """Extract all rule blocks whose selector mentions companion."""
@@ -328,7 +331,20 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertRegex(frame, r"height\s*:\s*96px")
         self.assertRegex(frame, r"overflow\s*:\s*hidden")
 
-    def test_every_registered_sprite_is_doubled_and_motion_keeps_scale(self):
+    def _match_group(self, pattern, source, message):
+        match = re.search(pattern, source)
+        if match is None:
+            self.fail(message)
+        return match.group(1)
+
+    def _rule_body(self, source, selector):
+        return self._match_group(
+            re.escape(selector) + r"\s*\{([^{}]*)\}",
+            source,
+            "Missing CSS rule for {}".format(selector),
+        )
+
+    def _registered_avatars(self):
         with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
             registry = f.read()
         avatars_block = re.search(
@@ -341,17 +357,142 @@ class TestPixelCompanionStyles(unittest.TestCase):
         for avatar in avatars:
             path = os.path.join(COMPANION_CSS, avatar + ".css")
             self.assertTrue(os.path.isfile(path), "Missing CSS for registered avatar {}".format(avatar))
+        return avatars
+
+    def _avatar_dimensions(self, slug, source):
+        root = ".companion-{}".format(slug)
+        declarations = self._rule_body(source, root)
+
+        def pixels(name):
+            value = self._match_group(
+                r"\b{}\s*:\s*(\d+(?:\.\d+)?)px".format(name),
+                declarations,
+                "{} must declare its {} canvas size".format(root, name),
+            )
+            return float(value)
+
+        scale_match = re.search(r"--companion-scale\s*:\s*(\d+(?:\.\d+)?)", declarations)
+        scale = float(scale_match.group(1)) if scale_match else 1.0
+        self.assertGreater(scale, 0, "{} scale must be positive".format(root))
+        return pixels("width"), pixels("height"), scale
+
+    def _motion_distance(self, keyframe):
+        body = self._match_group(
+            r"@keyframes\s+{}\s*\{{([\s\S]*?)\n\}}".format(keyframe),
+            self.shared_css,
+            "Missing {} keyframes".format(keyframe),
+        )
+        distances = [
+            float(value)
+            for value in re.findall(
+                r"calc\(\s*-50%\s*-\s*(\d+(?:\.\d+)?)px\s*\)",
+                body,
+            )
+        ]
+        self.assertTrue(distances, "{} must declare its vertical motion envelope".format(keyframe))
+        self.assertRegex(
+            body,
+            r"scale\(\s*var\(--companion-scale,\s*1\)\s*\)",
+            "{} must preserve each avatar's scale".format(keyframe),
+        )
+        return max(distances)
+
+    def test_avatar_root_motion_and_reduced_motion_are_generic(self):
+        root_selector = ".companion-scene > :not(.companion-sleep-cue)"
+        root_rule = self._rule_body(self.shared_css, root_selector)
+        self.assertRegex(
+            root_rule, r"position\s*:\s*absolute"
+        )
+        self.assertRegex(root_rule, r"left\s*:\s*50%")
+        self.assertRegex(root_rule, r"top\s*:\s*50%")
+        self.assertRegex(
+            root_rule,
+            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*"
+            r"scale\(var\(--companion-scale,\s*1\)\)",
+            "Every avatar root must use the shared centered, per-avatar transform",
+        )
+        self.assertRegex(
+            self.shared_css,
+            r'#companion\[data-mode="awake"\]\s*' + re.escape(root_selector)
+            + r"\s*\{[^}]*animation\s*:\s*companion-awake-bob",
+        )
+        self.assertRegex(
+            self.shared_css,
+            r'#companion\[data-mode="sleeping"\]\s*' + re.escape(root_selector)
+            + r"\s*\{[^}]*animation\s*:\s*companion-sleep-bob",
+        )
+        reduced = re.search(
+            r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{([\s\S]*)\}\s*$",
+            self.shared_css,
+        )
+        if reduced is None:
+            self.fail("No reduced-motion rules in shared companion CSS")
+        reduced_rules = reduced.group(1)
+        self.assertRegex(reduced_rules, r"animation\s*:\s*none\s*!important")
+        self.assertIn(root_selector, reduced_rules)
+        self.assertRegex(
+            reduced_rules,
+            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*"
+            r"scale\(var\(--companion-scale,\s*1\)\)",
+            "Reduced motion must retain the centered per-avatar scale",
+        )
+
+    def test_registered_and_nonstandard_avatar_canvases_fit_every_motion_state(self):
+        frame = self._rule_body(self.shared_css, "#companion")
+        width = float(self._match_group(
+            r"\bwidth\s*:\s*(\d+(?:\.\d+)?)px", frame, "Frame width is missing"
+        ))
+        height = float(self._match_group(
+            r"\bheight\s*:\s*(\d+(?:\.\d+)?)px", frame, "Frame height is missing"
+        ))
+        border = float(self._match_group(
+            r"\bborder\s*:\s*(\d+(?:\.\d+)?)px", frame, "Frame border is missing"
+        ))
+        self.assertRegex(frame, r"box-sizing\s*:\s*border-box")
+        inner_width = width - 2 * border
+        inner_height = height - 2 * border
+
+        cases = []
+        for avatar in self._registered_avatars():
+            path = os.path.join(COMPANION_CSS, avatar + ".css")
             with open(path, "r", encoding="utf-8") as f:
                 source = f.read()
-            selector = ".companion-{} {{".format(avatar)
-            block = re.search(re.escape(selector) + r"([^}]*)}", source)
-            if block is None:
-                self.fail("Missing root sizing for {}".format(avatar))
-            self.assertRegex(block.group(1), r"width\s*:\s*32px")
-            self.assertRegex(block.group(1), r"height\s*:\s*36px")
-            self.assertRegex(block.group(1), r"scale\(2\)")
-        self.assertRegex(self.css, r"@keyframes companion-awake-bob\s*\{[^}]*scale\(2\)")
-        self.assertRegex(self.css, r"@keyframes companion-sleep-bob\s*\{[^}]*scale\(2\)")
+            cases.append((avatar, self._avatar_dimensions(avatar, source)))
+
+        # A test-only authoring canary: neither the historical canvas nor 2x scaling.
+        fixture_css = (
+            ".companion-fit-fixture { width: 46px; height: 54px; "
+            "--companion-scale: 1; }"
+        )
+        fixture_dimensions = self._avatar_dimensions("fit-fixture", fixture_css)
+        self.assertNotEqual(fixture_dimensions[0], 32)
+        self.assertNotEqual(fixture_dimensions[1], 36)
+        self.assertNotEqual(fixture_dimensions[2], 2)
+        cases.append(("fit-fixture", fixture_dimensions))
+
+        awake_motion = self._motion_distance("companion-awake-bob")
+        sleep_motion = self._motion_distance("companion-sleep-bob")
+        for avatar, (canvas_width, canvas_height, scale) in cases:
+            rendered_width = canvas_width * scale
+            rendered_height = canvas_height * scale
+            self.assertLessEqual(
+                rendered_width, inner_width,
+                "{} artwork exceeds the frame width".format(avatar),
+            )
+            for state, vertical_offset in (
+                ("awake", awake_motion),
+                ("sleeping", sleep_motion),
+                ("reduced motion", 0),
+            ):
+                top = (inner_height - rendered_height) / 2 - vertical_offset
+                bottom = top + rendered_height
+                self.assertGreaterEqual(
+                    top, 0, "{} {} animation clips at the top".format(avatar, state)
+                )
+                self.assertLessEqual(
+                    bottom, inner_height,
+                    "{} {} animation clips at the bottom".format(avatar, state),
+                )
 
     def test_active_session_layout_keeps_text_and_actions_left_of_companion(self):
         self.assertRegex(self.css, r'grid-template-areas\s*:\s*"label companion"\s+"start companion"\s+"actions companion"')
@@ -477,35 +618,27 @@ class TestPixelCompanionStyles(unittest.TestCase):
     def test_reduced_motion_media_query(self):
         m = re.search(
             r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{",
-            self.css,
+            self.shared_css,
         )
         self.assertIsNotNone(m, "No @media (prefers-reduced-motion: reduce) block")
         start = m.end()
         depth = 1
         i = start
-        while i < len(self.css) and depth > 0:
-            if self.css[i] == "{":
+        while i < len(self.shared_css) and depth > 0:
+            if self.shared_css[i] == "{":
                 depth += 1
-            elif self.css[i] == "}":
+            elif self.shared_css[i] == "}":
                 depth -= 1
             i += 1
-        block = self.css[start : i - 1]
-        self.assertIn("companion-cat", block,
-                      "Reduced-motion block does not target .companion-cat")
-        self.assertIn("companion-cyber", block,
-                      "Reduced-motion block does not target .companion-cyber")
-        self.assertIn("companion-sun", block,
-                      "Reduced-motion block does not target .companion-sun")
+        block = self.shared_css[start : i - 1]
         self.assertRegex(block, r"animation\s*:\s*none",
                          "Reduced-motion block does not disable animation")
-        self.assertRegex(block, r"transform\s*:[^;]*scale\(2\)",
-                         "Reduced-motion block must preserve the 2x sprite scale")
         self.assertRegex(
             block,
-            r"\.companion-cat,\s*\.companion-cyber,\s*\.companion-sun\s*\{\s*"
-            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*scale\(2\);\s*"
-            r"left\s*:\s*50%;\s*top\s*:\s*50%;",
-            "Reduced-motion sprites must retain the shared center anchor at 2x scale",
+            r"\.companion-scene\s*>\s*:not\(\.companion-sleep-cue\)\s*\{[^}]*"
+            r"transform\s*:\s*translate\(-50%,\s*-50%\)\s*"
+            r"scale\(var\(--companion-scale,\s*1\)\);",
+            "Reduced-motion avatars must stay centered at their own scale",
         )
 
 

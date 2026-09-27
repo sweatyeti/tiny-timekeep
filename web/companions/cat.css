@@ -1,8 +1,5 @@
 .companion-cat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(2);
+  --companion-scale: 2;
   width: 32px;
   height: 36px;
   display: none;

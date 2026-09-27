@@ -15,6 +15,13 @@
   height: 100%;
 }
 
+.companion-scene > :not(.companion-sleep-cue) {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--companion-scale, 1));
+}
+
 .companion-sleep-cue {
   position: absolute;
   top: 2px;
@@ -55,9 +62,7 @@
   animation: companion-sleep-cue 3.5s ease-in-out infinite;
 }
 
-#companion[data-mode="sleeping"] .companion-cat,
-#companion[data-mode="sleeping"] .companion-cyber,
-#companion[data-mode="sleeping"] .companion-sun {
+#companion[data-mode="sleeping"] .companion-scene > :not(.companion-sleep-cue) {
   animation: companion-sleep-bob 4s ease-in-out infinite;
 }
 
@@ -80,20 +85,18 @@
   display: none;
 }
 
-#companion[data-mode="awake"] .companion-cat,
-#companion[data-mode="awake"] .companion-cyber,
-#companion[data-mode="awake"] .companion-sun {
+#companion[data-mode="awake"] .companion-scene > :not(.companion-sleep-cue) {
   animation: companion-awake-bob 3s ease-in-out infinite;
 }
 
 @keyframes companion-awake-bob {
-  0%, 100% { transform: translate(-50%, -50%) scale(2); }
-  50% { transform: translate(-50%, calc(-50% - 2px)) scale(2); }
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--companion-scale, 1)); }
+  50% { transform: translate(-50%, calc(-50% - 2px)) scale(var(--companion-scale, 1)); }
 }
 
 @keyframes companion-sleep-bob {
-  0%, 100% { transform: translate(-50%, -50%) scale(2); }
-  50% { transform: translate(-50%, calc(-50% - 1px)) scale(2); }
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--companion-scale, 1)); }
+  50% { transform: translate(-50%, calc(-50% - 1px)) scale(var(--companion-scale, 1)); }
 }
 
 @keyframes companion-sleep-cue {
@@ -108,10 +111,8 @@
     transition: none !important;
   }
 
-  .companion-cat,
-  .companion-cyber,
-  .companion-sun {
-    transform: translate(-50%, -50%) scale(2);
+  .companion-scene > :not(.companion-sleep-cue) {
+    transform: translate(-50%, -50%) scale(var(--companion-scale, 1));
     left: 50%;
     top: 50%;
   }
