@@ -1,3 +1,10 @@
+/*
+ * PARKED: This is the retired Poolside sun avatar's stylesheet. It is kept in
+ * the repository for reference and is no longer loaded by index.html, so none
+ * of these rules apply. The Poolside theme is now painted by the supplied
+ * Poolside Turtle (companions/poolside-turtle.css, root class
+ * .companion-poolside-turtle).
+ */
 .companion-sun {
   --companion-scale: 2;
   width: 32px;

@@ -52,6 +52,10 @@
   top: 11px;
 }
 
+/* Parked Poolside sun avatar rules (companions/sun.js +
+   companions/sun.css, no longer loaded by index.html). The Poolside
+   theme now renders the Poolside Turtle avatar. These rules are inert
+   but deliberately kept so the parked path can be restored. */
 #companion[data-mode="sleeping"] .companion-sun-eye {
   height: 1px;
   top: 5px;
@@ -81,6 +85,7 @@
   top: 10px;
 }
 
+/* See the parked Poolside sun avatar comment above the sleeping rule. */
 #companion[data-mode="awake"] .companion-sun-eye {
   height: 3px;
   top: 4px;

@@ -1,0 +1,8 @@
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
+.companion-poolside-turtle { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="poolside"] .companion-poolside-turtle { display:block; }
+.companion-poolside-turtle svg { display:block; overflow:visible; }
+.companion-poolside-turtle .poolside-turtle-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-poolside-turtle .poolside-turtle-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-poolside-turtle .poolside-turtle-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-poolside-turtle, .companion-poolside-turtle * { animation:none !important; transition:none !important; } }

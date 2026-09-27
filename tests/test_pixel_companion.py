@@ -349,10 +349,11 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     def test_loaded_stylesheets_are_the_only_ones_scanned(self):
         loaded = _loaded_companion_stylesheets()
-        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "sun.css"):
+        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "poolside-turtle.css"):
             self.assertIn(name, loaded, "Expected {} in loaded stylesheets".format(name))
         self.assertNotIn("cat.css", loaded, "Parked cat.css must not be loaded")
         self.assertNotIn("cyber.css", loaded, "Parked cyber.css must not be loaded")
+        self.assertNotIn("sun.css", loaded, "Parked sun.css must not be loaded")
         self.assertIn("#companion {", self.css, "128x96 #companion frame rule missing from loaded CSS")
 
     def _match_group(self, pattern, source, message):
@@ -384,8 +385,10 @@ class TestPixelCompanionStyles(unittest.TestCase):
         )
         self.assertIn("cozy-cat", avatars, "The Cute theme's Cozy Cat avatar must be registered")
         self.assertIn("neon-robot", avatars, "The Cyber theme's Neon Robot avatar must be registered")
+        self.assertIn("poolside-turtle", avatars, "The Poolside theme's Poolside Turtle avatar must be registered")
         self.assertNotIn("cat", avatars, "The parked cat renderer (web/companions/cat.js) must not be registered")
         self.assertNotIn("cyber", avatars, "The parked cyber renderer (web/companions/cyber.js) must not be registered")
+        self.assertNotIn("sun", avatars, "The parked sun renderer (web/companions/sun.js) must not be registered")
         self.assertEqual(
             len(avatars), 3, "Unexpected registered avatar count: {}".format(avatars)
         )
@@ -562,11 +565,11 @@ class TestPixelCompanionStyles(unittest.TestCase):
             "none",
         )
         self.assertEqual(
-            find_display('body[data-theme="poolside"] .companion-sun'),
+            find_display('body[data-theme="poolside"] .companion-poolside-turtle'),
             "block",
         )
         self.assertEqual(
-            find_display(".companion-sun"),
+            find_display(".companion-poolside-turtle"),
             "none",
         )
 
@@ -587,12 +590,12 @@ const fs = require('fs');
 const vm = require('vm');
 const cat = fs.readFileSync(process.argv[1], 'utf8');
 const neon_robot = fs.readFileSync(process.argv[2], 'utf8');
-const sun = fs.readFileSync(process.argv[3], 'utf8');
+const poolside_turtle = fs.readFileSync(process.argv[3], 'utf8');
 const registry = fs.readFileSync(process.argv[4], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + neon_robot + '\n' + sun + '\n' + registry, ctx);
+vm.runInContext(cat + '\n' + neon_robot + '\n' + poolside_turtle + '\n' + registry, ctx);
 const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 const rendered = {};
 themes.forEach(theme => {
@@ -607,25 +610,25 @@ process.stdout.write(JSON.stringify({
             script,
             os.path.join(COMPANION_CSS, "cozy-cat.js"),
             os.path.join(COMPANION_CSS, "neon-robot.js"),
-            os.path.join(COMPANION_CSS, "sun.js"),
+            os.path.join(COMPANION_CSS, "poolside-turtle.js"),
             COMPANION_REGISTRY_JS,
         )
-        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "sun", None, None])
+        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "poolside-turtle", None, None])
         self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-neon-robot"', result["rendered"]["cute"])
-        self.assertNotIn('class="companion-sun"', result["rendered"]["cute"])
+        self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cute"])
         self.assertIn('class="companion-neon-robot"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["cyber"])
-        self.assertNotIn('class="companion-sun"', result["rendered"]["cyber"])
-        self.assertIn('class="companion-sun"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cyber"])
+        self.assertIn('class="companion-poolside-turtle"', result["rendered"]["poolside"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["poolside"])
         self.assertNotIn('class="companion-neon-robot"', result["rendered"]["poolside"])
         for theme in ("evergreen", "citrus-pop"):
             self.assertNotIn('class="companion-cozy-cat"', result["rendered"][theme])
             self.assertNotIn('class="companion-neon-robot"', result["rendered"][theme])
-            self.assertNotIn('class="companion-sun"', result["rendered"][theme])
+            self.assertNotIn('class="companion-poolside-turtle"', result["rendered"][theme])
             self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
-        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|sun)"')
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|poolside-turtle)"')
         self.assertEqual(
             {theme: len(root_pattern.findall(result["rendered"][theme]))
              for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
@@ -639,6 +642,8 @@ process.stdout.write(JSON.stringify({
         self.assertLess(live.index('src="companions/cozy-cat.js"'),
                         live.index('src="companions/neon-robot.js"'))
         self.assertLess(live.index('src="companions/neon-robot.js"'),
+                        live.index('src="companions/poolside-turtle.js"'))
+        self.assertLess(live.index('src="companions/poolside-turtle.js"'),
                         live.index('src="companions/registry.js"'))
         self.assertLess(live.index('src="companions/registry.js"'),
                         live.index('src="app.js"'))
@@ -646,6 +651,8 @@ process.stdout.write(JSON.stringify({
                         live.index('href="companions/cozy-cat.css"'))
         self.assertLess(live.index('href="companions/cozy-cat.css"'),
                         live.index('href="companions/neon-robot.css"'))
+        self.assertLess(live.index('href="companions/neon-robot.css"'),
+                        live.index('href="companions/poolside-turtle.css"'))
         self.assertNotIn("cyber.js", _loaded_companion_scripts(),
                          "Parked cyber.js must not be loaded")
         self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
@@ -654,6 +661,10 @@ process.stdout.write(JSON.stringify({
                          "Parked cat.js must not be loaded")
         self.assertNotIn("cat.css", _loaded_companion_stylesheets(),
                          "Parked cat.css must not be loaded")
+        self.assertNotIn("sun.js", _loaded_companion_scripts(),
+                         "Parked sun.js must not be loaded")
+        self.assertNotIn("sun.css", _loaded_companion_stylesheets(),
+                         "Parked sun.css must not be loaded")
         match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
         if match is None:
             self.fail("applyTheme() not found")
@@ -737,6 +748,53 @@ process.stdout.write(JSON.stringify({
         self.assertIn(
             "renderCyberAvatar", raw_registry,
             "The parked renderCyberAvatar entry must survive as a comment rather than be deleted",
+        )
+
+    def test_parked_poolside_sun_avatar_is_kept_but_not_loaded(self):
+        """The retired Poolside sun avatar is parked with a note, not deleted and not loaded."""
+        for name in ("sun.js", "sun.css"):
+            path = os.path.join(COMPANION_CSS, name)
+            self.assertTrue(
+                os.path.isfile(path),
+                "Parked {} must stay in the repository for reference".format(name),
+            )
+        self.assertNotIn("sun.js", _loaded_companion_scripts(),
+                         "Parked sun.js must not be loaded")
+        self.assertNotIn("sun.css", _loaded_companion_stylesheets(),
+                         "Parked sun.css must not be loaded")
+        html = _read(INDEX_HTML)
+        self.assertIn('src="companions/poolside-turtle.js"', html,
+                      "index.html must load the Poolside Turtle replacement script")
+        self.assertIn('href="companions/poolside-turtle.css"', html,
+                      "index.html must load the Poolside Turtle replacement stylesheet")
+        self.assertRegex(html, r"(?i)parked",
+                         "index.html must mention that the sun files are parked")
+        self.assertIn("Poolside Turtle", html)
+        for name in ("sun.js", "sun.css"):
+            text = _read(os.path.join(COMPANION_CSS, name))
+            # Park notes are not uniformly capitalised (cat.js/cat.css use "PARKED",
+            # cyber.js/cyber.css use "Parked"), so assert case-insensitively.
+            self.assertRegex(text, r"(?i)parked",
+                             "Parked {} must carry a park note naming its replacement".format(name))
+            self.assertIn("Poolside Turtle", text,
+                          "Parked {} must reference the Poolside Turtle replacement".format(name))
+        code = _strip_comments(_read(COMPANION_REGISTRY_JS))
+        self.assertNotIn(
+            "renderSunAvatar", code,
+            "The parked sun renderer must not be referenced by executable registry code",
+        )
+        self.assertIn(
+            "renderPoolsideTurtle", code,
+            "The Poolside Turtle renderer must be registered",
+        )
+        self.assertIn(
+            "poolside: 'poolside-turtle'", code,
+            "The registry must map the poolside theme to poolside-turtle",
+        )
+        raw_registry = _read(COMPANION_REGISTRY_JS)
+        self.assertIn(
+            "renderSunAvatar", raw_registry,
+            "The parked renderSunAvatar entry must survive as a comment rather than be deleted",
         )
 
 

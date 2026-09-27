@@ -1,4 +1,14 @@
-/* Poolside sun avatar markup. Keep the structure here and its appearance in sun.css. */
+/*
+ * Poolside sun avatar markup. Keep the structure here and its appearance in sun.css.
+ *
+ * PARKED: This renderer (renderSunAvatar) is the retired Poolside sun avatar.
+ * The file is kept in the repository for reference and is no longer loaded by
+ * index.html. The Poolside theme is now rendered by the supplied Poolside Turtle
+ * (companions/poolside-turtle.js, which defines renderPoolsideTurtle).
+ *
+ * Maintainer: do not load this file again without restoring the registry mapping
+ * and removing this note.
+ */
 function renderSunAvatar() {
   return '<div class="companion-sun">' +
     '<span class="companion-sun-ray companion-sun-ray-top"></span>' +

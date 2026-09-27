@@ -14,6 +14,12 @@
  * kept in the repository for reference, its script and stylesheet are no longer
  * loaded by index.html, and its entry below is commented out with an explanation
  * rather than left dangling.
+ *
+ * The original Poolside sun avatar (renderSunAvatar in companions/sun.js plus
+ * companions/sun.css) is parked exactly like the old cat and cyber: its files
+ * are kept in the repository for reference, its script and stylesheet are no
+ * longer loaded by index.html, and its entry below is commented out with an
+ * explanation rather than left dangling.
  */
 const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
@@ -22,13 +28,15 @@ const COMPANION_AVATARS = {
   'neon-robot': renderNeonRobot,
   // The original Cyber cyborg renderer is parked (see top comment).
   // cyber: renderCyberAvatar,
-  sun: renderSunAvatar
+  'poolside-turtle': renderPoolsideTurtle,
+  // The original Poolside sun avatar is parked (see top comment).
+  // sun: renderSunAvatar,
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
   cyber: 'neon-robot',
-  poolside: 'sun'
+  poolside: 'poolside-turtle'
 };
 
 function resolveCompanionAvatar(theme) {
