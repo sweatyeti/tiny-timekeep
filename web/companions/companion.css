@@ -43,6 +43,10 @@
   top: 7px;
 }
 
+/* Parked Cyber cyborg avatar rules (companions/cyber.js +
+   companions/cyber.css, no longer loaded by index.html). The Cyber
+   theme now renders the Neon Robot avatar. These rules are inert but
+   deliberately kept so the parked path can be restored. */
 #companion[data-mode="sleeping"] .companion-cyber-eye {
   height: 1px;
   top: 11px;
@@ -71,6 +75,7 @@
   top: 6px;
 }
 
+/* See the parked Cyber avatar comment above the sleeping rule. */
 #companion[data-mode="awake"] .companion-cyber-eye {
   height: 4px;
   top: 10px;

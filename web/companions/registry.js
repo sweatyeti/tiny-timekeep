@@ -2,22 +2,32 @@
  * Companion registry: extend COMPANION_AVATARS with an avatar renderer, add
  * its theme(s) to COMPANION_REGISTRY, and load its script and CSS in index.html.
  * Unknown themes deliberately render no avatar while preserving the shared cue.
+ *
+ * The original Cute cat artwork (renderCatAvatar in companions/cat.js plus
+ * companions/cat.css) is parked: its files are kept for reference, its script
+ * and stylesheet are no longer loaded by index.html, and therefore the old
+ * cat: renderCatAvatar, entry is commented out below the explanation rather
+ * than left dangling.
+ *
+ * The original Cyber cyborg renderer (renderCyberAvatar in companions/cyber.js
+ * plus companions/cyber.css) is parked exactly like the old cat: its files are
+ * kept in the repository for reference, its script and stylesheet are no longer
+ * loaded by index.html, and its entry below is commented out with an explanation
+ * rather than left dangling.
  */
 const COMPANION_AVATARS = {
-  // The original Cute cat artwork (renderCatAvatar in companions/cat.js plus
-  // companions/cat.css) is parked: its files are kept for reference, its script
-  // and stylesheet are no longer loaded by index.html, and therefore the old
-  // cat: renderCatAvatar, entry is commented out below the explanation rather
-  // than left dangling.
+  // The original Cute cat artwork is parked (see top comment).
   // cat: renderCatAvatar,
   'cozy-cat': renderCozyCat,
-  cyber: renderCyberAvatar,
+  'neon-robot': renderNeonRobot,
+  // The original Cyber cyborg renderer is parked (see top comment).
+  // cyber: renderCyberAvatar,
   sun: renderSunAvatar
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
-  cyber: 'cyber',
+  cyber: 'neon-robot',
   poolside: 'sun'
 };
 

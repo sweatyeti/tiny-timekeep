@@ -14,6 +14,43 @@ COMPANION_CSS = os.path.join(ROOT, "web", "companions")
 COMPANION_SHARED_CSS = os.path.join(COMPANION_CSS, "companion.css")
 COMPANION_REGISTRY_JS = os.path.join(COMPANION_CSS, "registry.js")
 
+
+def _read(path):
+    """Return the file's text, decoded as utf-8."""
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def _strip_comments(source):
+    """Remove block comments and // line comments from source.
+
+    This exists so a scan for a name that must be ABSENT does not match
+    the parked-note prose that explains the name.
+    """
+    source = re.sub(r"/\*.*?\*/", "", source, flags=re.DOTALL)
+    lines = source.splitlines()
+    lines = [line for line in lines if not line.lstrip().startswith("//")]
+    return "\n".join(lines)
+
+
+def _strip_html_comments(html):
+    """Remove <!-- ... --> blocks (DOTALL) from an HTML string."""
+    return re.sub(r"<!--.*?-->", "", html, flags=re.DOTALL)
+
+
+def _loaded_companion_stylesheets():
+    """Return sorted basenames of companion CSS files linked in index.html."""
+    html = _strip_html_comments(_read(INDEX_HTML))
+    names = re.findall(r'href="companions/([^"]+\.css)"', html)
+    return sorted(names)
+
+
+def _loaded_companion_scripts():
+    """Return sorted basenames of companion JS files loaded in index.html."""
+    html = _strip_html_comments(_read(INDEX_HTML))
+    names = re.findall(r'src="companions/([^"]+\.js)"', html)
+    return sorted(names)
+
 _VOID_TAGS = frozenset(
     ("area", "base", "br", "col", "embed", "hr", "img", "input",
      "link", "meta", "param", "source", "track", "wbr")
@@ -282,7 +319,9 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        paths = [STYLE_CSS] + glob.glob(os.path.join(COMPANION_CSS, "*.css"))
+        paths = [STYLE_CSS]
+        for name in _loaded_companion_stylesheets():
+            paths.append(os.path.join(COMPANION_CSS, name))
         contents = []
         for path in paths:
             with open(path, "r", encoding="utf-8") as f:
@@ -296,9 +335,10 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
         Comments are stripped because an avatar stylesheet may open with a
         block comment, which would otherwise become part of the first rule's
-        selector.
+        selector.  Only loaded stylesheets are scanned, so a parked stylesheet
+        cannot satisfy a scoping assertion.
         """
-        css = re.sub(r"/\*.*?\*/", "", self.css, flags=re.DOTALL)
+        css = _strip_comments(self.css)
         rules = []
         for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
             selector = m.group(1).strip()
@@ -306,6 +346,14 @@ class TestPixelCompanionStyles(unittest.TestCase):
             if "companion" in selector.lower():
                 rules.append((selector, body))
         return rules
+
+    def test_loaded_stylesheets_are_the_only_ones_scanned(self):
+        loaded = _loaded_companion_stylesheets()
+        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "sun.css"):
+            self.assertIn(name, loaded, "Expected {} in loaded stylesheets".format(name))
+        self.assertNotIn("cat.css", loaded, "Parked cat.css must not be loaded")
+        self.assertNotIn("cyber.css", loaded, "Parked cyber.css must not be loaded")
+        self.assertIn("#companion {", self.css, "128x96 #companion frame rule missing from loaded CSS")
 
     def _match_group(self, pattern, source, message):
         match = re.search(pattern, source)
@@ -321,26 +369,23 @@ class TestPixelCompanionStyles(unittest.TestCase):
         )
 
     def _registered_avatars(self):
-        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
-            registry = f.read()
-        code_lines = [
-            line for line in registry.splitlines()
-            if not line.strip().startswith("//")
-        ]
+        registry = _strip_comments(_read(COMPANION_REGISTRY_JS))
         avatars_block = re.search(
             r"const\s+COMPANION_AVATARS\s*=\s*\{([^}]*)\}",
-            "\n".join(code_lines),
+            registry,
             re.S,
         )
         if avatars_block is None:
             self.fail("Missing COMPANION_AVATARS registry")
         avatars = re.findall(
-            r"^\s*['\"]?([a-z][a-z0-9-]*)['\"]?\s*:", avatars_block.group(1), re.M
+            r"^\s*['\"]?([a-z][a-z0-9-]*)['\"]?\s*:",
+            avatars_block.group(1),
+            re.M,
         )
         self.assertIn("cozy-cat", avatars, "The Cute theme's Cozy Cat avatar must be registered")
-        self.assertNotIn(
-            "cat", avatars, "The parked cat renderer must not be registered"
-        )
+        self.assertIn("neon-robot", avatars, "The Cyber theme's Neon Robot avatar must be registered")
+        self.assertNotIn("cat", avatars, "The parked cat renderer (web/companions/cat.js) must not be registered")
+        self.assertNotIn("cyber", avatars, "The parked cyber renderer (web/companions/cyber.js) must not be registered")
         self.assertEqual(
             len(avatars), 3, "Unexpected registered avatar count: {}".format(avatars)
         )
@@ -486,7 +531,7 @@ class TestPixelCompanionStyles(unittest.TestCase):
                     "{} {} animation clips at the bottom".format(avatar, state),
                 )
 
-    def test_cute_theme_scoping(self):
+    def test_theme_scoping_of_every_mapped_avatar(self):
         rules = self._companion_rules()
 
         def find_display(selector):
@@ -509,11 +554,11 @@ class TestPixelCompanionStyles(unittest.TestCase):
             "none",
         )
         self.assertEqual(
-            find_display('body[data-theme="cyber"] .companion-cyber'),
+            find_display('body[data-theme="cyber"] .companion-neon-robot'),
             "block",
         )
         self.assertEqual(
-            find_display(".companion-cyber"),
+            find_display(".companion-neon-robot"),
             "none",
         )
         self.assertEqual(
@@ -524,6 +569,7 @@ class TestPixelCompanionStyles(unittest.TestCase):
             find_display(".companion-sun"),
             "none",
         )
+
 
 class TestPixelCompanionWiring(unittest.TestCase):
     """Verify mapped renderers and the theme-to-registry connection."""
@@ -540,13 +586,13 @@ class TestPixelCompanionWiring(unittest.TestCase):
 const fs = require('fs');
 const vm = require('vm');
 const cat = fs.readFileSync(process.argv[1], 'utf8');
-const cyber = fs.readFileSync(process.argv[2], 'utf8');
+const neon_robot = fs.readFileSync(process.argv[2], 'utf8');
 const sun = fs.readFileSync(process.argv[3], 'utf8');
 const registry = fs.readFileSync(process.argv[4], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + cyber + '\n' + sun + '\n' + registry, ctx);
+vm.runInContext(cat + '\n' + neon_robot + '\n' + sun + '\n' + registry, ctx);
 const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 const rendered = {};
 themes.forEach(theme => {
@@ -560,26 +606,26 @@ process.stdout.write(JSON.stringify({
         result = _run_node_json(
             script,
             os.path.join(COMPANION_CSS, "cozy-cat.js"),
-            os.path.join(COMPANION_CSS, "cyber.js"),
+            os.path.join(COMPANION_CSS, "neon-robot.js"),
             os.path.join(COMPANION_CSS, "sun.js"),
             COMPANION_REGISTRY_JS,
         )
-        self.assertEqual(result["mapping"], ["cozy-cat", "cyber", "sun", None, None])
+        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "sun", None, None])
         self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
-        self.assertNotIn('class="companion-cyber"', result["rendered"]["cute"])
+        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-sun"', result["rendered"]["cute"])
-        self.assertIn('class="companion-cyber"', result["rendered"]["cyber"])
+        self.assertIn('class="companion-neon-robot"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-sun"', result["rendered"]["cyber"])
         self.assertIn('class="companion-sun"', result["rendered"]["poolside"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["poolside"])
-        self.assertNotIn('class="companion-cyber"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["poolside"])
         for theme in ("evergreen", "citrus-pop"):
             self.assertNotIn('class="companion-cozy-cat"', result["rendered"][theme])
-            self.assertNotIn('class="companion-cyber"', result["rendered"][theme])
+            self.assertNotIn('class="companion-neon-robot"', result["rendered"][theme])
             self.assertNotIn('class="companion-sun"', result["rendered"][theme])
             self.assertIn('class="companion-sleep-cue"', result["rendered"][theme])
-        root_pattern = re.compile(r'class="companion-(?:cozy-cat|cyber|sun)"')
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|sun)"')
         self.assertEqual(
             {theme: len(root_pattern.findall(result["rendered"][theme]))
              for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
@@ -588,14 +634,26 @@ process.stdout.write(JSON.stringify({
         )
 
     def test_theme_application_loads_and_calls_registry_renderer(self):
-        with open(INDEX_HTML, "r", encoding="utf-8") as f:
-            html = f.read()
-        self.assertLess(html.index('src="companions/cozy-cat.js"'),
-                        html.index('src="companions/registry.js"'))
-        self.assertLess(html.index('src="companions/registry.js"'),
-                        html.index('src="app.js"'))
-        self.assertLess(html.index('href="companions/companion.css"'),
-                        html.index('href="companions/cozy-cat.css"'))
+        html = _read(INDEX_HTML)
+        live = _strip_html_comments(html)
+        self.assertLess(live.index('src="companions/cozy-cat.js"'),
+                        live.index('src="companions/neon-robot.js"'))
+        self.assertLess(live.index('src="companions/neon-robot.js"'),
+                        live.index('src="companions/registry.js"'))
+        self.assertLess(live.index('src="companions/registry.js"'),
+                        live.index('src="app.js"'))
+        self.assertLess(live.index('href="companions/companion.css"'),
+                        live.index('href="companions/cozy-cat.css"'))
+        self.assertLess(live.index('href="companions/cozy-cat.css"'),
+                        live.index('href="companions/neon-robot.css"'))
+        self.assertNotIn("cyber.js", _loaded_companion_scripts(),
+                         "Parked cyber.js must not be loaded")
+        self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
+                         "Parked cyber.css must not be loaded")
+        self.assertNotIn("cat.js", _loaded_companion_scripts(),
+                         "Parked cat.js must not be loaded")
+        self.assertNotIn("cat.css", _loaded_companion_stylesheets(),
+                         "Parked cat.css must not be loaded")
         match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
         if match is None:
             self.fail("applyTheme() not found")
@@ -623,12 +681,11 @@ process.stdout.write(JSON.stringify({
         self.assertNotIn('src="companions/cat.js"', html)
         self.assertNotIn('href="companions/cat.css"', html)
         self.assertIn("Parked", html)
-        with open(COMPANION_REGISTRY_JS, "r", encoding="utf-8") as f:
-            registry = f.read()
-        code = "\n".join(
-            line for line in registry.splitlines()
-            if not line.strip().startswith("//")
-        )
+        self.assertNotIn("cat.js", _loaded_companion_scripts(),
+                         "Parked cat.js must not be loaded")
+        self.assertNotIn("cat.css", _loaded_companion_stylesheets(),
+                         "Parked cat.css must not be loaded")
+        code = _strip_comments(_read(COMPANION_REGISTRY_JS))
         self.assertNotIn(
             "renderCatAvatar", code,
             "The parked cat renderer must not be referenced by executable registry code",
@@ -637,6 +694,51 @@ process.stdout.write(JSON.stringify({
             "renderCozyCat", code,
             "The Cozy Cat renderer must be registered",
         )
+
+    def test_parked_cyber_avatar_is_kept_but_not_loaded(self):
+        """The retired Cyber cyborg is parked with a note, not deleted and not loaded."""
+        for name in ("cyber.js", "cyber.css"):
+            path = os.path.join(COMPANION_CSS, name)
+            self.assertTrue(
+                os.path.isfile(path),
+                "Parked {} must stay in the repository for reference".format(name),
+            )
+        self.assertNotIn("cyber.js", _loaded_companion_scripts(),
+                         "Parked cyber.js must not be loaded")
+        self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
+                         "Parked cyber.css must not be loaded")
+        html = _read(INDEX_HTML)
+        self.assertIn('src="companions/neon-robot.js"', html,
+                      "index.html must load the Neon Robot replacement script")
+        self.assertIn('href="companions/neon-robot.css"', html,
+                      "index.html must load the Neon Robot replacement stylesheet")
+        self.assertIn("Parked", html)
+        self.assertIn("Neon Robot", html)
+        for name in ("cyber.js", "cyber.css"):
+            text = _read(os.path.join(COMPANION_CSS, name))
+            self.assertIn("Parked", text,
+                          "Parked {} must carry the park note".format(name))
+            self.assertIn("Neon Robot", text,
+                          "Parked {} must reference the Neon Robot replacement".format(name))
+        code = _strip_comments(_read(COMPANION_REGISTRY_JS))
+        self.assertNotIn(
+            "renderCyberAvatar", code,
+            "The parked cyber renderer must not be referenced by executable registry code",
+        )
+        self.assertIn(
+            "renderNeonRobot", code,
+            "The Neon Robot renderer must be registered",
+        )
+        self.assertIn(
+            "cyber: 'neon-robot'", code,
+            "The registry must map the cyber theme to neon-robot",
+        )
+        raw_registry = _read(COMPANION_REGISTRY_JS)
+        self.assertIn(
+            "renderCyberAvatar", raw_registry,
+            "The parked renderCyberAvatar entry must survive as a comment rather than be deleted",
+        )
+
 
 
 if __name__ == "__main__":
