@@ -27,6 +27,14 @@
  * change therefore ADDS the supplied Woodland Owl renderer (renderWoodlandOwl
  * in companions/woodland-owl.js plus companions/woodland-owl.css) and parks
  * nothing -- there is no retired Evergreen avatar file to keep for reference.
+ *
+ * The Citrus Pop theme never had an avatar of its own either: before this
+ * change COMPANION_REGISTRY had no citrus-pop key at all, so Citrus Pop was
+ * one of the unknown themes that rendered no avatar and only the shared sleep
+ * cue appeared. This change therefore ADDS the supplied Citrus Dog renderer
+ * (renderCitrusDog in companions/citrus-dog.js plus
+ * companions/citrus-dog.css) and parks NOTHING, because there is no retired
+ * Citrus Pop avatar file to keep for reference.
  */
 const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
@@ -39,13 +47,15 @@ const COMPANION_AVATARS = {
   // The original Poolside sun avatar is parked (see top comment).
   // sun: renderSunAvatar,
   'woodland-owl': renderWoodlandOwl,
+  'citrus-dog': renderCitrusDog,
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
   cyber: 'neon-robot',
   poolside: 'poolside-turtle',
-  evergreen: 'woodland-owl'
+  evergreen: 'woodland-owl',
+  'citrus-pop': 'citrus-dog'
 };
 
 function resolveCompanionAvatar(theme) {

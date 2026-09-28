@@ -1,0 +1,8 @@
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
+.companion-citrus-dog { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="citrus-pop"] .companion-citrus-dog { display:block; }
+.companion-citrus-dog svg { display:block; overflow:visible; }
+.companion-citrus-dog .citrus-dog-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-citrus-dog .citrus-dog-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-citrus-dog .citrus-dog-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-citrus-dog, .companion-citrus-dog * { animation:none !important; transition:none !important; } }

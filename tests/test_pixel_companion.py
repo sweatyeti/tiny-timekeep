@@ -350,12 +350,13 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     def test_loaded_stylesheets_are_the_only_ones_scanned(self):
         loaded = _loaded_companion_stylesheets()
-        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "poolside-turtle.css", "woodland-owl.css"):
+        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "poolside-turtle.css", "woodland-owl.css", "citrus-dog.css"):
             self.assertIn(name, loaded, "Expected {} in loaded stylesheets".format(name))
         self.assertNotIn("cat.css", loaded, "Parked cat.css must not be loaded")
         self.assertNotIn("cyber.css", loaded, "Parked cyber.css must not be loaded")
         self.assertNotIn("sun.css", loaded, "Parked sun.css must not be loaded")
         self.assertIn("woodland-owl.css", loaded, "The Evergreen theme's Woodland Owl stylesheet must be loaded")
+        self.assertIn("citrus-dog.css", loaded, "The Citrus Pop theme's Citrus Dog stylesheet must be loaded")
         self.assertIn("#companion {", self.css, "128x96 #companion frame rule missing from loaded CSS")
 
     def _match_group(self, pattern, source, message):
@@ -389,11 +390,12 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertIn("neon-robot", avatars, "The Cyber theme's Neon Robot avatar must be registered")
         self.assertIn("poolside-turtle", avatars, "The Poolside theme's Poolside Turtle avatar must be registered")
         self.assertIn("woodland-owl", avatars, "The Evergreen theme's Woodland Owl avatar must be registered")
+        self.assertIn("citrus-dog", avatars, "The Citrus Pop theme's Citrus Dog avatar must be registered")
         self.assertNotIn("cat", avatars, "The parked cat renderer (web/companions/cat.js) must not be registered")
         self.assertNotIn("cyber", avatars, "The parked cyber renderer (web/companions/cyber.js) must not be registered")
         self.assertNotIn("sun", avatars, "The parked sun renderer (web/companions/sun.js) must not be registered")
         self.assertEqual(
-            len(avatars), 4, "Unexpected registered avatar count: {}".format(avatars)
+            len(avatars), 5, "Unexpected registered avatar count: {}".format(avatars)
         )
         for avatar in avatars:
             path = os.path.join(COMPANION_CSS, avatar + ".css")
@@ -583,6 +585,14 @@ class TestPixelCompanionStyles(unittest.TestCase):
             find_display(".companion-woodland-owl"),
             "none",
         )
+        self.assertEqual(
+            find_display('body[data-theme="citrus-pop"] .companion-citrus-dog'),
+            "block",
+        )
+        self.assertEqual(
+            find_display(".companion-citrus-dog"),
+            "none",
+        )
 
     def test_woodland_owl_eye_groups_swap_with_the_shared_mode_attribute(self):
         """The owl artwork ships both eye states and swaps them on #companion[data-mode].
@@ -649,6 +659,71 @@ process.stdout.write(JSON.stringify(result));
             'Evergreen Woodland Owl: SVG must carry aria-hidden="true"',
         )
 
+    def test_citrus_dog_eye_groups_swap_with_the_shared_mode_attribute(self):
+        """The Citrus Dog artwork ships both eye states and swaps them on #companion[data-mode].
+
+        These counts are the guard against a renamed or dropped eye group
+        silently losing the sleeping/awake swap.
+        """
+        css = _strip_comments(_read(os.path.join(COMPANION_CSS, "citrus-dog.css")))
+        self.assertRegex(
+            css,
+            r"\.companion-citrus-dog\s+\.citrus-dog-sleep\s*\{[^}]*display\s*:\s*none",
+        )
+        self.assertRegex(
+            css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-citrus-dog\s+\.citrus-dog-awake\s*\{[^}]*display\s*:\s*none',
+        )
+        self.assertRegex(
+            css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-citrus-dog\s+\.citrus-dog-sleep\s*\{[^}]*display\s*:\s*inline',
+        )
+        self.assertRegex(
+            css,
+            r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)",
+        )
+        script = """
+const vm = require('vm');
+const fs = require('fs');
+const src = fs.readFileSync(process.argv[1], 'utf8');
+const ctx = vm.createContext({});
+vm.runInContext(src, ctx);
+const html = ctx.renderCitrusDog();
+const count = (s, sub) => s.split(sub).length - 1;
+const result = {
+  root: count(html, 'class="companion-citrus-dog"'),
+  awake: count(html, 'class="citrus-dog-awake"'),
+  sleep: count(html, 'class="citrus-dog-sleep"'),
+  has_viewBox: html.includes('viewBox="0 0 88 68"'),
+  has_aria_hidden: html.includes('aria-hidden="true"'),
+};
+process.stdout.write(JSON.stringify(result));
+"""
+        result = _run_node_json(script, os.path.join(COMPANION_CSS, "citrus-dog.js"))
+        self.assertEqual(
+            result["root"],
+            1,
+            "Citrus Pop Citrus Dog: expected exactly one root .companion-citrus-dog element",
+        )
+        self.assertEqual(
+            result["awake"],
+            1,
+            "Citrus Pop Citrus Dog: expected exactly one .citrus-dog-awake group",
+        )
+        self.assertEqual(
+            result["sleep"],
+            1,
+            "Citrus Pop Citrus Dog: expected exactly one .citrus-dog-sleep group",
+        )
+        self.assertTrue(
+            result["has_viewBox"],
+            'Citrus Pop Citrus Dog: SVG must carry viewBox="0 0 88 68"',
+        )
+        self.assertTrue(
+            result["has_aria_hidden"],
+            'Citrus Pop Citrus Dog: SVG must carry aria-hidden="true"',
+        )
+
 
 class TestPixelCompanionWiring(unittest.TestCase):
     """Verify mapped renderers and the theme-to-registry connection."""
@@ -669,10 +744,11 @@ const neon_robot = fs.readFileSync(process.argv[2], 'utf8');
 const woodland_owl = fs.readFileSync(process.argv[3], 'utf8');
 const poolside_turtle = fs.readFileSync(process.argv[4], 'utf8');
 const registry = fs.readFileSync(process.argv[5], 'utf8');
+const citrus_dog = fs.readFileSync(process.argv[6], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + neon_robot + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + registry, ctx);
+vm.runInContext(cat + '\n' + neon_robot + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + citrus_dog + '\n' + registry, ctx);
 const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 const rendered = {};
 themes.forEach(theme => {
@@ -690,8 +766,9 @@ process.stdout.write(JSON.stringify({
             os.path.join(COMPANION_CSS, "woodland-owl.js"),
             os.path.join(COMPANION_CSS, "poolside-turtle.js"),
             COMPANION_REGISTRY_JS,
+            os.path.join(COMPANION_CSS, "citrus-dog.js"),
         )
-        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "poolside-turtle", "woodland-owl", None])
+        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "poolside-turtle", "woodland-owl", "citrus-dog"])
         self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-neon-robot"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cute"])
@@ -706,16 +783,17 @@ process.stdout.write(JSON.stringify({
         self.assertNotIn('class="companion-neon-robot"', result["rendered"]["evergreen"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["evergreen"])
         self.assertIn('class="companion-sleep-cue"', result["rendered"]["evergreen"])
+        self.assertIn('class="companion-citrus-dog"', result["rendered"]["citrus-pop"])
+        self.assertIn('class="companion-sleep-cue"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-neon-robot"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-woodland-owl"', result["rendered"]["citrus-pop"])
-        self.assertIn('class="companion-sleep-cue"', result["rendered"]["citrus-pop"])
-        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|poolside-turtle|woodland-owl)"')
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|poolside-turtle|woodland-owl|citrus-dog)"')
         self.assertEqual(
             {theme: len(root_pattern.findall(result["rendered"][theme]))
              for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
-            {"cute": 1, "cyber": 1, "poolside": 1, "evergreen": 1, "citrus-pop": 0},
+            {"cute": 1, "cyber": 1, "poolside": 1, "evergreen": 1, "citrus-pop": 1},
             "Each mapped theme must render exactly one character root",
         )
 
@@ -729,6 +807,8 @@ process.stdout.write(JSON.stringify({
         self.assertLess(live.index('src="companions/poolside-turtle.js"'),
                         live.index('src="companions/woodland-owl.js"'))
         self.assertLess(live.index('src="companions/woodland-owl.js"'),
+                        live.index('src="companions/citrus-dog.js"'))
+        self.assertLess(live.index('src="companions/citrus-dog.js"'),
                         live.index('src="companions/registry.js"'))
         self.assertLess(live.index('src="companions/registry.js"'),
                         live.index('src="app.js"'))
@@ -740,6 +820,8 @@ process.stdout.write(JSON.stringify({
                         live.index('href="companions/poolside-turtle.css"'))
         self.assertLess(live.index('href="companions/poolside-turtle.css"'),
                         live.index('href="companions/woodland-owl.css"'))
+        self.assertLess(live.index('href="companions/woodland-owl.css"'),
+                        live.index('href="companions/citrus-dog.css"'))
         self.assertNotIn("cyber.js", _loaded_companion_scripts(),
                          "Parked cyber.js must not be loaded")
         self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
@@ -754,6 +836,8 @@ process.stdout.write(JSON.stringify({
                          "Parked sun.css must not be loaded")
         self.assertIn("woodland-owl.js", _loaded_companion_scripts(),
                       "The Evergreen theme's Woodland Owl renderer must be loaded")
+        self.assertIn("citrus-dog.js", _loaded_companion_scripts(),
+                      "The Citrus Pop theme's Citrus Dog renderer must be loaded")
         match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
         if match is None:
             self.fail("applyTheme() not found")
@@ -790,6 +874,30 @@ process.stdout.write(JSON.stringify({
         self.assertNotEqual(
             expected["woodland-owl.js"],
             expected["woodland-owl.css"],
+        )
+
+    def test_supplied_citrus_dog_artwork_is_preserved_byte_for_byte(self):
+        """The Citrus Pop theme's Citrus Dog files must stay the supplied artwork."""
+        expected = {
+            "citrus-dog.js": "12841a59bb15e7b68975fecb070dd60ef2d67dda619488f2dc7d556afaee1684",
+            "citrus-dog.css": "e94248316fe44fce24758efb237d2fe4c38c22509478dcf792d582eb557f2c08",
+        }
+        for name, digest in expected.items():
+            path = os.path.join(COMPANION_CSS, name)
+            self.assertTrue(
+                os.path.isfile(path),
+                f"Supplied artwork {name} must stay in the repository",
+            )
+            with open(path, "rb") as fh:
+                actual = hashlib.sha256(fh.read()).hexdigest()
+            self.assertEqual(
+                actual,
+                digest,
+                f"{name}: supplied artwork must not be edited",
+            )
+        self.assertNotEqual(
+            expected["citrus-dog.js"],
+            expected["citrus-dog.css"],
         )
 
     def test_parked_cute_cat_is_kept_but_not_loaded(self):
