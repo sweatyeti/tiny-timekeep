@@ -1,0 +1,11 @@
+# Keeper of Time companion artwork: line-ending policy.
+#
+# The supplied avatar assets in web/companions/ are verified byte-for-byte by
+# tests/test_pixel_companion.py, which hashes the raw file (sha256 over bytes,
+# not over decoded text). Git for Windows defaults to core.autocrlf=true, which
+# rewrites LF as CRLF during checkout, so without this pin the same commit
+# produces different bytes on a Windows checkout and the artwork digests stop
+# matching. `text eol=lf` keeps these assets reviewable as text while forcing LF
+# on every platform, in the working tree and in the repository alike.
+web/companions/*.js   text eol=lf
+web/companions/*.css  text eol=lf
