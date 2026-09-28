@@ -3,8 +3,8 @@ Vendored core: keeper-of-time-core  (the `timetracker_core` package)
   core commit : 1afc7fa  ("Layout: package at repo root, drop the src/ wrapper")
   contract    : v1.4  (specs/core-logic-contract.md, specs/functional-spec.md)
   tests       : 73 canonical tests stay in keeper-of-time-core and are not copied here;
-                this app repo has 40 app-specific tests in tests/ and runs them with
-                python3.11 -m unittest discover -s tests
+                this app repo has 50 app-specific tests in tests/ and runs them with
+                py -3.14 -m unittest discover -s tests  (pinned interpreter: Python 3.14.7)
 
 Layout: the core package sits at the repo ROOT (`timetracker_core/`), not under `src/`. Both
 repos use that flat layout, so this copy stays byte-identical to its source.

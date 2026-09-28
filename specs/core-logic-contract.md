@@ -165,7 +165,7 @@ Three independent version axes. They drift separately — a bump on one doesn't 
 
 ### 6.1 Interpreter and dependencies
 
-- **Python 3.11**, pinned. Broad pywebview support, well-exercised with PyInstaller for later packaging into a standalone .exe.
+- **Python 3.14.7**, pinned exactly. Broad pywebview support, well-exercised with PyInstaller for packaging into a standalone .exe, and verified end to end on Windows 11 (3.14.7 install, pywebview 6.2.1 + pythonnet 3.1.0 over the WebView2 backend, and a one-file PyInstaller build). Migrated from the earlier 3.11 pin; the app, `packaging/build.ps1` and the release workflow all target 3.14.7, and `build.ps1` refuses to reuse a `.venv` built with any other version rather than building with the wrong interpreter.
 - **pywebview** pinned to an exact version (not a range) in the UI layer's dependency file. Its JS-bridge behavior — the entire mechanism this contract rides on — has changed across major versions; an unplanned bump there can silently break §1 without touching a line of this document.
 - **Core dependencies: stdlib only** (`json`, `uuid`, `dataclasses`, `pathlib`, timezone-aware `datetime`). Keeping the core dependency-free is what makes it testable in isolation, per §5 — no environment beyond a bare Python interpreter needed to run its test suite.
 - Lock with `uv` (or pip-tools/Poetry) — exact resolved versions committed, not just top-level pins, so "works on my machine" doesn't slip in unnoticed.
