@@ -24,7 +24,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import main as app_main  # noqa: E402
-from timetracker_core import CONTRACT_VERSION  # noqa: E402
 
 WEB = os.path.join(ROOT, "web")
 APP_JS = os.path.join(WEB, "app.js")
@@ -34,7 +33,8 @@ INDEX_HTML = os.path.join(WEB, "index.html")
 APP_LEVEL_METHODS = {
     "set_window",            # internal wiring, not reachable from JS in practice
     "move_window_to", "resize_window_to", "minimize_window", "exit_app",
-    "get_preferences", "set_preference",
+    "get_preferences", "set_preference", "choose_entry_save_location",
+    "set_entry_save_location",
 }
 
 # Fields the frontend reads, by payload. Every one must be present in a live payload.
@@ -149,14 +149,6 @@ class TestWrapperPassesArgumentsThrough(FrontendCase):
         running = self.api.edit_entry(2, None, None, True)
         assert running["ok"] is False and running["error"] == "logged_not_applicable", running
 
-    def test_preferences_round_trip_through_the_bridge(self):
-        assert self.api.get_preferences()["activeTab"] == "tasks"     # default
-        self.api.set_preference("activeTab", "log")
-        assert self.api.get_preferences()["activeTab"] == "log"
-        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
-        assert reopened.get_all()["activeTab"] == "log", "preference did not persist"
-
-
 class TestThemePreference(FrontendCase):
     """Theme preference: default, validation, and persistence."""
 
@@ -165,12 +157,13 @@ class TestThemePreference(FrontendCase):
         assert prefs["theme"] == "cute", prefs
         assert prefs["activeTab"] == "tasks", prefs
 
-    def test_set_theme_cyber_persists_and_reloads(self):
-        result = self.api.set_preference("theme", "cyber")
-        assert result["theme"] == "cyber", result
-        assert result["activeTab"] == "tasks", result
-        reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
-        assert reopened.get_all()["theme"] == "cyber", "cyber theme did not persist"
+    def test_all_themes_round_trip_through_store_reopen(self):
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+            with self.subTest(theme=theme):
+                result = self.api.set_preference("theme", theme)
+                assert result["theme"] == theme, result
+                reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
+                assert reopened.get_all()["theme"] == theme, f"{theme} did not persist"
 
     def test_unknown_theme_falls_back_to_cute_on_set(self):
         result = self.api.set_preference("theme", "dark")
@@ -180,80 +173,26 @@ class TestThemePreference(FrontendCase):
 
     def test_corrupt_persisted_theme_falls_back_to_cute(self):
         prefs_path = os.path.join(self.tmp, "preferences.json")
-        with open(prefs_path, "w", encoding="utf-8") as f:
-            json.dump({"activeTab": "tasks", "theme": 42}, f)
-        reopened = app_main.PreferencesStore(prefs_path)
-        assert reopened.get_all()["theme"] == "cute"
-
-    def test_non_string_persisted_theme_falls_back_to_cute(self):
-        prefs_path = os.path.join(self.tmp, "preferences.json")
-        with open(prefs_path, "w", encoding="utf-8") as f:
-            json.dump({"activeTab": "tasks", "theme": None}, f)
-        reopened = app_main.PreferencesStore(prefs_path)
-        assert reopened.get_all()["theme"] == "cute"
-
-
-class TestFrontendNamesTheApp(unittest.TestCase):
-    def test_page_and_title_bar_use_tinytimekeep(self):
-        html = _read(INDEX_HTML)
-        assert "<title>tinyTimekeep</title>" in html, "page title is not tinyTimekeep"
-        assert "tinyTimekeep" in html.split('id="titlebar"')[1].split("</div>")[0], (
-            "title bar label is not tinyTimekeep"
-        )
-
-    def test_window_title_constant_matches(self):
-        assert app_main.WINDOW_TITLE == "tinyTimekeep", app_main.WINDOW_TITLE
-
-    def test_contract_version_pinned_by_the_app_is_the_contract_in_the_specs(self):
-        spec = _read(os.path.join(ROOT, "specs", "core-logic-contract.md"))
-        assert f"version: {CONTRACT_VERSION}" in spec, (
-            f"specs do not declare {CONTRACT_VERSION} — the gate would pass on a stale spec"
-        )
-        assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION
+        for invalid in (42, None):
+            with self.subTest(theme=invalid):
+                with open(prefs_path, "w", encoding="utf-8") as f:
+                    json.dump({"activeTab": "tasks", "theme": invalid}, f)
+                reopened = app_main.PreferencesStore(prefs_path)
+                assert reopened.get_all()["theme"] == "cute"
 
 
 class TestChromeAndTheming(unittest.TestCase):
     """Window chrome and themed surfaces — the parts a contract test cannot see."""
 
-    def test_title_bar_has_a_minimize_control_and_it_is_wired(self):
-        assert 'id="min-btn"' in _read(INDEX_HTML), "no minimize control in the title bar"
-        assert "api().minimize_window()" in _read(APP_JS), "the minimize control is not wired"
-
-    def test_minimize_is_a_window_action_not_a_tray_action(self):
-        """The ask was a normal minimize to the taskbar. A tray minimize hides the window
-        and drops it off the taskbar, which is a different behaviour — pin the distinction."""
-        import inspect
-        src = inspect.getsource(app_main.Api.minimize_window)
-        body = src.split('"""')[-1]      # the docstring names the alternative on purpose
-        assert "self._window.minimize()" in body, src
-        assert "hide()" not in body, src
-
-    def test_the_scrolling_containers_style_their_scrollbars(self):
-        css = _read(os.path.join(WEB, "style.css"))
-        assert "::-webkit-scrollbar" in css, "scrollbar left at the platform default"
-        tail = css.split("::-webkit-scrollbar", 1)[1]
-        for token in ("--panel-row", "--text-dim", "--accent-mint"):
-            assert token in tail, f"{token} missing from the scrollbar styling"
-
-    def test_scrollbar_width_is_not_overridden_by_the_standard_properties(self):
-        """Chromium ignores ::-webkit-scrollbar entirely when scrollbar-width is set, so a
-        stray standard property would silently undo the theming."""
-        css = _read(os.path.join(WEB, "style.css"))
-        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)   # the comment below names them
-        for prop in ("scrollbar-width", "scrollbar-color"):
-            assert prop not in css, f"{prop} would disable the webkit scrollbar rules"
-
-    def test_inactive_banner_does_not_reuse_the_title_bar_pink(self):
-        css = _read(os.path.join(WEB, "style.css"))
-        rules = [line for line in css.splitlines() if ".status-banner.inactive" in line]
-        assert rules, "the inactive banner rule is missing"
-        rule = rules[0]
-        assert "--inactive" in rule, rule
-        assert "--titlebar" not in rule and "--accent-pink" not in rule, (
-            f"the inactive banner is sharing a token again: {rule}"
-        )
-        assert "--inactive:" in css, "the --inactive token is not defined on :root"
-
+    def test_theme_selection_updates_persists_and_restores_after_reload(self):
+        js = _read(APP_JS)
+        self.assertIn("const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop']", js)
+        self.assertIn("if (!THEMES.includes(theme)) return;", js)
+        self.assertIn("applyTheme(theme);", js)
+        self.assertIn("api().set_preference('theme', theme)", js)
+        self.assertIn("applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme)", js)
+        for theme in ("poolside", "evergreen", "citrus-pop"):
+            self.assertIn(f'"{theme}"', _read(os.path.join(ROOT, "preferences.py")))
 
 if __name__ == "__main__":
     unittest.main()

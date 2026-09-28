@@ -6,6 +6,8 @@
 
 let state = null;
 let activeTab = 'tasks';
+let deletedCountRefresh = 0;
+const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 
 function api() {
   return window.pywebview && window.pywebview.api;
@@ -23,6 +25,7 @@ function init() {
   wireOverlay();
   wireEnterToSubmit();
   wireThemePicker();
+  wireSaveLocation();
   loadPreferences();
   refresh();
   setInterval(refresh, 4000);       // resync state from the core
@@ -37,10 +40,8 @@ async function loadPreferences() {
     ['tasks', 'log', 'summary'].forEach((t) =>
       document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
   }
-  const theme = (typeof prefs.theme === 'string' && (prefs.theme === 'cute' || prefs.theme === 'cyber')) ? prefs.theme : 'cute';
-  document.body.dataset.theme = theme;
-  document.querySelectorAll('.theme-btn').forEach((b) =>
-    b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+  applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme) ? prefs.theme : 'cute');
+  renderSaveLocation(prefs);
 }
 
 async function refresh() {
@@ -54,6 +55,8 @@ function render() {
   const noSession = !state.session;
   document.getElementById('screen-start').classList.toggle('hidden', !noSession);
   document.getElementById('screen-active').classList.toggle('hidden', noSession);
+  renderCompanion(state);
+  refreshDeletedCount();
 
   if (noSession) {
     renderSessionList();
@@ -63,6 +66,20 @@ function render() {
     renderEntries();
     renderSummary();
   }
+}
+
+async function refreshDeletedCount() {
+  const request = ++deletedCountRefresh;
+  const deleted = await api().list_deleted_entries();
+  if (request !== deletedCountRefresh) return;
+  setDeletedCount(deleted.length);
+}
+
+function setDeletedCount(count) {
+  // Invalidate an older in-flight refresh so it cannot overwrite this newer result.
+  deletedCountRefresh += 1;
+  const countEl = document.getElementById('deleted-count');
+  if (countEl) countEl.textContent = String(count);
 }
 
 async function renderSessionList() {
@@ -92,18 +109,28 @@ function renderCurrent() {
   const stopBtn = document.getElementById('stop-btn');
   const stopStartBtn = document.getElementById('stop-start-btn');
   const banner = document.getElementById('status-banner');
+  const isTracking = Boolean(state.currentEntry);
+  stopBtn.title = 'Stop tracking';
+  stopBtn.setAttribute('aria-label', 'Stop tracking');
+  const startActionLabel = isTracking ? 'Stop and start a new task' : 'Start a new task';
+  stopStartBtn.title = startActionLabel;
+  stopStartBtn.setAttribute('aria-label', startActionLabel);
+  const refreshIcon = stopStartBtn.querySelector('.timer-refresh');
+  if (refreshIcon) refreshIcon.classList.toggle('hidden', !isTracking);
   if (state.currentEntry) {
     label.textContent = state.currentEntry.task;
+    label.title = state.currentEntry.task;
+    label.setAttribute('aria-label', state.currentEntry.task);
     startEl.textContent = `Started ${fmtClock(state.currentEntry.startTime)}`;
     stopBtn.classList.remove('hidden');
-    stopStartBtn.textContent = '▶ Stop & start new';
     banner.textContent = '● ACTIVE';
     banner.className = 'status-banner active';
   } else {
     label.textContent = 'Not tracking';
+    label.title = 'Not tracking';
+    label.setAttribute('aria-label', 'Not tracking');
     startEl.textContent = '';
     stopBtn.classList.add('hidden');
-    stopStartBtn.textContent = '▶ Start new';
     banner.textContent = '○ NOT TRACKING';
     banner.className = 'status-banner inactive';
   }
@@ -113,7 +140,7 @@ function renderTasks() {
   const container = document.getElementById('task-rows');
   container.innerHTML = '';
   if (state.summary.length === 0) {
-    container.innerHTML = '<div class="empty-state">No tasks yet — use Start new below.</div>';
+    container.innerHTML = '<div class="empty-state">No tasks yet — use the play button above.</div>';
     return;
   }
   for (const g of state.summary) {
@@ -143,23 +170,21 @@ function renderEntries() {
     return;
   }
   for (const e of state.entries) {
-    const timeRange = e.endTime
-      ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}`
-      : `${fmtClock(e.startTime)}–in progress`;
+    const timeRange = e.endTime ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}` : `${fmtClock(e.startTime)}–in progress`;
     const canToggle = e.loggedStatus !== 'N/A';
-    const badgeClass = e.loggedStatus === 'Logged' ? 'badge-logged'
-      : e.loggedStatus === 'Unlogged' ? 'badge-unlogged' : 'badge-na';
+    const badgeClass = e.loggedStatus === 'Logged' ? 'badge-logged' : e.loggedStatus === 'Unlogged' ? 'badge-unlogged' : 'badge-na';
     const row = document.createElement('div');
-    row.className = 'row';
+    row.className = 'log-entry-row';
     row.innerHTML = `
-      <div class="row-main">
-        <div class="row-title">#${e.id} ${escapeHtml(e.task)}</div>
-        <div class="row-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</div>
+      <div class="log-entry-content">
+        <span class="log-entry-title">#${e.id} ${escapeHtml(e.task)}</span>
+        <span class="log-entry-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</span>
       </div>
-      <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}"
-            title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
-      <button class="icon-btn" title="Edit">✎</button>
-      ${e.isComplete ? '<button class="icon-btn" title="Delete">🗑</button>' : ''}
+      <div class="log-entry-actions">
+        <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}" title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
+        <button class="icon-btn" title="Edit">✎</button>
+        ${e.isComplete ? '<button class="icon-btn" title="Delete">🗑</button>' : ''}
+      </div>
     `;
     if (canToggle) {
       row.querySelector('.badge').onclick = async () => {
@@ -282,17 +307,116 @@ function wireThemePicker() {
   document.querySelectorAll('.theme-btn').forEach((btn) => {
     btn.onclick = async () => {
       const theme = btn.dataset.theme;
-      if (theme !== 'cute' && theme !== 'cyber') return;
-      document.body.dataset.theme = theme;
-      document.querySelectorAll('.theme-btn').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+      if (!THEMES.includes(theme)) return;
+      applyTheme(theme);
       const stored = await api().set_preference('theme', theme);
-      const finalTheme = (typeof stored.theme === 'string' && (stored.theme === 'cute' || stored.theme === 'cyber')) ? stored.theme : 'cute';
-      document.body.dataset.theme = finalTheme;
-      document.querySelectorAll('.theme-btn').forEach((b) =>
-        b.setAttribute('aria-pressed', String(b.dataset.theme === finalTheme)));
+      applyTheme(typeof stored.theme === 'string' && THEMES.includes(stored.theme) ? stored.theme : 'cute');
     };
   });
+}
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  document.querySelectorAll('.theme-btn').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.theme === theme)));
+  if (typeof renderCompanionScene === 'function') {
+    renderCompanionScene(theme);
+  }
+}
+
+function renderSaveLocation(prefs) {
+  const button = document.getElementById('save-location-btn');
+  if (!button) return;
+  button.disabled = prefs.entrySaveLocationLocked === true;
+  button.title = button.disabled
+    ? 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR'
+    : 'Change entry save location';
+  button.setAttribute('aria-label', button.title);
+}
+
+function confirmSaveLocation(message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'save-location-confirmation';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Confirm save location');
+    const panel = document.createElement('div');
+    panel.className = 'save-location-confirmation-panel';
+    const p = document.createElement('p');
+    p.textContent = message;
+    const actions = document.createElement('div');
+    actions.className = 'save-location-confirmation-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'btn btn-mini';
+    cancelBtn.type = 'button';
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Continue';
+    confirmBtn.className = 'btn btn-primary';
+    confirmBtn.type = 'button';
+    actions.append(cancelBtn, confirmBtn);
+    panel.append(p, actions);
+    overlay.append(panel);
+    document.body.append(overlay);
+    let done = false;
+    function finish(value) {
+      if (done) return;
+      done = true;
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(value);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') finish(false);
+    }
+    document.addEventListener('keydown', onKey);
+    cancelBtn.addEventListener('click', () => finish(false));
+    confirmBtn.addEventListener('click', () => finish(true));
+    confirmBtn.focus();
+  });
+}
+
+function wireSaveLocation() {
+  document.getElementById('save-location-btn').onclick = async () => {
+    const prefs = await api().get_preferences();
+    const locked = prefs.entrySaveLocationLocked === true;
+    const body = document.createElement('div');
+    body.setAttribute('aria-label', 'Entry save location preference');
+    const path = document.createElement('p');
+    path.id = 'entry-save-location-path';
+    path.setAttribute('aria-label', 'Current entry save location');
+    path.textContent = prefs.entrySaveLocation || '(default location)';
+    const choose = document.createElement('button');
+    choose.type = 'button';
+    choose.className = 'btn btn-primary save-location-choose';
+    choose.id = 'choose-entry-save-location';
+    choose.textContent = 'Choose folder…';
+    choose.disabled = locked;
+    const hint = document.createElement('p');
+    hint.textContent = locked
+      ? 'Folder is controlled by KEEPER_OF_TIME_DATA_DIR.'
+      : 'Choose whether to move existing session files when you change folders.';
+    body.append(path, choose, hint);
+    openOverlay('SAVE LOCATION', body.innerHTML);
+    document.getElementById('choose-entry-save-location').onclick = async () => {
+      const selection = await api().choose_entry_save_location();
+      if (!selection.ok) {
+        if (!selection.cancelled) document.getElementById('entry-save-location-path').textContent = selection.message || 'Could not choose folder.';
+        return;
+      }
+      if (!await confirmSaveLocation(`Use this folder for new sessions?\n${selection.path}`)) return;
+      const moveExisting = await confirmSaveLocation('Move existing session files to this folder? Choose Cancel to leave them where they are.');
+      const result = await api().set_preference('entrySaveLocation', selection.path, moveExisting);
+      if (result.ok) {
+        const latest = await api().get_preferences();
+        document.getElementById('entry-save-location-path').textContent = latest.entrySaveLocation;
+        renderSaveLocation(latest);
+      } else {
+        document.getElementById('entry-save-location-path').textContent = result.message || 'Could not set folder.';
+      }
+    };
+  };
 }
 
 // ---------- overlays ----------
@@ -398,6 +522,7 @@ async function openLogGroup() {
 
 async function openDeletedEntries() {
   const deleted = await api().list_deleted_entries();
+  setDeletedCount(deleted.length);
   if (deleted.length === 0) {
     openOverlay('Deleted entries', '<div class="empty-state">No deleted entries.</div>');
     return;
@@ -445,6 +570,22 @@ function fmtHM(minutes) {
 function fmtClock(iso) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function getCompanionState(viewModel) {
+  if (viewModel && viewModel.currentEntry) {
+    return { mode: 'awake', label: 'Pixel Companion is awake while a task is being tracked.' };
+  }
+  return { mode: 'sleeping', label: 'Pixel Companion is sleeping because no task is being tracked.' };
+}
+
+function renderCompanion(viewModel) {
+  const model = getCompanionState(viewModel);
+  const companion = document.getElementById('companion');
+  const label = document.getElementById('companion-label');
+  if (!companion || !label) return;
+  companion.dataset.mode = model.mode;
+  label.textContent = model.label;
 }
 
 function escapeHtml(s) {

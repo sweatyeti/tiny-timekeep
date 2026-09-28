@@ -1,0 +1,73 @@
+/* PARKED 2026-09-27: the original Cute cat artwork's styles. The Cute theme now paints the
+   supplied Cozy Cat (companions/cozy-cat.css, root class .companion-cozy-cat), and index.html
+   no longer loads this stylesheet, so none of these rules apply. Kept for reference; the
+   matching `cat: renderCatAvatar` registry entry is commented out in companions/registry.js. */
+.companion-cat {
+  --companion-scale: 2;
+  width: 32px;
+  height: 36px;
+  display: none;
+}
+
+body[data-theme="cute"] .companion-cat {
+  display: block;
+}
+
+.companion-ear {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.companion-ear-left {
+  left: 2px;
+  border-width: 0 5px 8px 5px;
+  border-bottom-color: var(--text-main);
+}
+
+.companion-ear-right {
+  right: 2px;
+  border-width: 0 5px 8px 5px;
+  border-bottom-color: var(--text-main);
+}
+
+.companion-face {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 32px;
+  height: 18px;
+  background: var(--text-main);
+  border: 2px solid var(--border-dark);
+  box-sizing: border-box;
+}
+
+.companion-eye {
+  position: absolute;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  background: #246b35;
+}
+
+.companion-eye-left {
+  left: 7px;
+}
+
+.companion-eye-right {
+  right: 7px;
+}
+
+.companion-body {
+  position: absolute;
+  top: 25px;
+  left: 4px;
+  width: 24px;
+  height: 11px;
+  background: var(--text-main);
+  border: 2px solid var(--border-dark);
+  box-sizing: border-box;
+}

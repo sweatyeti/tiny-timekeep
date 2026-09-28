@@ -1,0 +1,8 @@
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
+.companion-woodland-owl { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="evergreen"] .companion-woodland-owl { display:block; }
+.companion-woodland-owl svg { display:block; overflow:visible; }
+.companion-woodland-owl .woodland-owl-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-woodland-owl .woodland-owl-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-woodland-owl .woodland-owl-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-woodland-owl, .companion-woodland-owl * { animation:none !important; transition:none !important; } }

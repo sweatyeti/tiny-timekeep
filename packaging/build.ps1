@@ -12,9 +12,9 @@ Write-Host "Verifying the core wiring before packaging..."
 & .venv\Scripts\python main.py --check
 if ($LASTEXITCODE -ne 0) { throw "main.py --check failed - not packaging a broken build." }
 
-Write-Host "Running the core test suite..."
+Write-Host "Running the app-specific test suite..."
 & .venv\Scripts\python -m unittest discover -s tests
-if ($LASTEXITCODE -ne 0) { throw "core tests failed - not packaging a broken build." }
+if ($LASTEXITCODE -ne 0) { throw "app tests failed - not packaging a broken build." }
 
 & .venv\Scripts\python -m PyInstaller packaging\keeper-of-time.spec --noconfirm
 

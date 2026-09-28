@@ -6,6 +6,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="companions/companion.css">
+<!-- Parked: companions/cat.css is the retired Cute cat artwork, kept in the repository for reference and no longer loaded.
+     companions/cozy-cat.css now paints the Cute theme. -->
+<link rel="stylesheet" href="companions/cozy-cat.css">
+<!-- Parked: companions/cyber.css is the retired Cyber cyborg artwork, kept in the repository for reference and no longer loaded.
+     companions/neon-robot.css now paints the Cyber theme. -->
+<link rel="stylesheet" href="companions/neon-robot.css">
+<!-- Parked: companions/sun.css is the retired Poolside sun artwork, kept in the repository for reference and no longer loaded.
+     companions/poolside-turtle.css now paints the Poolside theme. -->
+<link rel="stylesheet" href="companions/poolside-turtle.css">
+<!-- The Evergreen theme previously rendered no avatar of its own, so this adds the Woodland Owl.
+     No retired Evergreen file is parked; woodland-owl.css is a new addition. -->
+<link rel="stylesheet" href="companions/woodland-owl.css">
+<!-- The Citrus Pop theme previously rendered no avatar of its own, so this adds the Citrus Dog.
+     No retired Citrus Pop file is parked; citrus-dog.css is a new addition. -->
+<link rel="stylesheet" href="companions/citrus-dog.css">
 </head>
 <body>
 
@@ -40,16 +56,32 @@
         <div class="now-tracking-top">
           <div class="now-tracking-label" id="current-label">Not tracking</div>
           <div class="now-tracking-start" id="current-start"></div>
-        </div>
-        <div class="now-tracking-actions">
-          <button id="stop-btn" class="btn btn-mini hidden">■ Stop</button>
-          <button id="stop-start-btn" class="btn btn-mini btn-mini-accent">▶ Start new</button>
+          <aside id="companion" class="companion" data-mode="sleeping" role="status" aria-live="polite">
+            <div class="companion-scene" aria-hidden="true"></div>
+            <span id="companion-label" class="sr-only">Pixel Companion is sleeping</span>
+          </aside>
+          <div class="now-tracking-actions">
+            <button id="stop-btn" class="btn btn-mini hidden" type="button" aria-label="Stop tracking" title="Stop tracking">
+              <svg class="timer-stop-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <rect class="timer-stop-square" x="3" y="3" width="10" height="10" />
+              </svg>
+            </button>
+            <button id="stop-start-btn" class="btn btn-mini btn-mini-accent" type="button" aria-label="Stop and start a new task" title="Stop and start a new task">
+              <svg class="timer-play-refresh-icon" width="38" height="18" viewBox="0 0 38 18" aria-hidden="true" focusable="false">
+                <path class="timer-play" d="M3 2 L15 9 L3 16 Z" />
+                <g class="timer-refresh hidden">
+                  <path d="M34 7 A5 5 0 0 0 25 5 L24 6 M24 6 H28 M24 6 V3" />
+                  <path d="M25 11 A5 5 0 0 0 34 13 L35 12 M35 12 H31 M35 12 V15" />
+                </g>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
       <div class="action-bar">
         <button id="log-group-btn" class="btn btn-mini">Log group</button>
-        <button id="deleted-btn" class="btn btn-mini">Deleted</button>
+        <button id="deleted-btn" class="btn btn-mini">Deleted (<span id="deleted-count">0</span>)</button>
       </div>
 
       <div class="tabs">
@@ -79,10 +111,13 @@
 
   </main>
 
-  <div id="theme-picker" aria-label="Theme">
-    <span class="theme-picker-label" aria-hidden="true">THEME</span>
-    <button class="theme-btn" type="button" data-theme="cute" title="Use cute theme" aria-label="Use cute theme" aria-pressed="false">♥</button>
-    <button class="theme-btn" type="button" data-theme="cyber" title="Use cyber theme" aria-label="Use cyber theme" aria-pressed="false">◈</button>
+  <div id="theme-picker" role="toolbar" aria-label="Theme and entry location controls">
+    <button class="theme-btn" type="button" data-theme="cute" title="Use Cute theme" aria-label="Use Cute theme" aria-pressed="false"><span class="theme-icon">♥</span></button>
+    <button class="theme-btn" type="button" data-theme="cyber" title="Use Cyber theme" aria-label="Use Cyber theme" aria-pressed="false"><span class="theme-icon">◈</span></button>
+    <button class="theme-btn" type="button" data-theme="poolside" title="Use Poolside theme" aria-label="Use Poolside theme" aria-pressed="false"><span class="theme-icon">≋</span></button>
+    <button class="theme-btn" type="button" data-theme="evergreen" title="Use Evergreen theme" aria-label="Use Evergreen theme" aria-pressed="false"><span class="theme-icon">♣</span></button>
+    <button class="theme-btn" type="button" data-theme="citrus-pop" title="Use Citrus Pop theme" aria-label="Use Citrus Pop theme" aria-pressed="false"><span class="theme-icon">✹</span></button>
+    <button id="save-location-btn" class="theme-btn" type="button" title="Entry save location" aria-label="Entry save location"><span class="theme-icon">📁</span></button>
   </div>
 
   <!-- Overlays -->
@@ -98,6 +133,22 @@
 
   <div id="resize-grip" title="Drag to resize"></div>
 
+  <!-- Parked: companions/cat.js (renderCatAvatar) is kept for reference but no longer loaded.
+       The Cozy Cat renderer now paints the Cute theme. -->
+  <script src="companions/cozy-cat.js"></script>
+  <!-- Parked: companions/cyber.js (renderCyberAvatar) is the retired Cyber cyborg renderer, kept for reference but no longer loaded.
+       The Neon Robot renderer now paints the Cyber theme. -->
+  <script src="companions/neon-robot.js"></script>
+  <!-- Parked: companions/sun.js (renderSunAvatar) is the retired Poolside sun renderer, kept for reference but no longer loaded.
+       The Poolside Turtle renderer now paints the Poolside theme. -->
+  <script src="companions/poolside-turtle.js"></script>
+  <!-- The Evergreen theme previously rendered no avatar of its own, so this adds the Woodland Owl renderer.
+       No retired Evergreen file is parked; woodland-owl.js is a new addition. -->
+  <script src="companions/woodland-owl.js"></script>
+  <!-- The Citrus Pop theme previously rendered no avatar of its own, so this adds the Citrus Dog renderer.
+       No retired Citrus Pop file is parked; citrus-dog.js is a new addition. -->
+  <script src="companions/citrus-dog.js"></script>
+  <script src="companions/registry.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ gate below stops a stale copy from running silently.
 main.py                   the only meeting point: builds the core, starts pywebview
 timetracker_core/         the core, vendored verbatim at the repo root (stdlib-only; do not edit here)
 web/                      the frontend (drop-in)
-tests/                    the core's 73 tests, unmodified, plus boundary + UI-conformance tests (94 total)
+tests/                    40 app-specific checks; canonical core tests stay in keeper-of-time-core
 specs/                    the contract (v1.4) and the functional spec (v2.0)
 packaging/                pyinstaller spec + build.ps1
 CORE-VERSION              which core commit this copy came from
@@ -55,9 +55,15 @@ python main.py --check        # prints the contract version, replays the golden 
 python -m unittest discover -s tests
 ```
 
-Sessions live in `%LOCALAPPDATA%\KeeperOfTime\sessions` (`KEEPER_OF_TIME_DATA_DIR` overrides it).
-They are deliberately **not** stored beside the executable: a one-file build unpacks to a temp
-directory and starts empty each run.
+Sessions default to `%LOCALAPPDATA%\KeeperOfTime\sessions` on Windows. Change the entry save
+location from the folder button beside the theme controls; the choice persists in
+`%LOCALAPPDATA%\KeeperOfTime\preferences.json`, independently of the selected sessions folder.
+When changing folders, the app first confirms the new location and then asks whether to move
+existing session files. A move is copy-first, collision-safe, and verified before the old copies
+are removed. If you decline, existing files remain in the old folder and new sessions use the
+selected folder. `KEEPER_OF_TIME_DATA_DIR` takes precedence over the saved preference and disables
+the selector while set. Sessions are deliberately **not** stored beside the executable: a one-file
+build unpacks to a temp directory and starts empty each run.
 
 ## Build the .exe
 
@@ -112,13 +118,14 @@ GitHub Release before announcing it.
 
 ## Verified in this copy
 
-- `python -m unittest discover -s tests` → **94 tests, OK** on a bare Python 3.11 (no venv, no
-  installed packages): the core's 73, 8 boundary tests, and 13 UI-conformance tests.
+- `python -m unittest discover -s tests` → **40 app-specific tests, OK** on Python 3.11. The
+  byte-identical copies of the core's 73 canonical tests were removed from this app repository;
+  they remain unchanged and run in the separate `keeper-of-time-core` repository.
 - `python main.py --check` → `Keeper of Time: contract v1.4`, golden fixture matching the contract's §2 view model
   exactly (weeding 2/30/75 callout true; unnamed 1/15/15 callout false; totals 30/75), no
   `isActive` in the session object, and the sessions directory reported.
-- **Windows, end to end** (Windows 11 Pro 26200, Python 3.11.9, WebView2 153): the suite passes
-  (94 OK) and `--check` prints the same golden fixture. Booted the real app and drove the frontend
+- **Windows, end to end** (Windows 11 Pro 26200, Python 3.11.9, WebView2 153): an earlier full
+  verification booted the real app and drove the frontend
   through the bridge — 21 API methods exposed, and `get_state`, `list_sessions`,
   `list_loggable_task_groups`, `get_preferences`, `set_preference`, `stop_and_start_entry`,
   `delete_entry`, `list_deleted_entries` (deleted row carried its `description`), and `restore_entry`

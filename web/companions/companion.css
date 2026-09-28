@@ -1,0 +1,129 @@
+#companion {
+  box-sizing: border-box;
+  width: 128px;
+  height: 96px;
+  border: 2px solid var(--border-dark);
+  background: var(--panel-row);
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.companion-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.companion-scene > :not(.companion-sleep-cue) {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--companion-scale, 1));
+}
+
+.companion-sleep-cue {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  display: none;
+  pointer-events: none;
+}
+
+.companion-sleep-cue::after {
+  content: "Z";
+}
+
+#companion[data-mode="sleeping"] .companion-eye {
+  height: 1px;
+  top: 7px;
+}
+
+/* Parked Cyber cyborg avatar rules (companions/cyber.js +
+   companions/cyber.css, no longer loaded by index.html). The Cyber
+   theme now renders the Neon Robot avatar. These rules are inert but
+   deliberately kept so the parked path can be restored. */
+#companion[data-mode="sleeping"] .companion-cyber-eye {
+  height: 1px;
+  top: 11px;
+}
+
+/* Parked Poolside sun avatar rules (companions/sun.js +
+   companions/sun.css, no longer loaded by index.html). The Poolside
+   theme now renders the Poolside Turtle avatar. These rules are inert
+   but deliberately kept so the parked path can be restored. */
+#companion[data-mode="sleeping"] .companion-sun-eye {
+  height: 1px;
+  top: 5px;
+}
+
+#companion[data-mode="sleeping"] .companion-body {
+  top: 25px;
+}
+
+#companion[data-mode="sleeping"] .companion-sleep-cue {
+  display: block;
+  animation: companion-sleep-cue 3.5s ease-in-out infinite;
+}
+
+#companion[data-mode="sleeping"] .companion-scene > :not(.companion-sleep-cue) {
+  animation: companion-sleep-bob 4s ease-in-out infinite;
+}
+
+#companion[data-mode="awake"] .companion-eye {
+  height: 4px;
+  top: 6px;
+}
+
+/* See the parked Cyber avatar comment above the sleeping rule. */
+#companion[data-mode="awake"] .companion-cyber-eye {
+  height: 4px;
+  top: 10px;
+}
+
+/* See the parked Poolside sun avatar comment above the sleeping rule. */
+#companion[data-mode="awake"] .companion-sun-eye {
+  height: 3px;
+  top: 4px;
+}
+
+#companion[data-mode="awake"] .companion-sleep-cue {
+  display: none;
+}
+
+#companion[data-mode="awake"] .companion-scene > :not(.companion-sleep-cue) {
+  animation: companion-awake-bob 3s ease-in-out infinite;
+}
+
+@keyframes companion-awake-bob {
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--companion-scale, 1)); }
+  50% { transform: translate(-50%, calc(-50% - 2px)) scale(var(--companion-scale, 1)); }
+}
+
+@keyframes companion-sleep-bob {
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--companion-scale, 1)); }
+  50% { transform: translate(-50%, calc(-50% - 1px)) scale(var(--companion-scale, 1)); }
+}
+
+@keyframes companion-sleep-cue {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 0.75; transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #companion,
+  #companion * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .companion-scene > :not(.companion-sleep-cue) {
+    transform: translate(-50%, -50%) scale(var(--companion-scale, 1));
+    left: 50%;
+    top: 50%;
+  }
+}

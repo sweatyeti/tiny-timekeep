@@ -55,6 +55,7 @@ EXPECTED_CONTRACT_VERSION = "v1.4"
 # once this is launched via a shortcut/startup entry rather than a terminal
 # already cd'd into this folder.
 INDEX_HTML = os.path.join(BASE_DIR, "web", "index.html")
+APP_ICON = os.path.join(BASE_DIR, "assets", "keeper-of-time.ico")
 
 
 def _user_data_base():
@@ -81,9 +82,8 @@ def _default_storage_path():
 
 
 def _default_preferences_path():
-    override = os.environ.get(DATA_DIR_ENV)
-    if override:
-        return os.path.join(os.path.expanduser(override), "preferences.json")
+    # Keep the selector preference independent of the directory it controls,
+    # including when session storage is redirected by the environment.
     return os.path.join(_user_data_base(), APP_NAME, "preferences.json")
 
 
@@ -123,9 +123,15 @@ class Api:
     delegated straight through to the core implementation.
     """
 
-    def __init__(self, storage_path=None, preferences_path=None):
-        self.core = TimeTrackerCore(storage_path or _default_storage_path())
+    def __init__(self, storage_path=None, preferences_path=None, location_locked=None):
+        initial_storage_path = os.path.abspath(storage_path or _default_storage_path())
+        self.core = TimeTrackerCore(initial_storage_path)
         self.prefs = PreferencesStore(preferences_path or _default_preferences_path())
+        self._location_locked = (bool(os.environ.get(DATA_DIR_ENV))
+                                 if location_locked is None else location_locked)
+        self._pending_source = None
+        if not self.prefs.get_all().get("entrySaveLocation"):
+            self.prefs.set("entrySaveLocation", initial_storage_path)
         self._window = None
 
     def set_window(self, window):
@@ -157,10 +163,164 @@ class Api:
     # --- UI preferences (separate from the core contract — see preferences.py) ---
 
     def get_preferences(self):
-        return self.prefs.get_all()
+        preferences = self.prefs.get_all()
+        if self._location_locked:
+            preferences["entrySaveLocation"] = str(self.core._store.directory.resolve())
+        preferences["entrySaveLocationLocked"] = self._location_locked
+        return preferences
 
-    def set_preference(self, key, value):
+    def set_preference(self, key, value, move_existing=False):
+        if key == "entrySaveLocation":
+            return self.set_entry_save_location(value, move_existing)
         return self.prefs.set(key, value)
+
+    def choose_entry_save_location(self):
+        if self._location_locked:
+            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+        if self._window is None:
+            return {"ok": False, "message": "Folder selection is unavailable."}
+        try:
+            import webview
+            result = self._window.create_file_dialog(webview.FOLDER_DIALOG)
+        except Exception as exc:
+            return {"ok": False, "message": str(exc)}
+        if not result:
+            return {"ok": False, "cancelled": True}
+        return {"ok": True, "path": os.path.abspath(os.path.expanduser(result[0]))}
+
+    def set_entry_save_location(self, path, move_existing=False):
+        if self._location_locked:
+            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+        if not isinstance(path, str) or not path.strip():
+            return {"ok": False, "message": "Choose a valid folder."}
+        target = os.path.abspath(os.path.expanduser(path.strip()))
+        current = str(self.core._store.directory.resolve())
+        if os.path.abspath(target) == current:
+            return {"ok": True, "preferences": self.prefs.get_all()}
+        try:
+            ensure_usable_sessions_dir(target)
+        except SystemExit as exc:
+            return {"ok": False, "message": str(exc)}
+
+        source_dir = self.core._store.directory
+        migrated = []
+        name_map = {}
+        if move_existing:
+            try:
+                taken = {item.name for item in Path(target).iterdir() if item.is_file()}
+                for source in sorted(source_dir.glob("*.json")):
+                    name = source.name
+                    stem, suffix = os.path.splitext(name)
+                    candidate = name
+                    counter = 2
+                    while candidate in taken:
+                        candidate = f"{stem}-{counter}{suffix}"
+                        counter += 1
+                    destination = Path(target) / candidate
+                    with source.open("rb") as original:
+                        with destination.open("xb") as copied:
+                            migrated.append((source, destination))
+                            shutil.copyfileobj(original, copied)
+                            copied.flush()
+                            os.fsync(copied.fileno())
+                    with source.open("rb") as original, destination.open("rb") as copied:
+                        if original.read() != copied.read():
+                            raise OSError(f"Verification failed for {source.name}")
+                    taken.add(candidate)
+                    name_map[source.name] = candidate
+            except OSError as exc:
+                for _, destination in migrated:
+                    try:
+                        destination.unlink()
+                    except OSError:
+                        pass
+                return {"ok": False, "message": f"Could not safely move existing sessions: {exc}"}
+
+        try:
+            prefs = self.prefs.set("entrySaveLocation", target)
+        except OSError as exc:
+            for _, destination in migrated:
+                try:
+                    destination.unlink()
+                except OSError:
+                    pass
+            return {"ok": False, "message": f"Could not save the preference: {exc}"}
+
+        session = self.core._session
+        if move_existing:
+            if session is not None and session.file_name in name_map:
+                session.file_name = name_map[session.file_name]
+        elif session is not None and session.is_active() and session.file_name:
+            source = self.core._store.document_path(session.file_name)
+            if source.is_file():
+                destination = None
+                owned_destination = False
+                try:
+                    taken = {item.name for item in Path(target).iterdir() if item.is_file()}
+                    stem, suffix = os.path.splitext(source.name)
+                    candidate = source.name
+                    counter = 2
+                    while candidate in taken:
+                        candidate = f"{stem}-{counter}{suffix}"
+                        counter += 1
+                    destination = Path(target) / candidate
+                    with source.open("rb") as original:
+                        with destination.open("xb") as copied:
+                            owned_destination = True
+                            shutil.copyfileobj(original, copied)
+                            copied.flush()
+                            os.fsync(copied.fileno())
+                    with source.open("rb") as original, destination.open("rb") as copied:
+                        if original.read() != copied.read():
+                            raise OSError(f"Verification failed for {source.name}")
+                    with destination.open("r", encoding="utf-8") as handle:
+                        saved = json.load(handle)
+                    if saved.get("sessionId") != session.session_id:
+                        raise OSError(f"Session ID mismatch for {source.name}")
+                    session.file_name = candidate
+                    try:
+                        source.unlink()
+                    except OSError:
+                        pass
+                    self._pending_source = None
+                except (OSError, ValueError):
+                    if owned_destination:
+                        try:
+                            destination.unlink()
+                        except OSError:
+                            pass
+                    self._pending_source = source
+                    session.file_name = None
+        self.core._store._directory = Path(target)
+        if move_existing:
+            for source, _ in migrated:
+                try:
+                    source.unlink()
+                except OSError:
+                    pass
+        return {"ok": True, "preferences": prefs}
+
+    def _after_core_save(self, result):
+        source = self._pending_source
+        session = self.core._session
+        if not source or not isinstance(result, dict) or result.get("ok") is not True or session is None:
+            return result
+        destination = self.core._store.document_path(session.file_name) if session.file_name else None
+        try:
+            if destination is None or not destination.is_file():
+                return result
+            with destination.open("r", encoding="utf-8") as handle:
+                saved = json.load(handle)
+            if saved.get("sessionId") != session.session_id:
+                return result
+            try:
+                source.unlink()
+            except OSError:
+                pass
+            self._pending_source = None
+        except (OSError, ValueError):
+            pass
+        return result
 
     # --- core contract passthrough ---
 
@@ -171,37 +331,37 @@ class Api:
         return self.core.list_sessions()
 
     def start_session(self, name=None, first_task=None):
-        return self.core.start_session(name, first_task)
+        return self._after_core_save(self.core.start_session(name, first_task))
 
     def resume_session(self, session_id):
-        return self.core.resume_session(session_id)
+        return self._after_core_save(self.core.resume_session(session_id))
 
     def stop_and_start_entry(self, next_task=None):
-        return self.core.stop_and_start_entry(next_task)
+        return self._after_core_save(self.core.stop_and_start_entry(next_task))
 
     def edit_entry(self, entry_id, task=None, description=None, logged=None):
-        return self.core.edit_entry(entry_id, task, description, logged)
+        return self._after_core_save(self.core.edit_entry(entry_id, task, description, logged))
 
     def delete_entry(self, entry_id):
-        return self.core.delete_entry(entry_id)
+        return self._after_core_save(self.core.delete_entry(entry_id))
 
     def restore_entry(self, entry_id):
-        return self.core.restore_entry(entry_id)
+        return self._after_core_save(self.core.restore_entry(entry_id))
 
     def list_loggable_task_groups(self):
         return self.core.list_loggable_task_groups()
 
     def log_task_group(self, task):
-        return self.core.log_task_group(task)
+        return self._after_core_save(self.core.log_task_group(task))
 
     def list_deleted_entries(self):
         return self.core.list_deleted_entries()
 
     def stop_tracking(self):
-        return self.core.stop_tracking()
+        return self._after_core_save(self.core.stop_tracking())
 
     def stop_and_exit(self):
-        return self.core.stop_and_exit()
+        return self._after_core_save(self.core.stop_and_exit())
 
 
 # ---------------------------------------------------------------------------
@@ -306,7 +466,11 @@ def main(argv=None):
 
     check_contract_version()
 
-    sessions_dir = str(args.sessions_dir) if args.sessions_dir else _default_storage_path()
+    preferences_path = _default_preferences_path()
+    saved_location = PreferencesStore(preferences_path).get_all().get("entrySaveLocation")
+    sessions_dir = (str(args.sessions_dir) if args.sessions_dir else
+                    _default_storage_path() if os.environ.get(DATA_DIR_ENV) else
+                    saved_location or _default_storage_path())
     ensure_usable_sessions_dir(sessions_dir)
     if not os.path.exists(INDEX_HTML):
         raise SystemExit(
@@ -325,7 +489,7 @@ def main(argv=None):
             f"Install the pinned version:  python -m pip install -r requirements.txt"
         )
 
-    api = Api(storage_path=sessions_dir)
+    api = Api(storage_path=sessions_dir, preferences_path=preferences_path)
     window = webview.create_window(
         WINDOW_TITLE,
         INDEX_HTML,
@@ -340,7 +504,16 @@ def main(argv=None):
         on_top=False,
     )
     api.set_window(window)
-    webview.start(debug=args.debug)
+    # pywebview 6.2's WinForms backend assigns this ICO to the native Form.Icon. WinForms
+    # keeps the icon alive with the form and installs the appropriate small and large HWND
+    # icons, including for our frameless WebView2 window.
+    start_options = {"debug": args.debug}
+    if os.path.isfile(APP_ICON):
+        start_options["icon"] = APP_ICON
+    else:
+        # Keep unrelated source-mode startup usable, but make the degraded icon state visible.
+        print(f"warning: application icon is unavailable at {APP_ICON}", file=sys.stderr)
+    webview.start(**start_options)
     return 0
 
 

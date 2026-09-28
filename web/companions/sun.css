@@ -1,0 +1,107 @@
+/*
+ * PARKED: This is the retired Poolside sun avatar's stylesheet. It is kept in
+ * the repository for reference and is no longer loaded by index.html, so none
+ * of these rules apply. The Poolside theme is now painted by the supplied
+ * Poolside Turtle (companions/poolside-turtle.css, root class
+ * .companion-poolside-turtle).
+ */
+.companion-sun {
+  --companion-scale: 2;
+  width: 32px;
+  height: 36px;
+  display: none;
+}
+
+body[data-theme="poolside"] .companion-sun {
+  display: block;
+}
+
+.companion-sun-ray {
+  position: absolute;
+  background: var(--accent-pink);
+  border: 2px solid var(--border-dark);
+  box-sizing: border-box;
+}
+
+.companion-sun-ray-top {
+  top: 2px;
+  left: 13px;
+  width: 6px;
+  height: 6px;
+}
+
+.companion-sun-ray-bottom {
+  top: 28px;
+  left: 13px;
+  width: 6px;
+  height: 6px;
+}
+
+.companion-sun-ray-left {
+  top: 13px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+}
+
+.companion-sun-ray-right {
+  top: 13px;
+  left: 26px;
+  width: 6px;
+  height: 6px;
+}
+
+.companion-sun-ray-tl {
+  top: 3px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+}
+
+.companion-sun-ray-tr {
+  top: 3px;
+  left: 24px;
+  width: 5px;
+  height: 5px;
+}
+
+.companion-sun-ray-bl {
+  top: 28px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+}
+
+.companion-sun-ray-br {
+  top: 28px;
+  left: 24px;
+  width: 5px;
+  height: 5px;
+}
+
+.companion-sun-face {
+  position: absolute;
+  top: 11px;
+  left: 9px;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-pink);
+  border: 2px solid var(--border-dark);
+  box-sizing: border-box;
+}
+
+.companion-sun-eye {
+  position: absolute;
+  top: 4px;
+  width: 3px;
+  height: 3px;
+  background: var(--border-dark);
+}
+
+.companion-sun-eye-left {
+  left: 2px;
+}
+
+.companion-sun-eye-right {
+  right: 2px;
+}

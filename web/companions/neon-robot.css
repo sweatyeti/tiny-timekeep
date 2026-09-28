@@ -1,0 +1,8 @@
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
+.companion-neon-robot { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="cyber"] .companion-neon-robot { display:block; }
+.companion-neon-robot svg { display:block; overflow:visible; }
+.companion-neon-robot .neon-robot-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-neon-robot .neon-robot-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-neon-robot .neon-robot-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-neon-robot, .companion-neon-robot * { animation:none !important; transition:none !important; } }
