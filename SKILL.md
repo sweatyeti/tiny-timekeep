@@ -105,7 +105,8 @@ like they belong, rather than looking "off" against the rest of the UI:
 
 ## Technical specifications
 
-**Runtime:** Python 3.11; pywebview pinned exactly (`pywebview==6.2.1`) in
+**Runtime:** Python 3.14.7 (the pinned interpreter — `packaging/build.ps1` asserts it and refuses
+to reuse a `.venv` built with any other version); pywebview pinned exactly (`pywebview==6.2.1`) in
 `requirements.txt` — the JS bridge this app rides on has changed shape across
 major versions. Core has zero non-stdlib dependencies (`json`, `uuid`,
 `dataclasses`, `pathlib`, timezone-aware `datetime`).

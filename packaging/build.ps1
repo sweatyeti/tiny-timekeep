@@ -1,10 +1,34 @@
 # Build the Windows app: one self-contained KeeperOfTime.exe in dist/.
 # Run from the project root in PowerShell:  .\packaging\build.ps1
+param(
+    [switch]$RecreateVenv  # delete an existing .venv and build a fresh one
+)
+
 $ErrorActionPreference = "Stop"
 
-if (-not (Test-Path ".venv")) {
-    py -3.11 -m venv .venv
+$RequiredPythonVersion = "3.14.7"
+$venvPython = ".venv\Scripts\python.exe"
+
+if (Test-Path ".venv" -and $RecreateVenv) {
+    Remove-Item -Path ".venv" -Recurse -Force
 }
+
+if (Test-Path ".venv") {
+    $detectedVersion = (& $venvPython -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' | Out-String).Trim()
+    if ($detectedVersion -eq $RequiredPythonVersion) {
+        Write-Host "Reusing existing .venv with Python $detectedVersion."
+    } else {
+        throw "Existing .venv was built with Python $detectedVersion but this build requires Python $RequiredPythonVersion. Re-run with -RecreateVenv to delete and rebuild it, or delete the .venv folder manually."
+    }
+} else {
+    Write-Host "Creating virtual environment with Python 3.14..."
+    py -3.14 -m venv .venv
+    $detectedVersion = (& $venvPython -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' | Out-String).Trim()
+    if ($detectedVersion -ne $RequiredPythonVersion) {
+        throw "New .venv was created with Python $detectedVersion but this build requires Python $RequiredPythonVersion. Ensure Python $RequiredPythonVersion is installed and re-run."
+    }
+}
+
 & .venv\Scripts\python -m pip install --upgrade pip
 & .venv\Scripts\python -m pip install -r requirements-dev.txt
 

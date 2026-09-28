@@ -28,7 +28,7 @@ the contract, currently on **contract v1.4**. Covers:
 
 **Core:** built and now **vendored into this repo** — `timetracker_core/` sits at the repo root
 (flat, no `src/`), a verbatim copy of `keeper-of-time-core` @ `1afc7fa`, contract **v1.4**.
-The app repository now has **40 app-specific tests**; the core's 73 canonical tests run only in
+The app repository now has **50 app-specific tests**; the core's 73 canonical tests run only in
 the separate core repository. `python main.py --check` prints `contract v1.4 (expected v1.4)` and
 the golden fixture exactly.
 
@@ -92,11 +92,15 @@ imports it anymore.
   (`uv`/pip-tools) yet — exact top-level pins only.
 - ~~No packaging/distribution~~ — **built and run on Windows**: `packaging/keeper-of-time.spec`
   (one-file, windowed, bundles `web/`, collects pywebview's WebView2 backend) produced
-  `dist\KeeperOfTime.exe` (13.8 MB) on Windows 11 / Python 3.11.9. It launched into the console
-  session, spawned 13 WebView2 child processes, rendered its start screen, and wrote sessions to
-  `%LOCALAPPDATA%\KeeperOfTime\sessions` rather than the one-file extraction directory.
-  `packaging/build.ps1` still refuses to build unless the suite and `--check` pass.
-  Remaining: no installer, no startup shortcut, no icon, no code signing.
+  `dist\KeeperOfTime.exe` (13.8 MB) on Windows 11 / Python 3.11.9, then again on the migrated
+  **Python 3.14.7** (15,147,488 bytes, sha256 `C5ECA359…`): it launched into the console session,
+  spawned 13 WebView2 child processes, rendered its start screen and its active-tracking screen
+  after its own Start button was clicked, and wrote a real session document to the per-user data
+  directory rather than the one-file extraction directory. Its taskbar/window icon matches
+  `assets/keeper-of-time.ico` pixel for pixel. `packaging/build.ps1` still refuses to build unless
+  the suite and `--check` pass, and now also refuses to reuse a `.venv` built with an interpreter
+  other than 3.14.7 (`-RecreateVenv` deletes and rebuilds it). Remaining: no installer, no startup
+  shortcut, no code signing.
 - **Google Fonts are fetched from the CDN** by `web/index.html`, so a cold first launch waits on
   the network — measured **25.9 s** to `loaded` on a cold cache. Vendoring the font files into
   `web/` and dropping the remote `@import`/`<link>` removes both the stall and the offline
