@@ -81,6 +81,13 @@ imports it anymore.
 
 ## Open items — not yet built or verified
 
+- **Node.js on `PATH` is an undeclared prerequisite of the test suite.** Five checks
+  (`test_pixel_companion`'s JavaScript class, its two eye-group tests, the registry-renderer test,
+  and `test_pixel_timer_controls`' JavaScript class) shell out to `node` and error with
+  `FileNotFoundError: [WinError 2]` when it is missing, which fails `build.ps1`'s test gate. Node is
+  preinstalled on GitHub's `windows-2022` runner, so CI is unaffected; a local Windows build machine
+  needs it. Either document it everywhere or make the tests skip loudly when `node` is absent — they
+  must not go quiet.
 - **Real acceptance testing.** The core's existing tests were LLM-generated
   (Qwen) from the functional spec's acceptance checklist. Flagged by the
   engineer as "a smoke net, not a trusted acceptance record" — worth an
@@ -93,7 +100,8 @@ imports it anymore.
 - ~~No packaging/distribution~~ — **built and run on Windows**: `packaging/keeper-of-time.spec`
   (one-file, windowed, bundles `web/`, collects pywebview's WebView2 backend) produced
   `dist\KeeperOfTime.exe` (13.8 MB) on Windows 11 / Python 3.11.9, then again on the migrated
-  **Python 3.14.7** (15,147,488 bytes, sha256 `C5ECA359…`): it launched into the console session,
+  **Python 3.14.7** (15,147,488 bytes built by hand, 15,148,899 bytes via `build.ps1` — the two
+  differ because each embeds the paths it was built from): it launched into the console session,
   spawned 13 WebView2 child processes, rendered its start screen and its active-tracking screen
   after its own Start button was clicked, and wrote a real session document to the per-user data
   directory rather than the one-file extraction directory. Its taskbar/window icon matches

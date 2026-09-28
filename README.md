@@ -82,7 +82,14 @@ Windows backend (`clr`/WebView2), which is the part that otherwise bites a `--on
 
 The script requires **Python 3.14.7**. An existing `.venv` built with another version is not
 reused — it fails with the version it found, and `.\packaging\build.ps1 -RecreateVenv` deletes and
-rebuilds it.
+rebuilds it. It also gates every step that can fail (venv creation, `pip`, `main.py --check`, the
+test suite, PyInstaller, and the presence of the artefact), so it can no longer print "Built:"
+after a step that quietly failed.
+
+The app test suite shells out to **`node`** for the five JavaScript-behaviour checks (companion and
+timer markup). GitHub's `windows-2022` runner ships Node, so the release workflow is unaffected, but
+a local Windows build machine needs `node` on `PATH` or those five tests error out and the build
+gate stops the packaging — correctly.
 
 Target machines need the WebView2 runtime — present by default on Win10/11.
 
@@ -142,14 +149,16 @@ GitHub Release before announcing it.
   tokens applied (`VT323`, titlebar `rgb(255,158,187)`), zero JS errors. `pip check` clean on the
   resolved set; no dependency pin needed changing for 3.14 (PyInstaller 6.22.3 and pythonnet
   3.1.0 both ship 3.14 wheels).
-- **The packaged exe was built and run on 3.14.7**: `dist\KeeperOfTime.exe`, 15,147,488 bytes
-  (14.4 MB), one-file, windowed (sha256 `C5ECA359…`). It launched into `Session 1`, spawned 13
-  WebView2 child processes, rendered its start screen and — after its own **Start new session**
-  button was clicked through the UI — its active-tracking screen, then wrote a real
-  `schemaVersion` 2 session document to the per-user data directory. Nothing was written beside
-  the exe, and no session data appeared in the one-file extraction directory. The window icon
-  Windows actually reports (`WM_GETICON`, 32x32) renders to the same pixel hash as
-  `assets/keeper-of-time.ico` and as the icon embedded in the exe.
+- **The packaged exe was built and run on 3.14.7**: `dist\KeeperOfTime.exe`, ~15.1 MB, one-file,
+  windowed. It launched into `Session 1`, spawned 13 WebView2 child processes, rendered its start
+  screen and — after its own **Start new session** button was clicked through the UI — its
+  active-tracking screen, then wrote a real `schemaVersion` 2 session document to the per-user data
+  directory. Nothing was written beside the exe, and no session data appeared in any one-file
+  extraction directory. The window icon Windows actually reports (`WM_GETICON`, 32x32) renders to
+  the same pixel hash as `assets/keeper-of-time.ico` and as the icon embedded in the exe. Both the
+  hand-invoked PyInstaller build (15,147,488 bytes) and the one `build.ps1` produces (15,148,899
+  bytes) were run this way; the two differ in bytes because each embeds the paths it was built
+  from, so the size identifies the artefact but the hash is not reproducible across builds.
 - Earlier full verification on the old 3.11.9 interpreter, kept as the historical baseline
   (Windows 11 Pro 26200, Python 3.11.9, WebView2 153): it booted the same way with 21 API methods
   and rendered 1 task row, 2 entry rows and 1 summary row, zero JS errors.
