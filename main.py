@@ -55,6 +55,7 @@ EXPECTED_CONTRACT_VERSION = "v1.4"
 # once this is launched via a shortcut/startup entry rather than a terminal
 # already cd'd into this folder.
 INDEX_HTML = os.path.join(BASE_DIR, "web", "index.html")
+APP_ICON = os.path.join(BASE_DIR, "assets", "keeper-of-time.ico")
 
 
 def _user_data_base():
@@ -503,7 +504,16 @@ def main(argv=None):
         on_top=False,
     )
     api.set_window(window)
-    webview.start(debug=args.debug)
+    # pywebview 6.2's WinForms backend assigns this ICO to the native Form.Icon. WinForms
+    # keeps the icon alive with the form and installs the appropriate small and large HWND
+    # icons, including for our frameless WebView2 window.
+    start_options = {"debug": args.debug}
+    if os.path.isfile(APP_ICON):
+        start_options["icon"] = APP_ICON
+    else:
+        # Keep unrelated source-mode startup usable, but make the degraded icon state visible.
+        print(f"warning: application icon is unavailable at {APP_ICON}", file=sys.stderr)
+    webview.start(**start_options)
     return 0
 
 

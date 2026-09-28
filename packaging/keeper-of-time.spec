@@ -7,12 +7,14 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 ROOT = Path(SPECPATH).resolve().parent  # project root (SPECPATH is packaging/)
+ICON = ROOT / "assets" / "keeper-of-time.ico"
 
 # pywebview ships JS/CSS assets and resolves its platform backend at runtime. Its own PyInstaller
 # hook normally covers this, but collecting explicitly is what makes the Windows backend
 # (pythonnet/clr -> WebView2) survive --onefile without a hidden-import guessing game.
 datas = [
     (str(ROOT / "web"), "web"),         # the frontend, loaded from a path relative to the exe
+    (str(ICON), "assets"),               # runtime Form.Icon in the one-file extraction dir
 ] + collect_data_files("webview")
 
 hiddenimports = ["clr", "clr_loader"] + collect_submodules("webview")
@@ -43,4 +45,5 @@ exe = EXE(
     upx=False,
     runtime_tmpdir=None,
     console=False,              # windowed: no console box. Use --debug flag of main.py for devtools.
+    icon=str(ICON),              # the executable and running native window use the same ICO
 )
