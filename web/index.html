@@ -52,10 +52,13 @@
     <section id="screen-active" class="screen hidden">
 
       <div class="now-tracking">
-        <div class="status-banner inactive" id="status-banner">○ NOT TRACKING</div>
+        <div class="status-banner inactive" id="status-banner">NOT TRACKING</div>
         <div class="now-tracking-top">
           <div class="now-tracking-label" id="current-label">Not tracking</div>
-          <div class="now-tracking-start" id="current-start"></div>
+          <div class="now-tracking-start">
+            <span id="current-start"></span>
+            <span id="elapsed-counter" class="elapsed-counter hidden"></span>
+          </div>
           <aside id="companion" class="companion" data-mode="sleeping" role="status" aria-live="polite">
             <div class="companion-scene" aria-hidden="true"></div>
             <span id="companion-label" class="sr-only">Pixel Companion is sleeping</span>

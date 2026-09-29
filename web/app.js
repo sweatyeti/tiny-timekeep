@@ -28,6 +28,7 @@ function init() {
   wireSaveLocation();
   loadPreferences();
   refresh();
+  startElapsedTimer();
   setInterval(refresh, 4000);       // resync state from the core
 }
 
@@ -117,13 +118,14 @@ function renderCurrent() {
   stopStartBtn.setAttribute('aria-label', startActionLabel);
   const refreshIcon = stopStartBtn.querySelector('.timer-refresh');
   if (refreshIcon) refreshIcon.classList.toggle('hidden', !isTracking);
+  stopStartBtn.classList.toggle('play-centered', !isTracking);
   if (state.currentEntry) {
     label.textContent = state.currentEntry.task;
     label.title = state.currentEntry.task;
     label.setAttribute('aria-label', state.currentEntry.task);
     startEl.textContent = `Started ${fmtClock(state.currentEntry.startTime)}`;
     stopBtn.classList.remove('hidden');
-    banner.textContent = '● ACTIVE';
+    banner.textContent = 'ACTIVE';
     banner.className = 'status-banner active';
   } else {
     label.textContent = 'Not tracking';
@@ -131,9 +133,32 @@ function renderCurrent() {
     label.setAttribute('aria-label', 'Not tracking');
     startEl.textContent = '';
     stopBtn.classList.add('hidden');
-    banner.textContent = '○ NOT TRACKING';
+    banner.textContent = 'NOT TRACKING';
     banner.className = 'status-banner inactive';
   }
+  updateElapsedCounter();
+}
+
+let _elapsedTimerId = null;
+
+function updateElapsedCounter() {
+  const counter = document.getElementById('elapsed-counter');
+  if (!counter) return;
+  if (!state.currentEntry) {
+    counter.textContent = '';
+    counter.classList.add('hidden');
+  } else {
+    const mins = Math.max(0, Math.floor((Date.now() - Date.parse(state.currentEntry.startTime)) / 60000));
+    const text = mins + ' min';
+    counter.textContent = text;
+    counter.title = text;
+    counter.classList.remove('hidden');
+  }
+}
+
+function startElapsedTimer() {
+  if (_elapsedTimerId !== null) return;
+  _elapsedTimerId = setInterval(updateElapsedCounter, 1000);
 }
 
 function renderTasks() {
@@ -170,26 +195,33 @@ function renderEntries() {
     return;
   }
   for (const e of state.entries) {
-    const timeRange = e.endTime ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}` : `${fmtClock(e.startTime)}–in progress`;
+    const timeRange = e.endTime ? `${fmtClock(e.startTime)}–${fmtClock(e.endTime)}` : `${fmtClock(e.startTime)}–now`;
     const canToggle = e.loggedStatus !== 'N/A';
     const badgeClass = e.loggedStatus === 'Logged' ? 'badge-logged' : e.loggedStatus === 'Unlogged' ? 'badge-unlogged' : 'badge-na';
+    const minutes = e.endTime
+      ? Math.max(1, Math.ceil((Date.parse(e.endTime) - Date.parse(e.startTime)) / 60000))
+      : Math.max(0, Math.floor((Date.now() - Date.parse(e.startTime)) / 60000));
+    const duration = fmtHM(minutes);
+    const nextLogged = e.loggedStatus !== 'Logged';
+    const badgeAria = nextLogged ? 'Mark as Logged' : 'Mark as Unlogged';
+    const badgeTag = canToggle ? 'button' : 'span';
+    const badgeAttrs = canToggle
+      ? `type="button" class="badge ${badgeClass} clickable" title="Click to toggle logged status" aria-label="${badgeAria}"`
+      : `class="badge ${badgeClass}"`;
     const row = document.createElement('div');
     row.className = 'log-entry-row';
     row.innerHTML = `
-      <div class="log-entry-content">
-        <span class="log-entry-title">#${e.id} ${escapeHtml(e.task)}</span>
-        <span class="log-entry-sub">${timeRange} · ${escapeHtml(e.description || 'No description')}</span>
-      </div>
-      <div class="log-entry-actions">
-        <span class="badge ${badgeClass} ${canToggle ? 'clickable' : ''}" title="${canToggle ? 'Click to toggle logged status' : ''}">${e.loggedStatus}</span>
-        <button class="icon-btn" title="Edit">✎</button>
-        ${e.isComplete ? '<button class="icon-btn" title="Delete">🗑</button>' : ''}
-      </div>
+      <div class="log-entry-task"><span class="log-entry-id">#${e.id}</span><span class="log-entry-title" title="${escapeAttr(e.task)}">${escapeHtml(e.task)}</span></div>
+      <div class="log-entry-time">${timeRange}</div>
+      <div class="log-entry-duration">${duration}</div>
+      <div class="log-entry-status"><${badgeTag} ${badgeAttrs}>${e.loggedStatus}</${badgeTag}></div>
+      <div class="log-entry-actions"><button class="icon-btn" title="Edit entry ${e.id}" aria-label="Edit entry ${e.id}">✎</button>${e.isComplete ? `<button class="icon-btn" title="Delete entry ${e.id}" aria-label="Delete entry ${e.id}">🗑</button>` : ''}</div>
+      <div class="log-entry-desc">${escapeHtml(e.description || 'No description')}</div>
     `;
     if (canToggle) {
       row.querySelector('.badge').onclick = async () => {
-        const nextLogged = e.loggedStatus !== 'Logged';
-        handleResult(await api().edit_entry(e.id, null, null, nextLogged));
+        const next = e.loggedStatus !== 'Logged';
+        handleResult(await api().edit_entry(e.id, null, null, next));
       };
     }
     const [editBtn, delBtn] = row.querySelectorAll('.icon-btn');

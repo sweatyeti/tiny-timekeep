@@ -797,6 +797,49 @@ process.stdout.write(JSON.stringify({
             "Each mapped theme must render exactly one character root",
         )
 
+        # Fix (3): the sleep cue is three separate Z glyphs, decorative, in every theme.
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+            cue = result["rendered"][theme]
+            self.assertRegex(cue, r'<span class="companion-sleep-cue" aria-hidden="true">')
+            self.assertEqual(
+                re.findall(r'<i class="companion-sleep-cue-z(\d)">Z</i>', cue),
+                ["1", "2", "3"],
+                "{}: the sleeping cue must paint three Z glyphs".format(theme),
+            )
+        # ...and the CSS paints them as elements, not as a single generated ::after glyph.
+        with open(os.path.join(COMPANION_CSS, "companion.css"), "r", encoding="utf-8") as source:
+            cue_css = re.sub(r"/\*.*?\*/", "", source.read(), flags=re.S)
+        self.assertNotIn('content: "Z"', cue_css, "the cue must not draw its glyph from ::after")
+        for glyph in ("companion-sleep-cue-z1", "companion-sleep-cue-z2", "companion-sleep-cue-z3"):
+            self.assertIn(glyph, cue_css)
+
+        # Fix (2): the awake turtle has two separate eyes inside its head, not one black bar.
+        art = result["rendered"]["poolside"]
+        awake = re.search(r'<g class="poolside-turtle-awake">(.*?)</g>', art, re.S)
+        if awake is None:
+            self.fail("the poolside turtle must keep an awake group")
+        eye_rects = re.findall(r'<path d="M(\d+) (\d+)h(\d+)v(\d+)H(\d+)z"', awake.group(1))
+        self.assertEqual(len(eye_rects), 2, "the awake turtle must have exactly two eyes")
+        (x1, y1, w1, h1, _), (x2, y2, w2, h2, _) = eye_rects
+        self.assertEqual((y1, w1, h1), (y2, w2, h2), "both eyes must match in size and row")
+        self.assertGreaterEqual(
+            int(x2) - (int(x1) + int(w1)), 4,
+            "the eyes must be separated by head colour rather than joined into a bar",
+        )
+        self.assertNotIn("M61 39h15v5H61z", awake.group(1), "the single eye bar must not come back")
+        head = re.search(
+            r'<ellipse cx="(\d+)" cy="(\d+)" rx="(\d+)" ry="(\d+)" fill="#A8DED9" stroke', art
+        )
+        if head is None:
+            self.fail("the turtle head ellipse must stay in the artwork")
+        hx, hy, hrx, hry = (int(value) for value in head.groups())
+        for x, y, w, h, _ in eye_rects:
+            self.assertGreaterEqual(int(x), hx - hrx)
+            self.assertLessEqual(int(x) + int(w), hx + hrx)
+            self.assertGreaterEqual(int(y), hy - hry)
+            self.assertLessEqual(int(y) + int(h), hy + hry)
+            self.assertLessEqual(int(y) + int(h), hy, "the eyes sit in the upper half of the head")
+
     def test_theme_application_loads_and_calls_registry_renderer(self):
         html = _read(INDEX_HTML)
         live = _strip_html_comments(html)

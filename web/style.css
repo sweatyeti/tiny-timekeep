@@ -260,6 +260,14 @@ input::placeholder { color: var(--text-dim); }
 .now-tracking-actions .timer-play-refresh-icon { display: block; flex: none; shape-rendering: crispEdges; }
 .now-tracking-actions .timer-stop-square,
 .now-tracking-actions .timer-play { fill: currentColor; }
+
+/* The 38px icon canvas is centred in the 60px button, but the play triangle occupies
+   x 3..15 of it: with the refresh arrows hidden (not tracking) the glyph has to move
+   right by 10px to sit on the button's centre. */
+.now-tracking-actions #stop-start-btn.play-centered .timer-play { transform: translateX(10px); }
+
+.elapsed-counter { color: var(--text-dim); white-space: nowrap; }
+.elapsed-counter::before { content: '·'; margin: 0 6px; }
 .now-tracking-actions .timer-refresh path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: square; stroke-linejoin: miter; }
 .now-tracking-actions .btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .btn-mini-accent { background: var(--accent-pink); }
@@ -557,35 +565,118 @@ body[data-theme="cyber"] .theme-btn {
   outline-offset: 2px;
 }
 
+/* Log entry rows: one column template for the whole list, so every row's columns line up.
+   The rows use subgrid (Chromium 117+, i.e. any current WebView2) to inherit it. */
+#entry-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto auto; column-gap: 4px; }
+#entry-rows .empty-state { grid-column: 1 / -1; }
 /* Log entry row */
 .log-entry-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: nowrap;
-  gap: 0.25rem 1rem;
-  padding: 0.3rem 0;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: auto auto;
+  grid-column: 1 / -1;
+  align-items: center;
+  row-gap: 2px;
+  padding: 6px 0;
   border-bottom: 2px dashed var(--panel-row-alt);
 }
-.log-entry-content {
-  flex: 1 1 0;
-  min-width: 0;
+.log-entry-task {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.25rem 1rem;
-  overflow-wrap: anywhere;
+  gap: 4px;
+  min-width: 0;
+}
+.log-entry-id {
+  flex: none;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
 .log-entry-title {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
 }
-.log-entry-sub {
-  min-width: 0;
-  overflow-wrap: anywhere;
+.log-entry-time {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.log-entry-duration {
+  grid-column: 3;
+  grid-row: 1;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.log-entry-status {
+  grid-column: 4;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .log-entry-actions {
+  grid-column: 5;
+  grid-row: 1;
   display: flex;
-  flex-shrink: 0;
-  margin-left: auto;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 4px;
+}
+.log-entry-desc {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 14px;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+.log-entry-status .badge {
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.log-entry-actions .icon-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+button.badge {
+  font-family: var(--font-body);
+  background: transparent;
+  cursor: pointer;
+}
+@media (max-width: 340px) {
+  #entry-rows {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .log-entry-task {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .log-entry-status {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .log-entry-actions {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .log-entry-time {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .log-entry-duration {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .log-entry-desc {
+    grid-column: 3;
+    grid-row: 2;
+  }
 }

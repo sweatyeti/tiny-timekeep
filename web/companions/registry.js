@@ -73,5 +73,5 @@ function renderCompanionScene(theme) {
   _companionCurrentAvatar = avatar;
   const renderAvatar = avatar && COMPANION_AVATARS[avatar];
   scene.innerHTML = (renderAvatar ? renderAvatar() : '') +
-    '<span class="companion-sleep-cue"></span>';
+    '<span class="companion-sleep-cue" aria-hidden="true"><i class="companion-sleep-cue-z1">Z</i><i class="companion-sleep-cue-z2">Z</i><i class="companion-sleep-cue-z3">Z</i></span>';
 }

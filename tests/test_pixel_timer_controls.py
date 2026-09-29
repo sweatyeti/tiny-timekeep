@@ -319,6 +319,24 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
         self.assertEqual(len(play_marks), 1, "play control must have one triangle")
         self.assertEqual(len(refresh_paths), 2, "refresh motif must have two arrow paths")
 
+        # Fix (4): the status banner is plain copy — no bullet or circle mark anywhere.
+        banner = re.search(
+            r'<div class="status-banner inactive" id="status-banner">([^<]*)</div>', self.html
+        )
+        if banner is None:
+            self.fail("the idle banner must stay a plain-text div")
+        self.assertEqual(banner.group(1).strip(), "NOT TRACKING")
+        self.assertNotRegex(self.html, r"[\u25cf\u25cb]", "banner must not carry a bullet or circle")
+        # Fix (5): the elapsed counter is a sibling of the start time inside the same line,
+        # hidden until something is actually running.
+        start_line = next(node for node in self.nodes if "now-tracking-start" in _classes(node))
+        self.assertIn("hidden", _classes(self._by_id("elapsed-counter")))
+        self.assertEqual(
+            [node["attrs"].get("id") for node in self.nodes
+             if node["ancestors"] and node["ancestors"][-1] is start_line],
+            ["current-start", "elapsed-counter"],
+        )
+
 
 class TestPixelTimerControlJavaScript(unittest.TestCase):
     @classmethod
@@ -344,6 +362,25 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertEqual(idle["startTitle"], "Start a new task")
         self.assertTrue(idle["refreshHidden"])
         self.assertTrue(idle["iconChildrenPreserved"])
+
+        # Fixes (1), (4), (5) live in app.js. Read the source rather than the run so the
+        # guards cover the copy and the counter arithmetic, not just the painted classes.
+        with open(APP_JS, "r", encoding="utf-8") as source:
+            js = source.read()
+        self.assertIn("'play-centered'", js)
+        self.assertNotIn("\u25cf ACTIVE", js)
+        self.assertNotIn("\u25cb NOT TRACKING", js)
+        self.assertNotIn("in progress", js, "a running entry's time cell must not spell out 'in progress'")
+        # Whole minutes since the entry started, from the wall clock, re-checked every second.
+        self.assertRegex(
+            js,
+            r"Math\.floor\(\s*\(Date\.now\(\)\s*-\s*Date\.parse\(state\.currentEntry\.startTime\)\)\s*/\s*60000\s*\)",
+        )
+        self.assertIn("setInterval(updateElapsedCounter, 1000)", js)
+        # Fix (7): the Log row renders the five aligned cells plus the description line.
+        for cell in ("log-entry-task", "log-entry-time", "log-entry-duration",
+                     "log-entry-status", "log-entry-actions", "log-entry-desc"):
+            self.assertIn(cell, js, "renderEntries must emit {}".format(cell))
 
     def test_stop_then_start_new_keeps_api_and_naming_overlay_flow(self):
         self.assertEqual(self.results["calls"], [
@@ -435,7 +472,7 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         left_column = expanded_width - companion_width - column_gap
         self.assertGreaterEqual(left_column, stop_width + action_gap + start_width)
 
-    def test_controls_have_compact_geometry_and_visible_focus(self):
+    def test_compact_geometry_visible_focus_and_log_column_template(self):
         stop = self._rule(".now-tracking-actions #stop-btn")
         start = self._rule(".now-tracking-actions #stop-start-btn")
         for declarations, width in ((stop, "36px"), (start, "60px")):
@@ -446,6 +483,53 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(compact, r"font-size\s*:\s*0")
         focus = self._rule(".now-tracking-actions .btn:focus-visible")
         self.assertRegex(focus, r"outline\s*:\s*2px")
+
+        # Fix (1): with the refresh motif hidden the lone play glyph is nudged onto the
+        # button's centre (the triangle occupies x 3..15 of the 38px icon canvas).
+        play_centered = self._rule(".now-tracking-actions #stop-start-btn.play-centered .timer-play")
+        shift = re.search(r"translateX\(\s*(\d+)px\s*\)", play_centered)
+        if shift is None:
+            self.fail("idle play glyph must be translated onto the button centre")
+        self.assertGreaterEqual(int(shift.group(1)), 1)
+        # Fix (5): one line of dim text with a separator before it.
+        self.assertRegex(self._rule(".elapsed-counter"), r"white-space\s*:\s*nowrap")
+        self.assertRegex(self._rule(".elapsed-counter::before"), r"content\s*:\s*'\u00b7'")
+
+        # Fix (7): the Log list owns ONE column template and every row inherits it through
+        # subgrid, which is what makes the columns line up between rows. Each row places
+        # task/time/duration/status/actions on line 1 and the description across line 2.
+        log_list = self._rule("#entry-rows")
+        self.assertRegex(log_list, r"display\s*:\s*grid")
+        self.assertRegex(
+            log_list,
+            r"grid-template-columns\s*:\s*minmax\(0,\s*1fr\)\s+auto\s+auto\s+auto\s+auto",
+        )
+        row = self._rule(".log-entry-row")
+        self.assertRegex(row, r"grid-template-columns\s*:\s*subgrid")
+        self.assertRegex(row, r"grid-column\s*:\s*1\s*/\s*-1")
+        self.assertRegex(row, r"align-items\s*:\s*center")
+        for cell, column in ((".log-entry-task", 1), (".log-entry-time", 2), (".log-entry-duration", 3),
+                             (".log-entry-status", 4), (".log-entry-actions", 5)):
+            declarations = self._rule(cell)
+            self.assertRegex(declarations, r"grid-column\s*:\s*\b{}\b".format(column))
+            self.assertRegex(declarations, r"grid-row\s*:\s*1\b")
+        description = self._rule(".log-entry-desc")
+        self.assertRegex(description, r"grid-column\s*:\s*1\s*/\s*-1")
+        self.assertRegex(description, r"grid-row\s*:\s*2\b")
+        # Single-line cells that must not wrap or push the row wider; the task name ellipsises
+        # rather than growing the column, and the badge sits centred on the row's meta line.
+        self.assertRegex(self._rule(".log-entry-time"), r"white-space\s*:\s*nowrap")
+        self.assertRegex(self._rule(".log-entry-duration"), r"white-space\s*:\s*nowrap")
+        self.assertRegex(self._rule(".log-entry-title"), r"text-overflow\s*:\s*ellipsis")
+        self.assertRegex(self._rule(".log-entry-status"), r"align-items\s*:\s*center")
+        self.assertRegex(self._rule(".log-entry-status"), r"justify-content\s*:\s*center")
+        # The 300px layout keeps the same template for the column it shares (status/duration)
+        # and re-places the rest onto two lines instead of scrolling sideways.
+        self.assertRegex(
+            self.css,
+            r"@media\s*\(max-width\s*:\s*340px\)\s*\{\s*#entry-rows\s*\{[^}]*"
+            r"minmax\(0,\s*1fr\)\s+auto\s+minmax\(0,\s*1fr\)",
+        )
 
     def test_stop_icon_and_border_have_theme_contrast(self):
         stop_rule = self._rule(".now-tracking-actions #stop-btn")
