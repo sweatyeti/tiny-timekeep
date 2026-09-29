@@ -1,8 +1,8 @@
 Vendored core: keeper-of-time-core  (the `timetracker_core` package)
   source repo : keeper-of-time-core (branch dev)
-  core commit : 1afc7fa  ("Layout: package at repo root, drop the src/ wrapper")
-  contract    : v1.4  (specs/core-logic-contract.md, specs/functional-spec.md)
-  tests       : 73 canonical tests stay in keeper-of-time-core and are not copied here;
+  core commit : 6289b3a  ("feat(core): contract v1.5 - unlog_task_group, the inverse of log_task_group")
+  contract    : v1.5  (specs/core-logic-contract.md, specs/functional-spec.md)
+  tests       : 85 canonical tests stay in keeper-of-time-core and are not copied here;
                 this app repo has 50 app-specific tests in tests/ and runs them with
                 py -3.14 -m unittest discover -s tests  (pinned interpreter: Python 3.14.7)
 

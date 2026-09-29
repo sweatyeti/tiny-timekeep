@@ -3,10 +3,10 @@ type: spec
 folder: technical
 tags: [time-tracking, functional-spec, contract, python, versioning, implementation-notes]
 status: frozen
-version: v1.4
-supersedes: core-logic-contract_v1.3
+version: v1.5
+supersedes: core-logic-contract_v1.4
 created: 2026-09-23
-updated: 2026-09-23
+updated: 2026-09-29
 frozen: 2026-09-23
 ---
 # Core logic contract — Keeper of Time
@@ -42,7 +42,7 @@ There is no push channel — pywebview calls are request/response only. The UI i
 
 ### 1.1 Reserved error codes (apply across commands, not listed per-command below)
 
-- **`no_active_session`** — returned by any command that requires an open session (`stop_and_start_entry`, `edit_entry`, `delete_entry`, `restore_entry`, `log_task_group`) when called with none open. Kept distinct from e.g. `entry_not_found` on purpose — "there's no session" and "that id doesn't exist in this session" are different problems and need different messages. Commands that make sense as no-ops with no session open (`stop_tracking`, `stop_and_exit`) instead return `ok: true` with the empty state — see §2.
+- **`no_active_session`** — returned by any command that requires an open session (`stop_and_start_entry`, `edit_entry`, `delete_entry`, `restore_entry`, `log_task_group`, `unlog_task_group`) when called with none open. Kept distinct from e.g. `entry_not_found` on purpose — "there's no session" and "that id doesn't exist in this session" are different problems and need different messages. Commands that make sense as no-ops with no session open (`stop_tracking`, `stop_and_exit`) instead return `ok: true` with the empty state — see §2.
 - **`internal_error`** — catch-all for unexpected failures (bad storage path, I/O errors, anything not in a command's documented error list). Per §7's "no exception crosses the boundary" rule, every command must return this rather than raise.
 
 ---
@@ -132,6 +132,17 @@ Query. Spec §7.3 — distinct named tasks with ≥1 completed+unlogged+non-dele
 Spec §7.3. Case-insensitive match. Marks all completed, non-deleted entries of that task as logged; running entries untouched.
 Errors: `no_active_session` (§1.1), `nothing_to_log` (task has no qualifying entries — shouldn't happen if the UI only offers what 3.8 returned, but guard it anyway).
 
+### 3.9b `unlog_task_group(task: str) -> Envelope`
+Spec §7.3, the inverse action. The exact mirror of 3.9: case-insensitive match, and it clears
+the logged flag on **all** completed, non-deleted entries of that task that are currently
+logged. Running entries are untouched (they can never be logged in the first place), deleted
+entries are untouched, and the rest of the group's entries are untouched. One save, one fresh
+view model — the whole group flips in a single command, so a UI that offers a group toggle does
+not have to iterate entry-by-entry and cannot half-apply it.
+Errors: `no_active_session` (§1.1), `nothing_to_unlog` (task has no completed, non-deleted,
+currently-logged entries — i.e. the group is empty, already fully unlogged, or the task is the
+`unnamed` placeholder).
+
 ### 3.10 `list_deleted_entries() -> [{id, task, startTime, endTime, description}]`
 Query. Spec §7.4. Oldest-first. Empty list → UI shows empty state; also the answer when no session is open. **`description` added in v1.4** — the UI needs it to show a usable "what is this?" when deciding whether to restore something.
 
@@ -177,7 +188,7 @@ Already specified in functional-spec §4 (`schemaVersion` field per session docu
 
 ### 6.3 This contract's own version
 
-Tracked in this document's frontmatter (`version: v1.4`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
+Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
 
 **v1.1 changes from v1.0** (resolved from the first build's ambiguities): `session.isActive` semantics clarified (open, not "currently tracking"); `session: null` documented as a valid `get_state()` result; `list_sessions` gained `isUnreadable`/`reason`; added the shared `no_active_session` and `internal_error` codes (§1.1); corrupt-id entries on load now refuse the whole session (`session_unreadable`) instead of being silently dropped.
 
@@ -187,7 +198,9 @@ Tracked in this document's frontmatter (`version: v1.4`). Bump it whenever the i
 
 **v1.4 changes from v1.3:** `list_deleted_entries` (3.10) gained a `description` field — a UI need (showing what a deleted entry actually was before restoring it), additive only, no existing field changed meaning.
 
-**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.4"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
+**v1.5 changes from v1.4:** added `unlog_task_group` (3.9b), the inverse of `log_task_group` (3.9), with its own `nothing_to_unlog` error code — a UI need (the Summary view offers a per-task group toggle, so the un-log direction has to be one atomic command rather than an entry-by-entry loop). No existing command, field or error code changed meaning.
+
+**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.5"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
 
 ---
 

@@ -471,6 +471,42 @@ class TimeTrackerCore:
             except Exception as exc:
                 return {"ok": False, "error": "internal_error", "message": str(exc)}
 
+    def unlog_task_group(self, task) -> dict:
+        with self._lock:
+            try:
+                if not self._is_session_open():
+                    return self._no_active_session()
+
+                effective = normalize_task(task)
+                if is_unnamed(effective):
+                    return {
+                        "ok": False,
+                        "error": "nothing_to_unlog",
+                        "message": "Task is unnamed or empty.",
+                    }
+
+                visible = self._session.visible_entries()
+                qualifying = [
+                    e for e in visible
+                    if e.is_complete and e.logged and tasks_match(e.task, effective)
+                ]
+
+                if not qualifying:
+                    return {
+                        "ok": False,
+                        "error": "nothing_to_unlog",
+                        "message": "No logged completed entries for this task.",
+                    }
+
+                for e in qualifying:
+                    e.logged = False
+
+                self._store.save(self._session)
+
+                return {"ok": True, "state": self._build_view_model()}
+            except Exception as exc:
+                return {"ok": False, "error": "internal_error", "message": str(exc)}
+
     def stop_tracking(self) -> dict:
         with self._lock:
             try:

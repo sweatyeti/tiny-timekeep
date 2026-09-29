@@ -59,13 +59,13 @@ class TestCoreStaysIsolated(unittest.TestCase):
 
 
 class TestVersionGate(unittest.TestCase):
-    def test_app_core_and_spec_are_pinned_to_v14(self):
-        self.assertEqual(CONTRACT_VERSION, "v1.4")
+    def test_app_core_and_spec_are_pinned_to_v15(self):
+        self.assertEqual(CONTRACT_VERSION, "v1.5")
         assert app_main.EXPECTED_CONTRACT_VERSION == CONTRACT_VERSION, (
             f"app expects {app_main.EXPECTED_CONTRACT_VERSION}, core declares {CONTRACT_VERSION}"
         )
         with open(os.path.join(ROOT, "specs", "core-logic-contract.md"), encoding="utf-8") as handle:
-            self.assertIn("version: v1.4", handle.read())
+            self.assertIn("version: v1.5", handle.read())
 
 
 class TestAppWiring(unittest.TestCase):

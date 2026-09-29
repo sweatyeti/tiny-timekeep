@@ -49,7 +49,7 @@ DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
 # is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
 # if timetracker_core ships a contract change this UI hasn't been updated
 # for, fail loudly here rather than disagree silently at runtime.
-EXPECTED_CONTRACT_VERSION = "v1.4"
+EXPECTED_CONTRACT_VERSION = "v1.5"
 
 # Resolved relative to this file, not the current working directory — matters
 # once this is launched via a shortcut/startup entry rather than a terminal
@@ -354,6 +354,9 @@ class Api:
     def log_task_group(self, task):
         return self._after_core_save(self.core.log_task_group(task))
 
+    def unlog_task_group(self, task):
+        return self._after_core_save(self.core.unlog_task_group(task))
+
     def list_deleted_entries(self):
         return self.core.list_deleted_entries()
 
@@ -425,7 +428,7 @@ def run_checks():
                 print(f"  got      {json.dumps(state[field])}", file=sys.stderr)
                 return 1
         if "isActive" in state["session"]:
-            print("FAIL: 'isActive' is not part of contract v1.4", file=sys.stderr)
+            print("FAIL: 'isActive' is not part of contract v1.5", file=sys.stderr)
             return 1
 
         # v1.4: a deleted row carries the description the restore screen renders.
