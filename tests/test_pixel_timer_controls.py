@@ -33,6 +33,7 @@ function makeElement(id) {
     style: {},
     onclick: null,
     className: '',
+    innerHTML: '',
     classList: {
       add: (...names) => names.forEach(name => classes.add(name)),
       remove: (...names) => names.forEach(name => classes.delete(name)),
@@ -52,7 +53,12 @@ function makeElement(id) {
     getAttribute(name) { return this.attrs[name] || null; },
     querySelector(selector) {
       if (selector === '.timer-refresh') return this.refresh && this.children.includes(this.refresh) ? this.refresh : null;
+      if (selector === '.badge') return makeElement('badge-stub');
       return null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '.icon-btn') return [makeElement('edit-stub'), makeElement('delete-stub')];
+      return [];
     },
     addEventListener() {},
     removeEventListener() {},
@@ -156,6 +162,20 @@ ctx.render = function () { renderCalls += 1; ctx.renderCurrent(); };
 ctx.openOverlay = function (title, body) { overlay = { title, body }; };
 ctx.closeOverlay = function () { closed = true; };
 ctx.wireActiveScreen();
+
+const entriesFixture = [
+  { id: 7, task: 'weeding', startTime: '2026-09-27T15:04:00Z', endTime: '2026-09-27T15:30:00Z',
+    description: 'back bed, weeded "and" trimmed <b>carefully</b> & fast',
+    loggedStatus: 'Unlogged', isComplete: true },
+  { id: 8, task: 'planning', startTime: '2026-09-27T15:30:00Z', endTime: '2026-09-27T15:45:00Z',
+    description: '', loggedStatus: 'N/A', isComplete: false },
+  { id: 9, task: 'x', startTime: '2026-09-27T15:45:00Z', endTime: '2026-09-27T16:00:00Z',
+    description: null, loggedStatus: 'Logged', isComplete: false }
+];
+setState({ session: { id: 1 }, currentEntry: null, entries: entriesFixture });
+ctx.renderEntries();
+const rows = document.getElementById('entry-rows').children.map((row) => ({ className: row.className, html: row.innerHTML }));
+
 setState({ session: { id: 1 }, currentEntry: initialEntry });
 ctx.renderCurrent();
 
@@ -169,7 +189,7 @@ ctx.renderCurrent();
   await start.onclick();
   document.getElementById('sn-task').value = 'Next task';
   await document.getElementById('sn-go').onclick();
-  process.stdout.write(JSON.stringify({ active, idle, afterStop, calls, overlay, closed, renderCalls,
+  process.stdout.write(JSON.stringify({ active, idle, afterStop, calls, overlay, closed, renderCalls, rows,
     finalTask: document.getElementById('current-label').textContent,
     finalRefreshHidden: refreshIcon.classList.contains('hidden') }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
@@ -377,10 +397,121 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
             r"Math\.floor\(\s*\(Date\.now\(\)\s*-\s*Date\.parse\(state\.currentEntry\.startTime\)\)\s*/\s*60000\s*\)",
         )
         self.assertIn("setInterval(updateElapsedCounter, 1000)", js)
-        # Fix (7): the Log row renders the five aligned cells plus the description line.
-        for cell in ("log-entry-task", "log-entry-time", "log-entry-duration",
-                     "log-entry-status", "log-entry-actions", "log-entry-desc"):
-            self.assertIn(cell, js, "renderEntries must emit {}".format(cell))
+
+        # Fix (7): The Log row now renders as a single line with specific markup.
+        rows = self.results["rows"]
+        self.assertEqual(len(rows), 3, "Expected exactly three rendered rows")
+        for row in rows:
+            self.assertEqual(row["className"], "log-entry-row")
+
+        # Row 0: id 7, 'weeding', full description, Unlogged, isComplete true
+        row0 = rows[0]["html"]
+
+        # Verify the task cell title is the escaped full description
+        # Extract title value to ensure raw characters are absent
+        title_start = row0.index('<div class="log-entry-task" title="') + len('<div class="log-entry-task" title="')
+        title_end = row0.index('"', title_start)
+        title_val = row0[title_start:title_end]
+
+        expected_escaped_desc = 'back bed, weeded &quot;and&quot; trimmed &lt;b&gt;carefully&lt;/b&gt; &amp; fast'
+        self.assertEqual(title_val, expected_escaped_desc, "Task cell title must be the escaped full description")
+
+        # Ensure raw characters are not present in the title value
+        self.assertNotIn('"', title_val)
+        self.assertNotIn('<', title_val)
+        self.assertNotIn('>', title_val)
+        self.assertNotIn('&', title_val.replace('&quot;', '').replace('&lt;', '').replace('&gt;', '').replace('&amp;', ''))
+
+        # Verify description span exists with escaped content
+        self.assertIn('<span class="log-entry-desc">', row0)
+        self.assertIn(expected_escaped_desc, row0)
+
+        # Verify title span has no title attribute
+        self.assertIn('<span class="log-entry-title">', row0)
+
+        # Verify description is inside task cell, before time cell
+        desc_idx = row0.index('<span class="log-entry-desc">')
+        time_idx = row0.index('class="log-entry-time"')
+        self.assertLess(desc_idx, time_idx, "Description preview must be inside task cell, before time cell")
+
+        # Verify 'No description' is not present
+        self.assertNotIn('No description', row0)
+
+        # Verify accessibility attributes on task cell
+        self.assertIn('tabindex="0"', row0)
+        # aria-label should contain task name and description
+        aria_label_match = re.search(r'aria-label="([^"]*)"', row0)
+        self.assertIsNotNone(aria_label_match)
+        aria_val = aria_label_match.group(1)
+        self.assertIn('weeding', aria_val)
+        self.assertIn('back bed', aria_val) # Part of the description
+
+        # Verify buttons
+        self.assertIn('title="Edit entry 7"', row0)
+        self.assertIn('title="Delete entry 7"', row0)
+        self.assertIn('title="Click to toggle logged status"', row0)
+
+        # Verify exactly one occurrence of each cell class
+        for cell_class in ['log-entry-task', 'log-entry-time', 'log-entry-duration', 'log-entry-status', 'log-entry-actions']:
+            self.assertEqual(row0.count('class="{}"'.format(cell_class)), 1, "Expected exactly one {} cell".format(cell_class))
+
+        # Row 1: id 8, 'planning', empty description, N/A, isComplete false
+        row1 = rows[1]["html"]
+        self.assertNotIn('log-entry-desc', row1)
+        self.assertNotIn('No description', row1)
+
+        # Task cell title should be exactly 'planning'
+        title_start = row1.index('<div class="log-entry-task" title="') + len('<div class="log-entry-task" title="')
+        title_end = row1.index('"', title_start)
+        title_val = row1[title_start:title_end]
+        self.assertEqual(title_val, 'planning')
+
+        # No Delete button
+        self.assertNotIn('title="Delete entry', row1)
+
+        # Badge is span with badge-na, no toggle title
+        self.assertIn('<span class="badge badge-na">', row1)
+        self.assertNotIn('Click to toggle logged status', row1)
+        self.assertNotIn('<button type="button" class="badge', row1)
+
+        # Row 2: id 9, 'x', null description, Logged, isComplete false
+        row2 = rows[2]["html"]
+        self.assertNotIn('log-entry-desc', row2)
+        self.assertNotIn('No description', row2)
+
+        # Task cell title should be exactly 'x'
+        title_start = row2.index('<div class="log-entry-task" title="') + len('<div class="log-entry-task" title="')
+        title_end = row2.index('"', title_start)
+        title_val = row2[title_start:title_end]
+        self.assertEqual(title_val, 'x')
+
+        # No Delete button
+        self.assertNotIn('title="Delete entry', row2)
+
+        # Badge is button with toggle title
+        self.assertIn('<button type="button" class="badge badge-logged clickable"', row2)
+        self.assertIn('title="Click to toggle logged status"', row2)
+        self.assertNotIn('<span class="badge', row2)
+
+        # Verify Log hint in index.html
+        with open(INDEX_HTML, "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        hint_div = '<div class="log-hint hint-text" id="log-hint">(hover an entry\'s task info to see its full description)</div>'
+        self.assertIn(hint_div, html_content)
+
+        tab_log_idx = html_content.index('id="tab-log"')
+        entry_rows_idx = html_content.index('id="entry-rows"')
+        hint_idx = html_content.index(hint_div)
+
+        # Hint must be after tab-log and before entry-rows
+        self.assertGreater(hint_idx, tab_log_idx)
+        self.assertLess(hint_idx, entry_rows_idx)
+
+        # Ensure no other tabs between tab-log and hint
+        segment = html_content[tab_log_idx:hint_idx]
+        self.assertNotIn('id="tab-tasks"', segment)
+        self.assertNotIn('id="tab-summary"', segment)
 
     def test_stop_then_start_new_keeps_api_and_naming_overlay_flow(self):
         self.assertEqual(self.results["calls"], [
@@ -496,8 +627,8 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(self._rule(".elapsed-counter::before"), r"content\s*:\s*'\u00b7'")
 
         # Fix (7): the Log list owns ONE column template and every row inherits it through
-        # subgrid, which is what makes the columns line up between rows. Each row places
-        # task/time/duration/status/actions on line 1 and the description across line 2.
+        # subgrid, which is what makes the columns line up between rows. Each row is a single
+        # line where the task cell contains the ID, title, and description as flex children.
         log_list = self._rule("#entry-rows")
         self.assertRegex(log_list, r"display\s*:\s*grid")
         self.assertRegex(
@@ -508,28 +639,43 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(row, r"grid-template-columns\s*:\s*subgrid")
         self.assertRegex(row, r"grid-column\s*:\s*1\s*/\s*-1")
         self.assertRegex(row, r"align-items\s*:\s*center")
+        self.assertRegex(row, r"grid-template-rows\s*:\s*auto\s*;")
+        self.assertNotRegex(row, r"auto\s+auto")
+        self.assertNotRegex(row, r"row-gap")
         for cell, column in ((".log-entry-task", 1), (".log-entry-time", 2), (".log-entry-duration", 3),
                              (".log-entry-status", 4), (".log-entry-actions", 5)):
             declarations = self._rule(cell)
             self.assertRegex(declarations, r"grid-column\s*:\s*\b{}\b".format(column))
             self.assertRegex(declarations, r"grid-row\s*:\s*1\b")
+        task_cell = self._rule(".log-entry-task")
+        self.assertRegex(task_cell, r"display\s*:\s*flex")
+        self.assertRegex(task_cell, r"min-width\s*:\s*0")
+        title = self._rule(".log-entry-title")
+        self.assertRegex(title, r"flex\s*:\s*0\s+1\s+auto")
+        self.assertRegex(title, r"text-overflow\s*:\s*ellipsis")
+        self.assertRegex(title, r"white-space\s*:\s*nowrap")
         description = self._rule(".log-entry-desc")
-        self.assertRegex(description, r"grid-column\s*:\s*1\s*/\s*-1")
-        self.assertRegex(description, r"grid-row\s*:\s*2\b")
-        # Single-line cells that must not wrap or push the row wider; the task name ellipsises
-        # rather than growing the column, and the badge sits centred on the row's meta line.
+        self.assertRegex(description, r"flex\s*:\s*1\s+1\s+0")
+        self.assertRegex(description, r"min-width\s*:\s*0")
+        self.assertRegex(description, r"overflow\s*:\s*hidden")
+        self.assertRegex(description, r"text-overflow\s*:\s*ellipsis")
+        self.assertRegex(description, r"white-space\s*:\s*nowrap")
+        self.assertNotRegex(description, r"grid-column")
+        self.assertNotRegex(description, r"grid-row")
+        self.assertNotRegex(description, r"overflow-wrap")
         self.assertRegex(self._rule(".log-entry-time"), r"white-space\s*:\s*nowrap")
         self.assertRegex(self._rule(".log-entry-duration"), r"white-space\s*:\s*nowrap")
-        self.assertRegex(self._rule(".log-entry-title"), r"text-overflow\s*:\s*ellipsis")
         self.assertRegex(self._rule(".log-entry-status"), r"align-items\s*:\s*center")
         self.assertRegex(self._rule(".log-entry-status"), r"justify-content\s*:\s*center")
-        # The 300px layout keeps the same template for the column it shares (status/duration)
-        # and re-places the rest onto two lines instead of scrolling sideways.
-        self.assertRegex(
-            self.css,
-            r"@media\s*\(max-width\s*:\s*340px\)\s*\{\s*#entry-rows\s*\{[^}]*"
-            r"minmax\(0,\s*1fr\)\s+auto\s+minmax\(0,\s*1fr\)",
-        )
+        media_match = re.search(r"@media\s*\(max-width\s*:\s*340px\)\s*\{", self.css)
+        if media_match is None:
+            self.fail("340px media query not found")
+        media_text = self.css[media_match.start():]
+        self.assertNotRegex(media_text, r"grid-template-columns")
+        self.assertNotRegex(media_text, r"grid-row\s*:\s*2")
+        self.assertNotRegex(media_text, r"log-entry-desc")
+        self.assertRegex(media_text, r"\.log-entry-time\s*,\s*\.log-entry-duration\s*\{[^}]*font-size\s*:\s*11px")
+        self.assertRegex(self._rule(".log-hint"), r"padding\s*:\s*0\s+4px\s+8px")
 
     def test_stop_icon_and_border_have_theme_contrast(self):
         stop_rule = self._rule(".now-tracking-actions #stop-btn")

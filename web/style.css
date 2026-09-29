@@ -566,17 +566,17 @@ body[data-theme="cyber"] .theme-btn {
 }
 
 /* Log entry rows: one column template for the whole list, so every row's columns line up.
-   The rows use subgrid (Chromium 117+, i.e. any current WebView2) to inherit it. */
+   The rows use subgrid (Chromium 117+, i.e. any current WebView2) to inherit it.
+   Each entry is a single grid row; the description preview lives inside the task cell. */
 #entry-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto auto; column-gap: 4px; }
 #entry-rows .empty-state { grid-column: 1 / -1; }
-/* Log entry row */
+/* Log entry row — one row only; desc is a flex child inside the task cell */
 .log-entry-row {
   display: grid;
   grid-template-columns: subgrid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto;
   grid-column: 1 / -1;
   align-items: center;
-  row-gap: 2px;
   padding: 6px 0;
   border-bottom: 2px dashed var(--panel-row-alt);
 }
@@ -594,12 +594,24 @@ body[data-theme="cyber"] .theme-btn {
   color: var(--text-dim);
   white-space: nowrap;
 }
+/* Task name is the priority: never grows, only shrinks when it alone overflows */
 .log-entry-title {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 17px;
+}
+/* Desc preview takes only the space left after the title; shrinks to nothing when there is no room */
+.log-entry-desc {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--text-dim);
 }
 .log-entry-time {
   grid-column: 2;
@@ -629,13 +641,6 @@ body[data-theme="cyber"] .theme-btn {
   align-items: center;
   gap: 4px;
 }
-.log-entry-desc {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  font-size: 14px;
-  color: var(--text-dim);
-  overflow-wrap: anywhere;
-}
 .log-entry-status .badge {
   font-size: 12px;
   line-height: 1;
@@ -651,32 +656,26 @@ button.badge {
   background: transparent;
   cursor: pointer;
 }
+/* Hint line above the entry list; font and colour come from the shared .hint-text class */
+.log-hint {
+  padding: 0 4px 8px;
+}
+/* Narrow screens: tighten meta cells so the single row still fits at ~300 px */
 @media (max-width: 340px) {
   #entry-rows {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    column-gap: 3px;
   }
-  .log-entry-task {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .log-entry-status {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .log-entry-actions {
-    grid-column: 3;
-    grid-row: 1;
-  }
-  .log-entry-time {
-    grid-column: 1;
-    grid-row: 2;
-  }
+  .log-entry-time,
   .log-entry-duration {
-    grid-column: 2;
-    grid-row: 2;
+    font-size: 11px;
   }
-  .log-entry-desc {
-    grid-column: 3;
-    grid-row: 2;
+  .log-entry-status .badge {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+  .log-entry-actions .icon-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
 }

@@ -208,15 +208,19 @@ function renderEntries() {
     const badgeAttrs = canToggle
       ? `type="button" class="badge ${badgeClass} clickable" title="Click to toggle logged status" aria-label="${badgeAria}"`
       : `class="badge ${badgeClass}"`;
+    const desc = e.description == null ? '' : String(e.description);
+    const hasDesc = desc.trim().length > 0;
+    const cellTitle = escapeAttr(hasDesc ? desc : e.task);
+    const ariaLabel = escapeAttr(hasDesc ? `#${e.id} ${e.task} — ${desc}` : `#${e.id} ${e.task}`);
+    const descSpan = hasDesc ? `<span class="log-entry-desc">${escapeHtml(desc)}</span>` : '';
     const row = document.createElement('div');
     row.className = 'log-entry-row';
     row.innerHTML = `
-      <div class="log-entry-task"><span class="log-entry-id">#${e.id}</span><span class="log-entry-title" title="${escapeAttr(e.task)}">${escapeHtml(e.task)}</span></div>
+      <div class="log-entry-task" title="${cellTitle}" tabindex="0" aria-label="${ariaLabel}"><span class="log-entry-id">#${e.id}</span><span class="log-entry-title">${escapeHtml(e.task)}</span>${descSpan}</div>
       <div class="log-entry-time">${timeRange}</div>
       <div class="log-entry-duration">${duration}</div>
       <div class="log-entry-status"><${badgeTag} ${badgeAttrs}>${e.loggedStatus}</${badgeTag}></div>
       <div class="log-entry-actions"><button class="icon-btn" title="Edit entry ${e.id}" aria-label="Edit entry ${e.id}">✎</button>${e.isComplete ? `<button class="icon-btn" title="Delete entry ${e.id}" aria-label="Delete entry ${e.id}">🗑</button>` : ''}</div>
-      <div class="log-entry-desc">${escapeHtml(e.description || 'No description')}</div>
     `;
     if (canToggle) {
       row.querySelector('.badge').onclick = async () => {
