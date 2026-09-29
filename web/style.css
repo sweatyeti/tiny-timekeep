@@ -201,6 +201,10 @@ input {
 }
 input::placeholder { color: var(--text-dim); }
 
+/* The app is `user-select: none` (see html, body above); text fields opt back in so editing and
+   text selection inside them behave normally. */
+input, textarea { user-select: text; -webkit-user-select: text; }
+
 .btn {
   font-family: var(--font-display);
   font-size: 11px;
@@ -249,7 +253,7 @@ input::placeholder { color: var(--text-dim); }
   column-gap: 8px;
   margin-bottom: 12px;
 }
-.now-tracking-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; }
+.now-tracking-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
 .now-tracking-start { grid-area: start; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--text-dim); }
 #companion { grid-area: companion; justify-self: end; }
 .now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }
@@ -330,19 +334,50 @@ input::placeholder { color: var(--text-dim); }
 }
 .icon-btn.play { background: var(--accent-mint); color: var(--border-dark); }
 
-.summary-head, .summary-row {
+/* Summary table. ONE grid owns the five column tracks; the header and every row inherit them
+   through subgrid (Chromium 117+, i.e. current WebView2). Sized as separate grids the tracks
+   drifted: the header's word widths clamp its minmax(min-content, ...) tracks differently from a
+   row's numbers, and each row's `auto` action track widened that row alone, so the Count header
+   and the Count values did not share a centre. The horizontal inset lives on this wrapper
+   because padding on a subgrid item shrinks its content box without shrinking the tracks it
+   inherits. */
+#summary-table {
   display: grid;
   grid-template-columns: minmax(0,1.8fr) minmax(min-content,0.7fr) minmax(min-content,1.1fr) minmax(min-content,0.8fr) auto;
   gap: 6px;
-  align-items: center;
+  padding: 0 8px;
 }
+#summary-rows {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+}
+#summary-rows .empty-state { grid-column: 1 / -1; }
 .summary-head {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+  align-items: center;
   font-family: var(--font-display);
   font-size: 9px;
   color: var(--text-dim);
-  padding: 0 8px 8px;
+  padding: 0 0 8px;
 }
-.summary-row { padding: 8px; border-bottom: 2px dashed var(--panel-row-alt); font-size: 17px; }
+.summary-row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 2px dashed var(--panel-row-alt);
+  font-size: 17px;
+}
+/* Copyable task name in a Summary row (rendered by app.js). Task names are the only selectable
+   text in the window: the rest is covered by the app-wide `user-select: none` above. */
+.summary-task { user-select: text; -webkit-user-select: text; }
 .summary-row .callout { color: var(--callout); }
 .summary-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
 .summary-actions .icon-btn {
@@ -600,7 +635,8 @@ body[data-theme="cyber"] .theme-btn {
   color: var(--text-dim);
   white-space: nowrap;
 }
-/* Task name is the priority: never grows, only shrinks when it alone overflows */
+/* Task name is the priority: never grows, only shrinks when it alone overflows. Selectable text
+   (unlike the ID, timestamps, duration, badge and description beside it). */
 .log-entry-title {
   flex: 0 1 auto;
   min-width: 0;
@@ -608,6 +644,8 @@ body[data-theme="cyber"] .theme-btn {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 17px;
+  user-select: text;
+  -webkit-user-select: text;
 }
 /* Desc preview takes only the space left after the title; shrinks to nothing when there is no room */
 .log-entry-desc {

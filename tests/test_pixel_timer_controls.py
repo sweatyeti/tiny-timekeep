@@ -179,6 +179,67 @@ const rows = document.getElementById('entry-rows').children.map((row) => ({ clas
 setState({ session: { id: 1 }, currentEntry: initialEntry });
 ctx.renderCurrent();
 
+// --- task-name selection: capture and re-apply across a re-render ---
+const nameTextNode = { nodeType: 3, parentElement: null };
+const nameElement = {
+  id: '',
+  className: 'summary-task',
+  classList: { contains: (name) => name === 'summary-task' },
+  textContent: 'weeding the front bed',
+  firstChild: nameTextNode,
+  parentElement: null,
+  closest: () => nameElement
+};
+nameTextNode.parentElement = nameElement;
+const selectionStub = {
+  rangeCount: 1,
+  isCollapsed: false,
+  removed: 0,
+  added: 0,
+  getRangeAt: () => ({ startContainer: nameTextNode, startOffset: 2, endContainer: nameTextNode, endOffset: 5 }),
+  removeAllRanges() { this.removed += 1; },
+  addRange() { this.added += 1; }
+};
+ctx.getSelection = () => selectionStub;
+let lastRange = null;
+const makeRange = () => {
+  lastRange = { start: null, end: null, setStart(node, offset) { this.start = [node, offset]; }, setEnd(node, offset) { this.end = [node, offset]; } };
+  return lastRange;
+};
+ctx.document.createRange = makeRange;
+ctx.document.querySelectorAll = (selector) => (selector === '.summary-task' ? [nameElement] : []);
+const capturedSelection = ctx.captureTaskNameSelection();
+ctx.restoreTaskNameSelection({ anchor: { kind: 'summary', key: 'weeding the front bed' }, start: 2, end: 5 });
+const restoredSelection = {
+  removed: selectionStub.removed,
+  added: selectionStub.added,
+  startOffset: lastRange && lastRange.start ? lastRange.start[1] : null,
+  endOffset: lastRange && lastRange.end ? lastRange.end[1] : null,
+  usedTextNode: Boolean(lastRange && lastRange.start && lastRange.start[0] === nameTextNode)
+};
+// a rename can shorten the name: the saved offsets must clamp to the new text
+nameElement.textContent = 'short';
+ctx.document.createRange = makeRange;
+ctx.restoreTaskNameSelection({ anchor: { kind: 'summary', key: 'short' }, start: 0, end: 99 });
+const clampedEndOffset = lastRange && lastRange.end ? lastRange.end[1] : null;
+// nothing to restore: a collapsed selection, and a selection outside the three name elements
+selectionStub.isCollapsed = true;
+const collapsedCapture = ctx.captureTaskNameSelection();
+selectionStub.isCollapsed = false;
+selectionStub.getRangeAt = () => ({
+  startContainer: { nodeType: 3, parentElement: { closest: () => null } },
+  startOffset: 0,
+  endContainer: { nodeType: 3, parentElement: { closest: () => null } },
+  endOffset: 1
+});
+const outsideCapture = ctx.captureTaskNameSelection();
+// the Summary row renders its task cell with the selectable class
+setState({ session: { id: 1 }, currentEntry: null, entries: entriesFixture,
+  summary: [{ task: 'weeding', count: 2, unloggedMinutes: 30, totalMinutes: 75, callout: true }],
+  totals: { unloggedMinutes: 30, totalMinutes: 75 } });
+ctx.renderSummary();
+const summaryRowHtml = document.getElementById('summary-rows').children.map((row) => row.innerHTML);
+
 (async () => {
   await stop.onclick();
   const afterStop = {
@@ -191,7 +252,9 @@ ctx.renderCurrent();
   await document.getElementById('sn-go').onclick();
   process.stdout.write(JSON.stringify({ active, idle, afterStop, calls, overlay, closed, renderCalls, rows,
     finalTask: document.getElementById('current-label').textContent,
-    finalRefreshHidden: refreshIcon.classList.contains('hidden') }));
+    finalRefreshHidden: refreshIcon.classList.contains('hidden'),
+    selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
+      collapsedCapture, outsideCapture, summaryRowHtml } }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
 
@@ -513,6 +576,25 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertNotIn('id="tab-tasks"', segment)
         self.assertNotIn('id="tab-summary"', segment)
 
+        # Selection: the Summary task cell carries the selectable class, render() captures and
+        # re-applies the selection around the rebuild, and the offsets survive it.
+        self.assertIn('class="summary-task"', js)
+        self.assertRegex(js, r"const savedSelection = captureTaskNameSelection\(\);")
+        self.assertRegex(js, r"restoreTaskNameSelection\(savedSelection\);")
+        selection = self.results["selection"]
+        self.assertEqual(
+            selection["captured"],
+            {"anchor": {"kind": "summary", "key": "weeding the front bed"}, "start": 2, "end": 5},
+        )
+        self.assertEqual(selection["restored"], {
+            "removed": 1, "added": 1, "startOffset": 2, "endOffset": 5, "usedTextNode": True,
+        })
+        self.assertEqual(selection["clampedEndOffset"], 5, "offsets must clamp to a shorter name")
+        self.assertIsNone(selection["collapsedCapture"])
+        self.assertIsNone(selection["outsideCapture"])
+        self.assertEqual(len(selection["summaryRowHtml"]), 1)
+        self.assertIn('class="summary-task"', selection["summaryRowHtml"][0])
+
     def test_stop_then_start_new_keeps_api_and_naming_overlay_flow(self):
         self.assertEqual(self.results["calls"], [
             ["stop_tracking"],
@@ -676,6 +758,43 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertNotRegex(media_text, r"log-entry-desc")
         self.assertRegex(media_text, r"\.log-entry-time\s*,\s*\.log-entry-duration\s*\{[^}]*font-size\s*:\s*11px")
         self.assertRegex(self._rule(".log-hint"), r"padding\s*:\s*0\s+4px\s+8px")
+
+        # Summary: ONE grid owns the five column tracks and the header + every row inherit them
+        # through subgrid. Sized as two independent grids the tracks drifted (measured on real
+        # WebView2: Count values 13-37 px left of the Count header at 380 px, 28 px right of it
+        # at 300 px). Both halves must stay in the shared-grid shape.
+        summary_table = self._rule("#summary-table")
+        self.assertRegex(summary_table, r"display\s*:\s*grid")
+        self.assertRegex(
+            summary_table,
+            r"grid-template-columns\s*:\s*minmax\(0,\s*1\.8fr\)\s+minmax\(min-content,\s*0\.7fr\)"
+            r"\s+minmax\(min-content,\s*1\.1fr\)\s+minmax\(min-content,\s*0\.8fr\)\s+auto",
+        )
+        self.assertRegex(summary_table, r"gap\s*:\s*6px")
+        summary_rows = self._rule("#summary-rows")
+        self.assertRegex(summary_rows, r"display\s*:\s*grid")
+        self.assertRegex(summary_rows, r"grid-template-columns\s*:\s*subgrid")
+        self.assertRegex(summary_rows, r"grid-column\s*:\s*1\s*/\s*-1")
+        for rule_name in (".summary-head", ".summary-row"):
+            declarations = self._rule(rule_name)
+            self.assertRegex(declarations, r"grid-template-columns\s*:\s*subgrid")
+            self.assertRegex(declarations, r"grid-column\s*:\s*1\s*/\s*-1")
+            self.assertNotRegex(
+                declarations, r"minmax\(",
+                "{} must inherit the shared tracks, not declare its own".format(rule_name),
+            )
+        # canary: the five tracks are declared in exactly one place
+        self.assertEqual(self.css.count("minmax(0,1.8fr)"), 1)
+
+        # Only task-name text is selectable; the app-wide default stays unselectable.
+        for selector in (".now-tracking-label", ".log-entry-title", ".summary-task"):
+            self.assertRegex(self._rule(selector), r"user-select\s*:\s*text")
+        self.assertRegex(self._rule("html, body"), r"user-select\s*:\s*none")
+        self.assertRegex(self._rule("input, textarea"), r"user-select\s*:\s*text")
+        for selector in (".summary-row", ".summary-head", "#entry-rows", ".log-entry-desc",
+                         ".log-entry-time", ".log-entry-id", "#titlebar-label"):
+            self.assertNotRegex(self._rule(selector), r"user-select",
+                                "{} must not become selectable".format(selector))
 
     def test_stop_icon_and_border_have_theme_contrast(self):
         stop_rule = self._rule(".now-tracking-actions #stop-btn")

@@ -60,6 +60,9 @@ async function refresh() {
 // ---------- rendering ----------
 
 function render() {
+  // A rebuild replaces the task-name nodes, which would drop the user's highlight: note what was
+  // selected, render, then re-apply it. Updates are never suppressed — a real rename still paints.
+  const savedSelection = captureTaskNameSelection();
   const noSession = !state.session;
   document.getElementById('screen-start').classList.toggle('hidden', !noSession);
   document.getElementById('screen-active').classList.toggle('hidden', noSession);
@@ -73,6 +76,8 @@ function render() {
     renderEntries();
     renderSummary();
   }
+
+  restoreTaskNameSelection(savedSelection);
 }
 
 async function refreshDeletedCount() {
@@ -245,7 +250,7 @@ function renderSummary() {
       row.className = 'summary-row';
       const unloggedCls = g.callout ? 'callout' : '';
       row.innerHTML = `
-        <span>${escapeHtml(g.task)}</span>
+        <span class="summary-task">${escapeHtml(g.task)}</span>
         <span>${g.count}</span>
         <span class="${unloggedCls}">${fmtHM(g.unloggedMinutes)}</span>
         <span>${fmtHM(g.totalMinutes)}</span>
@@ -602,6 +607,112 @@ async function openDeletedEntries() {
       handleResult(r);
     };
   });
+}
+
+// ---------- task-name selection ----------
+// Task names are the only selectable text in the window (see style.css). A re-render replaces
+// those nodes, so the selection is remembered as a stable anchor and re-applied afterwards.
+
+const SELECTABLE_NAME_SELECTOR = '#current-label, .summary-task, .log-entry-title';
+
+// Stable DOM-independent identity for a selectable task-name element, or null.
+function selectionAnchorFor(element) {
+  if (!element) return null;
+  if (element.id === 'current-label') return { kind: 'current' };
+  if (element.classList && element.classList.contains('summary-task')) {
+    return { kind: 'summary', key: element.textContent };
+  }
+  if (element.classList && element.classList.contains('log-entry-title')) {
+    var row = element.parentElement;
+    var idEl = row ? row.querySelector('.log-entry-id') : null;
+    return { kind: 'entry', key: idEl ? idEl.textContent : '' };
+  }
+  return null;
+}
+
+// Find the element in the current document matching a saved anchor, or null.
+function findSelectableName(anchor) {
+  if (!anchor) return null;
+  if (anchor.kind === 'current') {
+    return document.getElementById('current-label');
+  }
+  if (anchor.kind === 'summary') {
+    var els = document.querySelectorAll('.summary-task');
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].textContent === anchor.key) return els[i];
+    }
+    return null;
+  }
+  if (anchor.kind === 'entry') {
+    var titles = document.querySelectorAll('.log-entry-title');
+    for (var j = 0; j < titles.length; j++) {
+      var row = titles[j].parentElement;
+      var idEl = row ? row.querySelector('.log-entry-id') : null;
+      if (idEl && idEl.textContent === anchor.key) return titles[j];
+    }
+    return null;
+  }
+  return null;
+}
+
+// Nearest ancestor-or-self element matching SELECTABLE_NAME_SELECTOR, or null.
+function closestSelectableName(node) {
+  var el = node;
+  if (el.nodeType === 3) el = el.parentElement;
+  if (!el) return null;
+  return el.closest ? el.closest(SELECTABLE_NAME_SELECTOR) : null;
+}
+
+// Compute a text offset within a single-text-node name element, or null.
+function offsetInName(element, container, offset) {
+  if (!element) return null;
+  var textNode = element.firstChild;
+  if (textNode && textNode.nodeType === 3) {
+    if (container === textNode) return offset;
+  }
+  if (container === element) {
+    if (offset === 0) return 0;
+    return element.textContent.length;
+  }
+  return null;
+}
+
+// Read the current selection and return a serialisable snapshot, or null.
+function captureTaskNameSelection() {
+  var sel = window.getSelection ? window.getSelection() : null;
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  var range = sel.getRangeAt(0);
+  var element = closestSelectableName(range.startContainer);
+  if (!element) element = closestSelectableName(range.endContainer);
+  if (!element) return null;
+  var anchor = selectionAnchorFor(element);
+  if (!anchor) return null;
+  var start = offsetInName(element, range.startContainer, range.startOffset);
+  var end = offsetInName(element, range.endContainer, range.endOffset);
+  if (start === null || end === null) return null;
+  return { anchor: anchor, start: start, end: end };
+}
+
+// Re-apply a previously captured selection to the re-rendered DOM.
+function restoreTaskNameSelection(saved) {
+  if (!saved) return;
+  var element = findSelectableName(saved.anchor);
+  if (!element) return;
+  var len = element.textContent.length;
+  var start = Math.max(0, Math.min(saved.start, len));
+  var end = Math.max(0, Math.min(saved.end, len));
+  if (end < start) end = start;
+  var textNode = element.firstChild;
+  if (textNode && textNode.nodeType === 3) {
+    var range = document.createRange();
+    range.setStart(textNode, start);
+    range.setEnd(textNode, end);
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
 }
 
 // ---------- helpers ----------
