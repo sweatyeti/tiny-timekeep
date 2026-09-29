@@ -88,14 +88,8 @@
       </div>
 
       <div class="tabs">
-        <button class="tab-btn active" data-tab="tasks">Tasks</button>
         <button class="tab-btn" data-tab="log">Log</button>
-        <button class="tab-btn" data-tab="summary">Summary</button>
-      </div>
-
-      <div id="tab-tasks" class="tab-panel">
-        <div id="task-rows" class="rows"></div>
-        <div class="hint-text">▶ starts tracking that task (stopping whatever's currently running)</div>
+        <button class="tab-btn active" data-tab="summary">Summary</button>
       </div>
 
       <div id="tab-log" class="tab-panel hidden">
@@ -103,12 +97,13 @@
         <div id="entry-rows" class="rows"></div>
       </div>
 
-      <div id="tab-summary" class="tab-panel hidden">
+      <div id="tab-summary" class="tab-panel">
         <div class="summary-head">
           <span>Task</span><span>Count</span><span>Unlogged</span><span>Total</span>
         </div>
         <div id="summary-rows" class="rows"></div>
         <div class="summary-totals" id="summary-totals"></div>
+        <div class="hint-text">Log/Unlog marks every completed entry of that task · ▶ starts tracking that task (stopping whatever's running)</div>
       </div>
 
     </section>

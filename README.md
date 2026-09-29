@@ -7,7 +7,7 @@ The app is called **Keeper of Time**. The Python package (`timetracker_core`) an
 (`TimeTrackerCore`) keep their names deliberately — an import path and a contract-fixed interface
 are not the app's name, and renaming either would be a contract change for no benefit.
 
-The core and the UI are separate layers by contract (`specs/core-logic-contract.md`, **v1.4**).
+The core and the UI are separate layers by contract (`specs/core-logic-contract.md`, **v1.5**).
 Combining them into one project does not merge the layers: `main.py` is the only place they meet,
 and the UI reaches the core solely through the object passed as `js_api`.
 
@@ -33,7 +33,7 @@ main.py                   the only meeting point: builds the core, starts pywebv
 timetracker_core/         the core, vendored verbatim at the repo root (stdlib-only; do not edit here)
 web/                      the frontend (drop-in)
 tests/                    50 app-specific checks; canonical core tests stay in keeper-of-time-core
-specs/                    the contract (v1.4) and the functional spec (v2.0)
+specs/                    the contract (v1.5) and the functional spec (v2.0)
 packaging/                pyinstaller spec + build.ps1
 CORE-VERSION              which core commit this copy came from
 requirements.txt          pywebview, pinned exactly
@@ -137,7 +137,7 @@ GitHub Release before announcing it.
   3.14.7 (the pinned interpreter) and on 3.11.9 on the same Windows machine, and on 3.11.15 on
   Linux. The byte-identical copies of the core's 73 canonical tests were removed from this app
   repository; they remain unchanged and run in the separate `keeper-of-time-core` repository.
-- `python main.py --check` → `Keeper of Time: contract v1.4`, golden fixture matching the contract's §2 view model
+- `python main.py --check` → `Keeper of Time: contract v1.5`, golden fixture matching the contract's §2 view model
   exactly (weeding 2/30/75 callout true; unnamed 1/15/15 callout false; totals 30/75), no
   `isActive` in the session object, and the sessions directory reported. Passes on 3.14.7.
 - **Windows, end to end on the 3.14.7 interpreter** (Windows 11 Pro 26200, Python 3.14.7,

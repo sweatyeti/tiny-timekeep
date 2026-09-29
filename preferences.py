@@ -15,12 +15,15 @@ import json
 import os
 
 DEFAULT_PREFERENCES = {
-    "activeTab": "tasks",
+    "activeTab": "summary",
     "theme": "cute",
     "entrySaveLocation": None,
 }
 
 VALID_THEMES = ("cute", "cyber", "poolside", "evergreen", "citrus-pop")
+# Tabs the UI actually has; a saved value naming a retired tab (e.g. "tasks")
+# resolves to the default rather than to nothing.
+VALID_TABS = ("log", "summary")
 
 class PreferencesStore:
     def __init__(self, path):
@@ -43,6 +46,7 @@ class PreferencesStore:
             # an acceptable failure mode here (unlike the core's session files).
             pass
         self._validate_theme()
+        self._validate_active_tab()
         location = self._data.get("entrySaveLocation")
         if location is not None and (not isinstance(location, str) or not location.strip()):
             self._data["entrySaveLocation"] = None
@@ -55,12 +59,20 @@ class PreferencesStore:
         if not isinstance(theme, str) or theme not in VALID_THEMES:
             self._data["theme"] = "cute"
 
+    def _validate_active_tab(self):
+        tab = self._data.get("activeTab")
+        if not isinstance(tab, str) or tab not in VALID_TABS:
+            self._data["activeTab"] = "summary"
+
     def set(self, key, value):
         if key not in DEFAULT_PREFERENCES:
             return dict(self._data)
         if key == "theme":
             if not isinstance(value, str) or value not in VALID_THEMES:
                 value = "cute"
+        if key == "activeTab":
+            if not isinstance(value, str) or value not in VALID_TABS:
+                value = "summary"
         if key == "entrySaveLocation" and (not isinstance(value, str) or not value.strip()):
             return dict(self._data)
         self._data[key] = value

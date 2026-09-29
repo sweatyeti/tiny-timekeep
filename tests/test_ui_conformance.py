@@ -91,7 +91,8 @@ class TestFrontendCallsExist(unittest.TestCase):
     def test_core_passthrough_methods_exist_on_the_core(self):
         for name in ("get_state", "list_sessions", "start_session", "resume_session",
                      "stop_and_start_entry", "edit_entry", "delete_entry", "restore_entry",
-                     "list_loggable_task_groups", "log_task_group", "list_deleted_entries",
+                     "list_loggable_task_groups", "log_task_group", "unlog_task_group",
+                     "list_deleted_entries",
                      "stop_tracking", "stop_and_exit"):
             assert hasattr(app_main.TimeTrackerCore, name), f"core is missing {name}"
 
@@ -119,11 +120,33 @@ class TestFrontendFieldsExist(FrontendCase):
             missing = FIELDS_READ[group] - set(payload[0])
             assert missing == set(), f"{group} is missing {sorted(missing)}"
 
-    def test_frontend_never_reads_a_field_the_contract_removed(self):
+    def test_frontend_carries_no_removed_surface(self):
         for path in (APP_JS, INDEX_HTML, os.path.join(WEB, "style.css")):
             assert "isActive" not in _read(path), (
                 f"{os.path.basename(path)} still reads isActive, removed in contract v1.3"
             )
+        html = _read(INDEX_HTML)
+        js = _read(APP_JS)
+        css = _read(os.path.join(WEB, "style.css"))
+        # canary: the live surface is still present
+        assert 'id="tab-summary"' in html
+        assert 'id="tab-log"' in html
+        assert "renderSummary" in js
+        assert ".summary-row" in css
+        # the removed Tasks view is gone from both markup and renderer
+        for needle in ('data-tab="tasks"', "tab-tasks", "task-rows", "renderTasks"):
+            assert needle not in html, f"{os.path.basename(INDEX_HTML)} still contains {needle!r}"
+            assert needle not in js, f"{os.path.basename(APP_JS)} still contains {needle!r}"
+        # the two surviving tabs are the only tab buttons
+        assert 'data-tab="log"' in html
+        assert 'data-tab="summary"' in html
+        assert "const TABS = ['log', 'summary'];" in js
+        # Summary actions that replaced the Tasks view are wired in app.js
+        assert "summary-log-btn" in js
+        assert "summary-start-btn" in js
+        assert "api().log_task_group(" in js
+        assert "api().unlog_task_group(" in js
+        assert "api().stop_and_start_entry(" in js
 
 
 class TestWrapperPassesArgumentsThrough(FrontendCase):
@@ -152,10 +175,11 @@ class TestWrapperPassesArgumentsThrough(FrontendCase):
 class TestThemePreference(FrontendCase):
     """Theme preference: default, validation, and persistence."""
 
-    def test_default_theme_is_cute(self):
+    def test_defaults_are_cute_and_summary(self):
         prefs = self.api.get_preferences()
         assert prefs["theme"] == "cute", prefs
-        assert prefs["activeTab"] == "tasks", prefs
+        # default tab changed to "summary" with the removal of the Tasks view
+        assert prefs["activeTab"] == "summary", prefs
 
     def test_all_themes_round_trip_through_store_reopen(self):
         for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
@@ -171,14 +195,16 @@ class TestThemePreference(FrontendCase):
         reopened = app_main.PreferencesStore(os.path.join(self.tmp, "preferences.json"))
         assert reopened.get_all()["theme"] == "cute", "invalid theme was persisted as-is"
 
-    def test_corrupt_persisted_theme_falls_back_to_cute(self):
+    def test_corrupt_theme_and_retired_tab_fall_back(self):
         prefs_path = os.path.join(self.tmp, "preferences.json")
         for invalid in (42, None):
             with self.subTest(theme=invalid):
+                # "tasks" is a tab an older build saved; this file is exactly the migration case
                 with open(prefs_path, "w", encoding="utf-8") as f:
                     json.dump({"activeTab": "tasks", "theme": invalid}, f)
                 reopened = app_main.PreferencesStore(prefs_path)
                 assert reopened.get_all()["theme"] == "cute"
+                assert reopened.get_all()["activeTab"] == "summary", reopened.get_all()
 
 
 class TestChromeAndTheming(unittest.TestCase):

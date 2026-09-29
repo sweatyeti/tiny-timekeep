@@ -5,7 +5,8 @@
  */
 
 let state = null;
-let activeTab = 'tasks';
+const TABS = ['log', 'summary'];
+let activeTab = 'summary';
 let deletedCountRefresh = 0;
 const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 
@@ -32,14 +33,20 @@ function init() {
   setInterval(refresh, 4000);       // resync state from the core
 }
 
+function applyTab(tab) {
+  activeTab = TABS.includes(tab) ? tab : 'summary';
+  document.querySelectorAll('.tab-btn').forEach((b) =>
+    b.classList.toggle('active', b.dataset.tab === activeTab));
+  TABS.forEach((t) =>
+    document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
+}
+
 async function loadPreferences() {
   const prefs = await api().get_preferences();
-  if (prefs.activeTab) {
-    activeTab = prefs.activeTab;
-    document.querySelectorAll('.tab-btn').forEach((b) =>
-      b.classList.toggle('active', b.dataset.tab === activeTab));
-    ['tasks', 'log', 'summary'].forEach((t) =>
-      document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
+  applyTab(prefs.activeTab);
+  // A saved activeTab can name a tab that no longer exists, so the stored value is revised to the tab actually shown.
+  if (prefs.activeTab !== activeTab) {
+    api().set_preference('activeTab', activeTab);
   }
   applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme) ? prefs.theme : 'cute');
   renderSaveLocation(prefs);
@@ -63,7 +70,6 @@ function render() {
     renderSessionList();
   } else {
     renderCurrent();
-    renderTasks();
     renderEntries();
     renderSummary();
   }
@@ -159,32 +165,6 @@ function updateElapsedCounter() {
 function startElapsedTimer() {
   if (_elapsedTimerId !== null) return;
   _elapsedTimerId = setInterval(updateElapsedCounter, 1000);
-}
-
-function renderTasks() {
-  const container = document.getElementById('task-rows');
-  container.innerHTML = '';
-  if (state.summary.length === 0) {
-    container.innerHTML = '<div class="empty-state">No tasks yet — use the play button above.</div>';
-    return;
-  }
-  for (const g of state.summary) {
-    const isCurrent = state.currentEntry && state.currentEntry.task.toLowerCase() === g.task.toLowerCase();
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.innerHTML = `
-      <div class="row-main">
-        <div class="row-title">${escapeHtml(g.task)}</div>
-      </div>
-      <div class="row-time">${fmtHM(g.totalMinutes)}</div>
-      <button class="icon-btn ${isCurrent ? 'stop' : 'play'}">${isCurrent ? '■' : '▶'}</button>
-    `;
-    row.querySelector('button').onclick = async () => {
-      const r = isCurrent ? await api().stop_tracking() : await api().stop_and_start_entry(g.task);
-      handleResult(r);
-    };
-    container.appendChild(row);
-  }
 }
 
 function renderEntries() {
@@ -371,10 +351,7 @@ function wireActiveScreen() {
   document.getElementById('stop-start-btn').onclick = openStartNewTask;
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.onclick = () => {
-      activeTab = btn.dataset.tab;
-      document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
-      ['tasks', 'log', 'summary'].forEach((t) =>
-        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== activeTab));
+      applyTab(btn.dataset.tab);
       api().set_preference('activeTab', activeTab);
     };
   });

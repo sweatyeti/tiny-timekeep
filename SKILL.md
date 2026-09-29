@@ -29,7 +29,7 @@ entries, and all the rounding/logging/deletion rules.
    concrete Python method signatures, a JSON-shaped "view model," and error
    codes. This is the one document both the core and the UI are built
    against, so they can be developed independently and swapped in without
-   either side knowing the other's internals. Currently **v1.4**.
+   either side knowing the other's internals. Currently **v1.5**.
 3. **This app** — `main.py` (pywebview host + `Api` glue), `timetracker_core`
    (the real core, implementing the contract), `preferences.py` (a small,
    separate UI-settings store), and `web/` (the frontend, which only ever

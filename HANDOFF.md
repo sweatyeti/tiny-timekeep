@@ -10,15 +10,19 @@ document is state: what's done, what's pending, and what to watch out for.
 ## Current state
 
 **UI (`web/` + `main.py` + `preferences.py`):** built and working against
-the contract, currently on **contract v1.4**. Covers:
+the contract, currently on **contract v1.5**. Covers:
 - Start/resume screen (`list_sessions`, `start_session`, `resume_session`)
 - Active session: ACTIVE/NOT TRACKING banner, "Started HH:MM" (not a live
   elapsed clock — decided against ticking display), Stop / Start new /
   Stop & start new actions (entry starts immediately on click with task
   `unnamed`, then a separate `edit_entry` rename — timestamp reflects the
   actual moment of intent, not when naming finishes)
-- Tasks tab (per-task rows, click to switch), Log tab (entries, wrapping
-  descriptions, clickable logged/unlogged badge, edit/delete), Summary tab
+- Log tab (entries, wrapping descriptions, clickable logged/unlogged badge,
+  edit/delete) and Summary tab — the only two tabs. The Summary tab carries the
+  per-task actions: a Log/Unlog button that toggles a whole task group in one
+  command (`log_task_group` / `unlog_task_group`) and a Start button
+  (`stop_and_start_entry`). The Tasks tab was removed on 2026-09-29 once those
+  actions lived on Summary; a saved `activeTab` of `tasks` migrates to `summary`.
 - Log a task group, view + restore deleted entries (with description and
   time range, per v1.4)
 - Frameless window: custom drag (title bar) and custom resize grip
@@ -27,9 +31,9 @@ the contract, currently on **contract v1.4**. Covers:
 - Global Enter-to-submit for overlays and the start screen
 
 **Core:** built and now **vendored into this repo** — `timetracker_core/` sits at the repo root
-(flat, no `src/`), a verbatim copy of `keeper-of-time-core` @ `1afc7fa`, contract **v1.4**.
-The app repository now has **50 app-specific tests**; the core's 73 canonical tests run only in
-the separate core repository. `python main.py --check` prints `contract v1.4 (expected v1.4)` and
+(flat, no `src/`), a verbatim copy of `keeper-of-time-core` @ `6289b3a`, contract **v1.5**.
+The app repository now has **50 app-specific tests**; the core's 85 canonical tests run only in
+the separate core repository. `python main.py --check` prints `contract v1.5 (expected v1.5)` and
 the golden fixture exactly.
 
 **Merged:** the UI layer's `main.py` + `preferences.py` + `web/` are in this repo and the scaffold
@@ -38,7 +42,7 @@ the golden fixture exactly.
 and `--check` were folded in, and `tests/test_ui_conformance.py` pins every `pywebview.api.*` call
 in `app.js` to a real `Api` or core method. `core_mock.py` is deleted.
 
-## Contract state — v1.4, full history
+## Contract state — v1.5, full history
 
 - v1.0: initial contract
 - v1.1: `session.isActive` semantics clarified; `session: null` documented
@@ -52,6 +56,10 @@ in `app.js` to a real `Api` or core method. `core_mock.py` is deleted.
   `session != null`, and had already caused two bugs
 - v1.4: `list_deleted_entries` gained a `description` field (UI needed it
   to show what a deleted entry was before restoring)
+- v1.5: added `unlog_task_group` — the atomic inverse of `log_task_group` —
+  plus its `nothing_to_unlog` error code. The Summary view's per-task group
+  toggle needs the un-log direction in one command rather than an
+  entry-by-entry loop, which could half-apply
 
 **✅ v1.4's `description` field — confirmed present and persisted (2026-09-24).**
 Live probe against the vendored core: `list_deleted_entries()` returns
@@ -68,7 +76,7 @@ Drop the **UI layer's files** into this repo: its `main.py` (replacing the scaff
 The core is already in place at the repo root (flat, alongside `main.py`) and matches:
 ```python
 from timetracker_core import TimeTrackerCore   # re-exported at package level
-from timetracker_core import CONTRACT_VERSION   # must equal "v1.4"
+from timetracker_core import CONTRACT_VERSION   # must equal "v1.5"
 ```
 ```python
 class TimeTrackerCore:
@@ -130,7 +138,7 @@ imports it anymore.
 | What | Where |
 |---|---|
 | Behavioral rules (source of truth) | `specs/functional-spec.md` |
-| Core/UI contract | `specs/core-logic-contract.md` (v1.4) |
+| Core/UI contract | `specs/core-logic-contract.md` (v1.5) |
 | App architecture + conventions | `SKILL.md` |
 | Packaging + build gate | `packaging/keeper-of-time.spec`, `packaging/build.ps1` |
 | Which core copy this repo holds | `CORE-VERSION` |

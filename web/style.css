@@ -329,7 +329,6 @@ input::placeholder { color: var(--text-dim); }
   font-size: 13px;
 }
 .icon-btn.play { background: var(--accent-mint); color: var(--border-dark); }
-.icon-btn.stop { background: var(--accent-pink); color: var(--border-dark); }
 
 .summary-head, .summary-row {
   display: grid;
