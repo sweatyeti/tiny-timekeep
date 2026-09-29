@@ -332,7 +332,7 @@ input::placeholder { color: var(--text-dim); }
 
 .summary-head, .summary-row {
   display: grid;
-  grid-template-columns: minmax(0,1.8fr) minmax(0,0.7fr) minmax(0,1.1fr) minmax(0,0.8fr) auto;
+  grid-template-columns: minmax(0,1.8fr) minmax(min-content,0.7fr) minmax(min-content,1.1fr) minmax(min-content,0.8fr) auto;
   gap: 6px;
   align-items: center;
 }
