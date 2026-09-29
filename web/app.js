@@ -235,6 +235,25 @@ function renderEntries() {
   }
 }
 
+function summaryLogAction(g) {
+  if (String(g.task).toLowerCase() === "unnamed") return null;
+  const taskLower = String(g.task).toLowerCase();
+  const eligible = state.entries.filter(
+    (e) => e.isComplete === true && e.loggedStatus !== "N/A" && e.task.toLowerCase() === taskLower
+  );
+  if (eligible.length === 0) return null;
+  if (eligible.some((e) => e.loggedStatus === "Unlogged")) return "log";
+  return "unlog";
+}
+
+async function runSummaryMutation(button, pending) {
+  if (button.disabled) return;
+  button.disabled = true;
+  const r = await pending;
+  handleResult(r);
+  if (document.body.contains(button)) button.disabled = false;
+}
+
 function renderSummary() {
   const container = document.getElementById('summary-rows');
   container.innerHTML = '';
@@ -251,6 +270,30 @@ function renderSummary() {
         <span class="${unloggedCls}">${fmtHM(g.unloggedMinutes)}</span>
         <span>${fmtHM(g.totalMinutes)}</span>
       `;
+      const actions = document.createElement('div');
+      actions.className = 'summary-actions';
+      const action = summaryLogAction(g);
+      if (action !== null) {
+        const logBtn = document.createElement('button');
+        logBtn.type = 'button';
+        logBtn.className = `icon-btn summary-log-btn ${action}`;
+        logBtn.textContent = action === 'log' ? 'Log' : 'Unlog';
+        const label = `${action === 'log' ? 'Log' : 'Unlog'} every completed entry for ${g.task}`;
+        logBtn.title = label;
+        logBtn.setAttribute('aria-label', label);
+        logBtn.onclick = () => runSummaryMutation(logBtn, action === 'log' ? api().log_task_group(g.task) : api().unlog_task_group(g.task));
+        actions.appendChild(logBtn);
+      }
+      const startBtn = document.createElement('button');
+      startBtn.type = 'button';
+      startBtn.className = 'icon-btn summary-start-btn play';
+      startBtn.textContent = '▶';
+      const sLabel = `Start tracking ${g.task} (stopping whatever's currently running)`;
+      startBtn.title = sLabel;
+      startBtn.setAttribute('aria-label', sLabel);
+      startBtn.onclick = () => runSummaryMutation(startBtn, api().stop_and_start_entry(g.task));
+      actions.appendChild(startBtn);
+      row.appendChild(actions);
       container.appendChild(row);
     }
   }

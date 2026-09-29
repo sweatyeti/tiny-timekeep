@@ -311,16 +311,9 @@ input::placeholder { color: var(--text-dim); }
 .tab-btn.active { color: var(--accent-pink-text); border-bottom-color: var(--accent-pink); }
 
 .rows { display: flex; flex-direction: column; }
-.row {
-  display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
-  padding: 10px 8px;
-  border-bottom: 2px dashed var(--panel-row-alt);
-}
-.row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 .row-main { flex: 1; min-width: 160px; }
 .row-title { font-size: 19px; }
 .row-sub { font-size: 15px; color: var(--text-dim); overflow-wrap: anywhere; }
-.row-time { font-size: 15px; color: var(--text-dim); min-width: 64px; text-align: right; }
 .badge { font-size: 13px; padding: 2px 6px; border: 1px solid var(--border-dark); white-space: nowrap; }
 .badge-unlogged { color: var(--callout); border-color: var(--callout); }
 .badge-logged { color: var(--logged); border-color: var(--logged); }
@@ -340,7 +333,7 @@ input::placeholder { color: var(--text-dim); }
 
 .summary-head, .summary-row {
   display: grid;
-  grid-template-columns: minmax(0,1.8fr) minmax(0,0.7fr) minmax(0,1.1fr) minmax(0,0.8fr);
+  grid-template-columns: minmax(0,1.8fr) minmax(0,0.7fr) minmax(0,1.1fr) minmax(0,0.8fr) auto;
   gap: 6px;
   align-items: center;
 }
@@ -352,6 +345,20 @@ input::placeholder { color: var(--text-dim); }
 }
 .summary-row { padding: 8px; border-bottom: 2px dashed var(--panel-row-alt); font-size: 17px; }
 .summary-row .callout { color: var(--callout); }
+.summary-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+.summary-actions .icon-btn {
+  width: auto; min-width: 26px; height: 26px;
+  padding: 0 5px;
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.summary-actions .summary-log-btn.log { background: var(--accent-mint); color: var(--border-dark); }
+.summary-actions .summary-log-btn.unlog { background: var(--panel-row); color: var(--text-main); }
+.summary-actions .icon-btn:disabled { opacity: 0.6; cursor: default; }
+.summary-actions .icon-btn:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 1px; }
+/* wrap buttons to their own line so the four data columns keep their width */
+@media (max-width: 359px) { .summary-row .summary-actions { grid-column: 1 / -1; } }
 .summary-totals {
   margin-top: 12px;
   display: flex; justify-content: space-between;
