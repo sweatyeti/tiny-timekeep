@@ -1,0 +1,17 @@
+/*
+ * 88 × 68 native canvas; all painted SVG shapes stay within 88 × 68.
+ *
+ * This file styles the supplied Hooded Netrunner artwork (rendered by
+ * web/companions/hooded-netrunner.js), which now paints the Cyber theme.
+ *
+ * The parked Neon Robot (web/companions/neon-robot.js +
+ * web/companions/neon-robot.css) is kept for reference and is no longer
+ * loaded.
+ */
+.companion-hooded-netrunner { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="cyber"] .companion-hooded-netrunner { display:block; }
+.companion-hooded-netrunner svg { display:block; overflow:visible; }
+.companion-hooded-netrunner .hooded-netrunner-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-hooded-netrunner .hooded-netrunner-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-hooded-netrunner .hooded-netrunner-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-hooded-netrunner, .companion-hooded-netrunner * { animation:none !important; transition:none !important; } }

@@ -15,6 +15,15 @@
  * loaded by index.html, and its entry below is commented out with an explanation
  * rather than left dangling.
  *
+ * The supplied Neon Robot artwork (renderNeonRobot in
+ * companions/neon-robot.js plus companions/neon-robot.css) is parked exactly
+ * like the old cat, cyber and sun: its files are kept in the repository for
+ * reference, its script and stylesheet are no longer loaded by index.html, and
+ * its entry below is commented out with an explanation rather than left
+ * dangling. The Cyber theme is now painted by the supplied Hooded Netrunner
+ * (renderHoodedNetrunner in companions/hooded-netrunner.js plus
+ * companions/hooded-netrunner.css).
+ *
  * The original Poolside sun avatar (renderSunAvatar in companions/sun.js plus
  * companions/sun.css) is parked exactly like the old cat and cyber: its files
  * are kept in the repository for reference, its script and stylesheet are no
@@ -40,7 +49,9 @@ const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
   // cat: renderCatAvatar,
   'cozy-cat': renderCozyCat,
-  'neon-robot': renderNeonRobot,
+  // The supplied Neon Robot artwork is parked (see top comment).
+  // 'neon-robot': renderNeonRobot,
+  'hooded-netrunner': renderHoodedNetrunner,
   // The original Cyber cyborg renderer is parked (see top comment).
   // cyber: renderCyberAvatar,
   'poolside-turtle': renderPoolsideTurtle,
@@ -52,7 +63,7 @@ const COMPANION_AVATARS = {
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
-  cyber: 'neon-robot',
+  cyber: 'hooded-netrunner',
   poolside: 'poolside-turtle',
   evergreen: 'woodland-owl',
   'citrus-pop': 'citrus-dog'

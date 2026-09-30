@@ -1,3 +1,15 @@
+/* Parked 2026-09-30: the retired Neon Robot artwork (renderNeonRobot), a cyan-screened robot
+ * with magenta arms and a floating drone. The Cyber theme is now painted by the supplied
+ * Hooded Netrunner (web/companions/hooded-netrunner.js, styled by
+ * web/companions/hooded-netrunner.css).
+ * web/index.html no longer loads this file, so these selectors are unreachable.
+ * Kept in the repository for reference; the cyber mapping in
+ * web/companions/registry.js now points to 'hooded-netrunner' and the
+ * `'neon-robot': renderNeonRobot` entry is commented out.
+ * Neon Robot avatar styles. The markup lives in neon-robot.js.
+ * Maintainer: do not load this file again without restoring the registry mapping and
+ * removing this note.
+ */
 /* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
 .companion-neon-robot { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
 body[data-theme="cyber"] .companion-neon-robot { display:block; }

@@ -350,11 +350,12 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     def test_loaded_stylesheets_are_the_only_ones_scanned(self):
         loaded = _loaded_companion_stylesheets()
-        for name in ("companion.css", "cozy-cat.css", "neon-robot.css", "poolside-turtle.css", "woodland-owl.css", "citrus-dog.css"):
+        for name in ("companion.css", "cozy-cat.css", "hooded-netrunner.css", "poolside-turtle.css", "woodland-owl.css", "citrus-dog.css"):
             self.assertIn(name, loaded, "Expected {} in loaded stylesheets".format(name))
         self.assertNotIn("cat.css", loaded, "Parked cat.css must not be loaded")
         self.assertNotIn("cyber.css", loaded, "Parked cyber.css must not be loaded")
         self.assertNotIn("sun.css", loaded, "Parked sun.css must not be loaded")
+        self.assertNotIn("neon-robot.css", loaded, "Parked neon-robot.css must not be loaded")
         self.assertIn("woodland-owl.css", loaded, "The Evergreen theme's Woodland Owl stylesheet must be loaded")
         self.assertIn("citrus-dog.css", loaded, "The Citrus Pop theme's Citrus Dog stylesheet must be loaded")
         self.assertIn("#companion {", self.css, "128x96 #companion frame rule missing from loaded CSS")
@@ -387,7 +388,8 @@ class TestPixelCompanionStyles(unittest.TestCase):
             re.M,
         )
         self.assertIn("cozy-cat", avatars, "The Cute theme's Cozy Cat avatar must be registered")
-        self.assertIn("neon-robot", avatars, "The Cyber theme's Neon Robot avatar must be registered")
+        self.assertIn("hooded-netrunner", avatars, "The Cyber theme's Hooded Netrunner avatar must be registered")
+        self.assertNotIn("neon-robot", avatars, "The parked Neon Robot renderer (web/companions/neon-robot.js) must not be registered")
         self.assertIn("poolside-turtle", avatars, "The Poolside theme's Poolside Turtle avatar must be registered")
         self.assertIn("woodland-owl", avatars, "The Evergreen theme's Woodland Owl avatar must be registered")
         self.assertIn("citrus-dog", avatars, "The Citrus Pop theme's Citrus Dog avatar must be registered")
@@ -562,11 +564,11 @@ class TestPixelCompanionStyles(unittest.TestCase):
             "none",
         )
         self.assertEqual(
-            find_display('body[data-theme="cyber"] .companion-neon-robot'),
+            find_display('body[data-theme="cyber"] .companion-hooded-netrunner'),
             "block",
         )
         self.assertEqual(
-            find_display(".companion-neon-robot"),
+            find_display(".companion-hooded-netrunner"),
             "none",
         )
         self.assertEqual(
@@ -740,7 +742,7 @@ class TestPixelCompanionWiring(unittest.TestCase):
 const fs = require('fs');
 const vm = require('vm');
 const cat = fs.readFileSync(process.argv[1], 'utf8');
-const neon_robot = fs.readFileSync(process.argv[2], 'utf8');
+const hooded_netrunner = fs.readFileSync(process.argv[2], 'utf8');
 const woodland_owl = fs.readFileSync(process.argv[3], 'utf8');
 const poolside_turtle = fs.readFileSync(process.argv[4], 'utf8');
 const registry = fs.readFileSync(process.argv[5], 'utf8');
@@ -748,7 +750,7 @@ const citrus_dog = fs.readFileSync(process.argv[6], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + neon_robot + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + citrus_dog + '\n' + registry, ctx);
+vm.runInContext(cat + '\n' + hooded_netrunner + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + citrus_dog + '\n' + registry, ctx);
 const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
 const rendered = {};
 themes.forEach(theme => {
@@ -762,34 +764,34 @@ process.stdout.write(JSON.stringify({
         result = _run_node_json(
             script,
             os.path.join(COMPANION_CSS, "cozy-cat.js"),
-            os.path.join(COMPANION_CSS, "neon-robot.js"),
+            os.path.join(COMPANION_CSS, "hooded-netrunner.js"),
             os.path.join(COMPANION_CSS, "woodland-owl.js"),
             os.path.join(COMPANION_CSS, "poolside-turtle.js"),
             COMPANION_REGISTRY_JS,
             os.path.join(COMPANION_CSS, "citrus-dog.js"),
         )
-        self.assertEqual(result["mapping"], ["cozy-cat", "neon-robot", "poolside-turtle", "woodland-owl", "citrus-dog"])
+        self.assertEqual(result["mapping"], ["cozy-cat", "hooded-netrunner", "poolside-turtle", "woodland-owl", "citrus-dog"])
         self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
-        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["cute"])
+        self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cute"])
-        self.assertIn('class="companion-neon-robot"', result["rendered"]["cyber"])
+        self.assertIn('class="companion-hooded-netrunner"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["cyber"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cyber"])
         self.assertIn('class="companion-poolside-turtle"', result["rendered"]["poolside"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["poolside"])
-        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["poolside"])
+        self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["poolside"])
         self.assertIn('class="companion-woodland-owl"', result["rendered"]["evergreen"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["evergreen"])
-        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["evergreen"])
+        self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["evergreen"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["evergreen"])
         self.assertIn('class="companion-sleep-cue"', result["rendered"]["evergreen"])
         self.assertIn('class="companion-citrus-dog"', result["rendered"]["citrus-pop"])
         self.assertIn('class="companion-sleep-cue"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["citrus-pop"])
-        self.assertNotIn('class="companion-neon-robot"', result["rendered"]["citrus-pop"])
+        self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-woodland-owl"', result["rendered"]["citrus-pop"])
-        root_pattern = re.compile(r'class="companion-(?:cozy-cat|neon-robot|poolside-turtle|woodland-owl|citrus-dog)"')
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|hooded-netrunner|poolside-turtle|woodland-owl|citrus-dog)"')
         self.assertEqual(
             {theme: len(root_pattern.findall(result["rendered"][theme]))
              for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
@@ -840,12 +842,60 @@ process.stdout.write(JSON.stringify({
             self.assertLessEqual(int(y) + int(h), hy + hry)
             self.assertLessEqual(int(y) + int(h), hy, "the eyes sit in the upper half of the head")
 
+        # The Hooded Netrunner ships both visor states and swaps them on #companion[data-mode];
+        # these counts are the guard against a renamed or dropped group silently losing the swap.
+        cyber_art = result["rendered"]["cyber"]
+        for slug in ("hooded-netrunner-base", "hooded-netrunner-awake", "hooded-netrunner-sleep"):
+            self.assertEqual(
+                cyber_art.count('class="{}"'.format(slug)),
+                1,
+                "Cyber Hooded Netrunner: expected exactly one .{} group".format(slug),
+            )
+        self.assertEqual(
+            cyber_art.count('class="companion-hooded-netrunner"'),
+            1,
+            "Cyber Hooded Netrunner: expected exactly one avatar root",
+        )
+        self.assertIn('viewBox="0 0 88 68"', cyber_art,
+                      'Cyber Hooded Netrunner: SVG must carry viewBox="0 0 88 68"')
+        self.assertIn('aria-hidden="true"', cyber_art,
+                      'Cyber Hooded Netrunner: SVG must carry aria-hidden="true"')
+        awake_group = re.search(r'<g class="hooded-netrunner-awake">(.*?)</g>', cyber_art, re.S)
+        sleep_group = re.search(r'<g class="hooded-netrunner-sleep">(.*?)</g>', cyber_art, re.S)
+        self.assertIsNotNone(awake_group, "the awake visor group must be present")
+        self.assertIsNotNone(sleep_group, "the sleeping visor group must be present")
+        self.assertIn('fill="#00FFFF"', awake_group.group(1),
+                      "the awake visor must keep the accepted cyan")
+        self.assertIn('fill="#E8E8FF"', awake_group.group(1),
+                      "the awake visor must keep its highlight")
+        self.assertIn('fill="#006666"', sleep_group.group(1),
+                      "the sleeping visor must be dimmed")
+        self.assertNotIn('fill="#00FFFF"', sleep_group.group(1),
+                         "the sleeping visor must not keep the bright cyan")
+        netrunner_css = _strip_comments(_read(os.path.join(COMPANION_CSS, "hooded-netrunner.css")))
+        self.assertRegex(
+            netrunner_css,
+            r"\.companion-hooded-netrunner\s+\.hooded-netrunner-sleep\s*\{[^}]*display\s*:\s*none",
+        )
+        self.assertRegex(
+            netrunner_css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-hooded-netrunner\s+\.hooded-netrunner-awake\s*\{[^}]*display\s*:\s*none',
+        )
+        self.assertRegex(
+            netrunner_css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-hooded-netrunner\s+\.hooded-netrunner-sleep\s*\{[^}]*display\s*:\s*inline',
+        )
+        self.assertRegex(
+            netrunner_css,
+            r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)",
+        )
+
     def test_theme_application_loads_and_calls_registry_renderer(self):
         html = _read(INDEX_HTML)
         live = _strip_html_comments(html)
         self.assertLess(live.index('src="companions/cozy-cat.js"'),
-                        live.index('src="companions/neon-robot.js"'))
-        self.assertLess(live.index('src="companions/neon-robot.js"'),
+                        live.index('src="companions/hooded-netrunner.js"'))
+        self.assertLess(live.index('src="companions/hooded-netrunner.js"'),
                         live.index('src="companions/poolside-turtle.js"'))
         self.assertLess(live.index('src="companions/poolside-turtle.js"'),
                         live.index('src="companions/woodland-owl.js"'))
@@ -858,9 +908,13 @@ process.stdout.write(JSON.stringify({
         self.assertLess(live.index('href="companions/companion.css"'),
                         live.index('href="companions/cozy-cat.css"'))
         self.assertLess(live.index('href="companions/cozy-cat.css"'),
-                        live.index('href="companions/neon-robot.css"'))
-        self.assertLess(live.index('href="companions/neon-robot.css"'),
+                        live.index('href="companions/hooded-netrunner.css"'))
+        self.assertLess(live.index('href="companions/hooded-netrunner.css"'),
                         live.index('href="companions/poolside-turtle.css"'))
+        self.assertNotIn("neon-robot.js", _loaded_companion_scripts(),
+                         "Parked neon-robot.js must not be loaded")
+        self.assertNotIn("neon-robot.css", _loaded_companion_stylesheets(),
+                         "Parked neon-robot.css must not be loaded")
         self.assertLess(live.index('href="companions/poolside-turtle.css"'),
                         live.index('href="companions/woodland-owl.css"'))
         self.assertLess(live.index('href="companions/woodland-owl.css"'),
@@ -970,9 +1024,9 @@ process.stdout.write(JSON.stringify({
             "The Cozy Cat renderer must be registered",
         )
 
-    def test_parked_cyber_avatar_is_kept_but_not_loaded(self):
-        """The retired Cyber cyborg is parked with a note, not deleted and not loaded."""
-        for name in ("cyber.js", "cyber.css"):
+    def test_parked_cyber_and_neon_robot_avatars_are_kept_but_not_loaded(self):
+        """The two retired Cyber-theme avatars are parked with a note, not deleted and not loaded."""
+        for name in ("cyber.js", "cyber.css", "neon-robot.js", "neon-robot.css"):
             path = os.path.join(COMPANION_CSS, name)
             self.assertTrue(
                 os.path.isfile(path),
@@ -982,36 +1036,48 @@ process.stdout.write(JSON.stringify({
                          "Parked cyber.js must not be loaded")
         self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
                          "Parked cyber.css must not be loaded")
+        self.assertNotIn("neon-robot.js", _loaded_companion_scripts(),
+                         "Parked neon-robot.js must not be loaded")
+        self.assertNotIn("neon-robot.css", _loaded_companion_stylesheets(),
+                         "Parked neon-robot.css must not be loaded")
         html = _read(INDEX_HTML)
-        self.assertIn('src="companions/neon-robot.js"', html,
-                      "index.html must load the Neon Robot replacement script")
-        self.assertIn('href="companions/neon-robot.css"', html,
-                      "index.html must load the Neon Robot replacement stylesheet")
+        self.assertIn('src="companions/hooded-netrunner.js"', html,
+                      "index.html must load the Hooded Netrunner replacement script")
+        self.assertIn('href="companions/hooded-netrunner.css"', html,
+                      "index.html must load the Hooded Netrunner replacement stylesheet")
         self.assertIn("Parked", html)
-        self.assertIn("Neon Robot", html)
-        for name in ("cyber.js", "cyber.css"):
+        self.assertIn("Hooded Netrunner", html)
+        for name in ("cyber.js", "cyber.css", "neon-robot.js", "neon-robot.css"):
             text = _read(os.path.join(COMPANION_CSS, name))
             self.assertIn("Parked", text,
                           "Parked {} must carry the park note".format(name))
-            self.assertIn("Neon Robot", text,
-                          "Parked {} must reference the Neon Robot replacement".format(name))
+            self.assertIn("Hooded Netrunner", text,
+                          "Parked {} must reference the Hooded Netrunner replacement".format(name))
         code = _strip_comments(_read(COMPANION_REGISTRY_JS))
         self.assertNotIn(
             "renderCyberAvatar", code,
-            "The parked cyber renderer must not be referenced by executable registry code",
+            "The parked {} renderer must not be referenced by executable registry code".format("renderCyberAvatar"),
         )
-        self.assertIn(
+        self.assertNotIn(
             "renderNeonRobot", code,
-            "The Neon Robot renderer must be registered",
+            "The parked {} renderer must not be referenced by executable registry code".format("renderNeonRobot"),
         )
         self.assertIn(
-            "cyber: 'neon-robot'", code,
-            "The registry must map the cyber theme to neon-robot",
+            "renderHoodedNetrunner", code,
+            "The Hooded Netrunner renderer must be registered",
+        )
+        self.assertIn(
+            "cyber: 'hooded-netrunner'", code,
+            "The registry must map the cyber theme to hooded-netrunner",
         )
         raw_registry = _read(COMPANION_REGISTRY_JS)
         self.assertIn(
             "renderCyberAvatar", raw_registry,
-            "The parked renderCyberAvatar entry must survive as a comment rather than be deleted",
+            "The parked {} entry must survive as a comment rather than be deleted".format("renderCyberAvatar"),
+        )
+        self.assertIn(
+            "renderNeonRobot", raw_registry,
+            "The parked {} entry must survive as a comment rather than be deleted".format("renderNeonRobot"),
         )
 
     def test_parked_poolside_sun_avatar_is_kept_but_not_loaded(self):
