@@ -6,7 +6,7 @@ body[data-theme="cute"] .companion-cozy-cat { display:block; }
 .cozy-cat-star { width:3px; height:3px; background:#7DE8C8; box-shadow:0 -3px #7DE8C8,0 3px #7DE8C8,-3px 0 #7DE8C8,3px 0 #7DE8C8; }
 .cozy-cat-star-a { left:24px; top:8px; }.cozy-cat-star-b { left:78px; top:17px; transform:scale(.7); }
 .cozy-cat-cushion { left:10px; bottom:2px; width:57px; height:10px; background:#4A3668; border:2px solid #FF9EBB; border-radius:8px; }
-.cozy-cat-tail { left:11px; top:35px; width:19px; height:24px; border:7px solid #F2E9DA; border-right:0; border-top:0; border-radius:0 0 0 17px; filter:drop-shadow(-2px 0 #1B1330); }
+.cozy-cat-tail { left:16px; top:34px; width:12px; height:22px; background:#F2E9DA; border:2px solid #1B1330; border-radius:6px; transform:rotate(-12deg); }
 .cozy-cat-body { left:25px; top:34px; width:37px; height:27px; background:#F2E9DA; border:2px solid #1B1330; border-radius:13px 13px 10px 10px; }
 .cozy-cat-ear { width:19px; height:23px; top:4px; background:#1B1330; border:0; clip-path:polygon(50% 0,100% 100%,0 100%); transform:rotate(-16deg); }
 .cozy-cat-ear-left { left:27px; }.cozy-cat-ear-right { left:48px; transform:rotate(16deg); }
