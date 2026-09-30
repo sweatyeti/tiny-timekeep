@@ -20,7 +20,7 @@ DEFAULT_PREFERENCES = {
     "entrySaveLocation": None,
 }
 
-VALID_THEMES = ("cute", "cyber", "poolside", "evergreen", "citrus-pop")
+VALID_THEMES = ("cute", "cyber", "poolside", "evergreen", "citrus-pop", "dune")
 # Tabs the UI actually has; a saved value naming a retired tab (e.g. "tasks")
 # resolves to the default rather than to nothing.
 VALID_TABS = ("log", "summary")

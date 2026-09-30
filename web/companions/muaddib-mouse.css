@@ -1,0 +1,8 @@
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
+.companion-muaddib-mouse { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+body[data-theme="dune"] .companion-muaddib-mouse { display:block; }
+.companion-muaddib-mouse svg { display:block; overflow:visible; }
+.companion-muaddib-mouse .muaddib-mouse-sleep { display:none; }
+#companion[data-mode="sleeping"] .companion-muaddib-mouse .muaddib-mouse-awake { display:none; }
+#companion[data-mode="sleeping"] .companion-muaddib-mouse .muaddib-mouse-sleep { display:inline; }
+@media (prefers-reduced-motion: reduce) { .companion-muaddib-mouse, .companion-muaddib-mouse * { animation:none !important; transition:none !important; } }

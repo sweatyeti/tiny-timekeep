@@ -8,7 +8,7 @@ let state = null;
 const TABS = ['log', 'summary'];
 let activeTab = 'summary';
 let deletedCountRefresh = 0;
-const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
+const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop', 'dune'];
 
 function api() {
   return window.pywebview && window.pywebview.api;

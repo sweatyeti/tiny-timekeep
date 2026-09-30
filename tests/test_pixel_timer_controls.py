@@ -317,6 +317,12 @@ def _contrast_ratio(foreground, background):
     high, low = sorted((luminance(foreground), luminance(background)), reverse=True)
     return (high + 0.05) / (low + 0.05)
 
+def _rgb_distance(first, second):
+    """Euclidean distance between two #rrggbb colours, 0..441."""
+    left = [int(first[index:index + 2], 16) for index in (1, 3, 5)]
+    right = [int(second[index:index + 2], 16) for index in (1, 3, 5)]
+    return sum((a - b) ** 2 for a, b in zip(left, right)) ** 0.5
+
 
 class TestPixelTimerControlMarkup(unittest.TestCase):
     @classmethod
@@ -832,12 +838,51 @@ class TestPixelTimerControlStyles(unittest.TestCase):
             'body[data-theme="poolside"]': "poolside",
             'body[data-theme="evergreen"]': "evergreen",
             'body[data-theme="citrus-pop"]': "citrus-pop",
+            'body[data-theme="dune"]': "dune",
         }
         for selector, name in themes.items():
             with self.subTest(theme=name or "cute"):
                 callout = self._palette_token(selector, "--callout")
                 ink = self._palette_token(selector, "--stop-ink")
                 self.assertGreaterEqual(_contrast_ratio(ink, callout), 3.0)
+        # Status-banner guard
+        active_rule = self._rule(".status-banner.active")
+        self.assertRegex(active_rule, r"background\s*:\s*var\(--status-active\)")
+        self.assertRegex(active_rule, r"color\s*:\s*var\(--status-active-ink\)")
+        inactive_rule = self._rule(".status-banner.inactive")
+        self.assertRegex(inactive_rule, r"background\s*:\s*var\(--status-inactive\)")
+        self.assertRegex(inactive_rule, r"color\s*:\s*var\(--status-inactive-ink\)")
+        # --inactive is superseded by --status-inactive; no live declaration may remain
+        self.assertIsNone(re.search(r"--inactive\s*:", self.css), "live --inactive declaration found")
+        banner_rule = self._rule(".status-banner")
+        self.assertRegex(banner_rule, r"margin\s*:\s*-14px -14px 12px -14px")
+        self.assertRegex(banner_rule, r"border-bottom\s*:\s*3px solid")
+        banner_themes = {
+            ":root": "cute",
+            'body[data-theme="cyber"]': "cyber",
+            'body[data-theme="poolside"]': "poolside",
+            'body[data-theme="evergreen"]': "evergreen",
+            'body[data-theme="citrus-pop"]': "citrus-pop",
+            'body[data-theme="dune"]': "dune",
+        }
+        for selector, name in banner_themes.items():
+            with self.subTest(theme=name):
+                active = self._palette_token(selector, "--status-active")
+                active_ink = self._palette_token(selector, "--status-active-ink")
+                inactive = self._palette_token(selector, "--status-inactive")
+                inactive_ink = self._palette_token(selector, "--status-inactive-ink")
+                self.assertGreaterEqual(_contrast_ratio(active_ink, active), 4.5)
+                self.assertGreaterEqual(_contrast_ratio(inactive_ink, inactive), 4.5)
+                surfaces = {
+                    "--titlebar": self._palette_token(selector, "--titlebar"),
+                    "--bg-top": self._palette_token(selector, "--bg-top"),
+                    "--bg-bottom": self._palette_token(selector, "--bg-bottom"),
+                    "--panel": self._palette_token(selector, "--panel"),
+                }
+                for token, surface in surfaces.items():
+                    self.assertGreaterEqual(_rgb_distance(active, surface), 120, f"active banner too close to {token}")
+                    self.assertGreaterEqual(_rgb_distance(inactive, surface), 120, f"inactive banner too close to {token}")
+                self.assertGreaterEqual(_rgb_distance(active, inactive), 120, "active and inactive banners must not look alike")
 
 if __name__ == "__main__":
     unittest.main()

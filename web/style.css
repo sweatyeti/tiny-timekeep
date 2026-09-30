@@ -10,10 +10,15 @@
   --accent-mint: #7de8c8;
   --accent-pink-text: var(--accent-pink);
   --accent-mint-text: var(--accent-mint);
-  --inactive: #dd6f97;    /* NOT TRACKING banner. A deeper, richer rose on purpose: it must
-                             read as "in the same family as" the title bar without being the
-                             same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
-                             at #ff8fa3). Do not collapse these back into one token. */
+  /* --inactive: #dd6f97; — superseded by --status-inactive.
+     NOT TRACKING banner. A deeper, richer rose on purpose: it must
+     read as "in the same family as" the title bar without being the
+     same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
+     at #ff8fa3). Do not collapse these back into one token. */
+  --status-active: #5BE38C;
+  --status-active-ink: #10241A;
+  --status-inactive: #FFB020;
+  --status-inactive-ink: #2A1A05;
   --text-main: #f2e9da;
   --text-dim: #b9a9d1;
   --callout: #ff6b6b;
@@ -36,7 +41,11 @@ body[data-theme="cyber"] {
   --accent-mint: #00ffff;
   --accent-pink-text: #ff00ff;
   --accent-mint-text: #00ffff;
-  --inactive: #ff6600;
+  /* --inactive: #ff6600; — superseded by --status-inactive. */
+  --status-active: #00FFFF;
+  --status-active-ink: #050510;
+  --status-inactive: #FF7A18;
+  --status-inactive-ink: #1A0A02;
   --text-main: #e8e8ff;
   --text-dim: #7788aa;
   --callout: #ff4444;
@@ -67,7 +76,11 @@ body[data-theme="poolside"] {
   --accent-mint: #A8DED9;
   --accent-pink-text: #A45A12;
   --accent-mint-text: #236F80;
-  --inactive: #F3AD7F;
+  /* --inactive: #F3AD7F; — superseded by --status-inactive. */
+  --status-active: #1F7A5A;
+  --status-active-ink: #EAF8FF;
+  --status-inactive: #A8442A;
+  --status-inactive-ink: #FFF3E6;
   --text-main: #123A4A;
   --text-dim: #416779;
   --callout: #AE3E4A;
@@ -88,7 +101,11 @@ body[data-theme="evergreen"] {
   --accent-mint: #AED08B;
   --accent-pink-text: #E6A86E;
   --accent-mint-text: #AED08B;
-  --inactive: #C17A48;
+  /* --inactive: #C17A48; — superseded by --status-inactive. */
+  --status-active: #C7E85A;
+  --status-active-ink: #1A2410;
+  --status-inactive: #EF6B4A;
+  --status-inactive-ink: #241503;
   --text-main: #F2EBDD;
   --text-dim: #A5BEA9;
   --callout: #F08472;
@@ -109,13 +126,41 @@ body[data-theme="citrus-pop"] {
   --accent-mint: #F0F3C5;
   --accent-pink-text: #815400;
   --accent-mint-text: #4B6A13;
-  --inactive: #F5CE6B;
+  /* --inactive: #F5CE6B; — superseded by --status-inactive. */
+  --status-active: #1E7A3C;
+  --status-active-ink: #F2FFF4;
+  --status-inactive: #B83C16;
+  --status-inactive-ink: #FFF1E8;
   --text-main: #26271D;
   --text-dim: #5C6144;
   --callout: #B3442D;
   --stop-ink: #FFFFFF;
   --logged: #496B1F;
   --border-dark: #26271D;
+}
+
+body[data-theme="dune"] {
+  --bg-top: #241536;
+  --bg-bottom: #7C4A24;
+  --panel: #33221A;
+  --panel-row: #261812;
+  --panel-row-alt: #452E1F;
+  --titlebar: #3B2A6B;
+  --titlebar-text: #F2E4C8;
+  --accent-pink: #E08A3C;
+  --accent-mint: #5FD3A6;
+  --accent-pink-text: #F0A868;
+  --accent-mint-text: #7FE0B8;
+  --status-active: #2FBF86;
+  --status-active-ink: #10241C;
+  --status-inactive: #F0A33A;
+  --status-inactive-ink: #2A1A05;
+  --text-main: #F5E7CF;
+  --text-dim: #C0A98A;
+  --callout: #FF6B4A;
+  --stop-ink: #1A1024;
+  --logged: #9FDB8A;
+  --border-dark: #1A1024;
 }
 
 * { box-sizing: border-box; }
@@ -242,8 +287,11 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   margin: -14px -14px 12px -14px; /* bleed to the panel's edges */
   border-bottom: 3px solid var(--border-dark);
 }
-.status-banner.active { background: var(--accent-mint); color: var(--border-dark); }
-.status-banner.inactive { background: var(--inactive); color: var(--border-dark); }
+/* Parked: .status-banner.active { background: var(--accent-mint); color: var(--border-dark); }
+   .status-banner.inactive { background: var(--inactive); color: var(--border-dark); }
+   — superseded by --status-active / --status-inactive tokens. */
+.status-banner.active { background: var(--status-active); color: var(--status-active-ink); }
+.status-banner.inactive { background: var(--status-inactive); color: var(--status-inactive-ink); }
 .hint-text { font-size: 14px; color: var(--text-dim); padding: 10px 4px 0; }
 .now-tracking-top {
   display: grid;

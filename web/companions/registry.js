@@ -44,6 +44,14 @@
  * (renderCitrusDog in companions/citrus-dog.js plus
  * companions/citrus-dog.css) and parks NOTHING, because there is no retired
  * Citrus Pop avatar file to keep for reference.
+ *
+ * The Dune theme never had an avatar of its own: before this change
+ * COMPANION_REGISTRY had no dune key at all, so Dune was one of the unknown
+ * themes that rendered no avatar and only the shared sleep cue appeared. This
+ * change therefore ADDS the user-approved Muad'Dib desert mouse renderer
+ * (renderMuaddibMouse in companions/muaddib-mouse.js plus
+ * companions/muaddib-mouse.css) and parks NOTHING, because there is no
+ * retired Dune avatar file to keep for reference.
  */
 const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
@@ -59,6 +67,7 @@ const COMPANION_AVATARS = {
   // sun: renderSunAvatar,
   'woodland-owl': renderWoodlandOwl,
   'citrus-dog': renderCitrusDog,
+  'muaddib-mouse': renderMuaddibMouse,
 };
 
 const COMPANION_REGISTRY = {
@@ -66,7 +75,8 @@ const COMPANION_REGISTRY = {
   cyber: 'hooded-netrunner',
   poolside: 'poolside-turtle',
   evergreen: 'woodland-owl',
-  'citrus-pop': 'citrus-dog'
+  'citrus-pop': 'citrus-dog',
+  dune: 'muaddib-mouse'
 };
 
 function resolveCompanionAvatar(theme) {

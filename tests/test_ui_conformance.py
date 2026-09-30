@@ -254,7 +254,7 @@ class TestThemePreference(FrontendCase):
         assert prefs["activeTab"] == "summary", prefs
 
     def test_all_themes_round_trip_through_store_reopen(self):
-        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop", "dune"):
             with self.subTest(theme=theme):
                 result = self.api.set_preference("theme", theme)
                 assert result["theme"] == theme, result
@@ -284,13 +284,36 @@ class TestChromeAndTheming(unittest.TestCase):
 
     def test_theme_selection_updates_persists_and_restores_after_reload(self):
         js = _read(APP_JS)
-        self.assertIn("const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop']", js)
+        self.assertIn("const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop', 'dune']", js)
         self.assertIn("if (!THEMES.includes(theme)) return;", js)
         self.assertIn("applyTheme(theme);", js)
         self.assertIn("api().set_preference('theme', theme)", js)
         self.assertIn("applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme)", js)
-        for theme in ("poolside", "evergreen", "citrus-pop"):
+        for theme in ("poolside", "evergreen", "citrus-pop", "dune"):
             self.assertIn(f'"{theme}"', _read(os.path.join(ROOT, "preferences.py")))
+        html = _read(os.path.join(ROOT, "web", "index.html"))
+        css = _strip_css_comments(_read(os.path.join(ROOT, "web", "style.css")))
+        self.assertEqual(
+            html.count('class="theme-btn" type="button" data-theme="'),
+            6,
+            "theme picker must offer six theme buttons",
+        )
+        self.assertIn('id="save-location-btn"', html, "folder button must be present in the picker")
+        btn_width_m = re.search(r"\.theme-btn\s*\{[^}]*width\s*:\s*(\d+)px", css)
+        self.assertIsNotNone(btn_width_m, "could not find .theme-btn width in CSS")
+        theme_btn_width = int(btn_width_m.group(1))
+        gap_m = re.search(r"#theme-picker\s*\{[^}]*gap\s*:\s*(\d+)px", css)
+        self.assertIsNotNone(gap_m, "could not find #theme-picker gap in CSS")
+        gap = int(gap_m.group(1))
+        pad_m = re.search(r"#theme-picker\s*\{[^}]*padding\s*:\s*(\d+)px\s+(\d+)px\s+(\d+)px\s+(\d+)px", css)
+        self.assertIsNotNone(pad_m, "could not find #theme-picker padding in CSS")
+        padding_right = int(pad_m.group(2))
+        padding_left = int(pad_m.group(4))
+        self.assertLessEqual(
+            7 * theme_btn_width + 6 * gap + padding_left + padding_right,
+            300,
+            "picker must fit within the 300 px minimum window width",
+        )
 
 if __name__ == "__main__":
     unittest.main()

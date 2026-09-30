@@ -350,7 +350,7 @@ class TestPixelCompanionStyles(unittest.TestCase):
 
     def test_loaded_stylesheets_are_the_only_ones_scanned(self):
         loaded = _loaded_companion_stylesheets()
-        for name in ("companion.css", "cozy-cat.css", "hooded-netrunner.css", "poolside-turtle.css", "woodland-owl.css", "citrus-dog.css"):
+        for name in ("companion.css", "cozy-cat.css", "hooded-netrunner.css", "poolside-turtle.css", "woodland-owl.css", "citrus-dog.css", "muaddib-mouse.css"):
             self.assertIn(name, loaded, "Expected {} in loaded stylesheets".format(name))
         self.assertNotIn("cat.css", loaded, "Parked cat.css must not be loaded")
         self.assertNotIn("cyber.css", loaded, "Parked cyber.css must not be loaded")
@@ -358,6 +358,7 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertNotIn("neon-robot.css", loaded, "Parked neon-robot.css must not be loaded")
         self.assertIn("woodland-owl.css", loaded, "The Evergreen theme's Woodland Owl stylesheet must be loaded")
         self.assertIn("citrus-dog.css", loaded, "The Citrus Pop theme's Citrus Dog stylesheet must be loaded")
+        self.assertIn("muaddib-mouse.css", loaded, "The Dune theme's Muad'Dib mouse stylesheet must be loaded")
         self.assertIn("#companion {", self.css, "128x96 #companion frame rule missing from loaded CSS")
 
     def _match_group(self, pattern, source, message):
@@ -393,11 +394,12 @@ class TestPixelCompanionStyles(unittest.TestCase):
         self.assertIn("poolside-turtle", avatars, "The Poolside theme's Poolside Turtle avatar must be registered")
         self.assertIn("woodland-owl", avatars, "The Evergreen theme's Woodland Owl avatar must be registered")
         self.assertIn("citrus-dog", avatars, "The Citrus Pop theme's Citrus Dog avatar must be registered")
+        self.assertIn("muaddib-mouse", avatars, "The Dune theme's Muad'Dib mouse avatar must be registered")
         self.assertNotIn("cat", avatars, "The parked cat renderer (web/companions/cat.js) must not be registered")
         self.assertNotIn("cyber", avatars, "The parked cyber renderer (web/companions/cyber.js) must not be registered")
         self.assertNotIn("sun", avatars, "The parked sun renderer (web/companions/sun.js) must not be registered")
         self.assertEqual(
-            len(avatars), 5, "Unexpected registered avatar count: {}".format(avatars)
+            len(avatars), 6, "Unexpected registered avatar count: {}".format(avatars)
         )
         for avatar in avatars:
             path = os.path.join(COMPANION_CSS, avatar + ".css")
@@ -595,6 +597,14 @@ class TestPixelCompanionStyles(unittest.TestCase):
             find_display(".companion-citrus-dog"),
             "none",
         )
+        self.assertEqual(
+            find_display('body[data-theme="dune"] .companion-muaddib-mouse'),
+            "block",
+        )
+        self.assertEqual(
+            find_display(".companion-muaddib-mouse"),
+            "none",
+        )
 
     def test_woodland_owl_eye_groups_swap_with_the_shared_mode_attribute(self):
         """The owl artwork ships both eye states and swaps them on #companion[data-mode].
@@ -747,11 +757,12 @@ const woodland_owl = fs.readFileSync(process.argv[3], 'utf8');
 const poolside_turtle = fs.readFileSync(process.argv[4], 'utf8');
 const registry = fs.readFileSync(process.argv[5], 'utf8');
 const citrus_dog = fs.readFileSync(process.argv[6], 'utf8');
+const muaddib_mouse = fs.readFileSync(process.argv[7], 'utf8');
 const scene = { innerHTML: '' };
 const ctx = { document: { querySelector: () => scene } };
 vm.createContext(ctx);
-vm.runInContext(cat + '\n' + hooded_netrunner + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + citrus_dog + '\n' + registry, ctx);
-const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop'];
+vm.runInContext(cat + '\n' + hooded_netrunner + '\n' + poolside_turtle + '\n' + woodland_owl + '\n' + citrus_dog + '\n' + muaddib_mouse + '\n' + registry, ctx);
+const themes = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop', 'dune'];
 const rendered = {};
 themes.forEach(theme => {
   ctx.renderCompanionScene(theme);
@@ -769,8 +780,9 @@ process.stdout.write(JSON.stringify({
             os.path.join(COMPANION_CSS, "poolside-turtle.js"),
             COMPANION_REGISTRY_JS,
             os.path.join(COMPANION_CSS, "citrus-dog.js"),
+            os.path.join(COMPANION_CSS, "muaddib-mouse.js"),
         )
-        self.assertEqual(result["mapping"], ["cozy-cat", "hooded-netrunner", "poolside-turtle", "woodland-owl", "citrus-dog"])
+        self.assertEqual(result["mapping"], ["cozy-cat", "hooded-netrunner", "poolside-turtle", "woodland-owl", "citrus-dog", "muaddib-mouse"])
         self.assertIn('class="companion-cozy-cat"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["cute"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["cute"])
@@ -791,16 +803,23 @@ process.stdout.write(JSON.stringify({
         self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["citrus-pop"])
         self.assertNotIn('class="companion-woodland-owl"', result["rendered"]["citrus-pop"])
-        root_pattern = re.compile(r'class="companion-(?:cozy-cat|hooded-netrunner|poolside-turtle|woodland-owl|citrus-dog)"')
+        self.assertIn('class="companion-muaddib-mouse"', result["rendered"]["dune"])
+        self.assertIn('class="companion-sleep-cue"', result["rendered"]["dune"])
+        self.assertNotIn('class="companion-cozy-cat"', result["rendered"]["dune"])
+        self.assertNotIn('class="companion-hooded-netrunner"', result["rendered"]["dune"])
+        self.assertNotIn('class="companion-poolside-turtle"', result["rendered"]["dune"])
+        self.assertNotIn('class="companion-woodland-owl"', result["rendered"]["dune"])
+        self.assertNotIn('class="companion-citrus-dog"', result["rendered"]["dune"])
+        root_pattern = re.compile(r'class="companion-(?:cozy-cat|hooded-netrunner|poolside-turtle|woodland-owl|citrus-dog|muaddib-mouse)"')
         self.assertEqual(
             {theme: len(root_pattern.findall(result["rendered"][theme]))
-             for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop")},
-            {"cute": 1, "cyber": 1, "poolside": 1, "evergreen": 1, "citrus-pop": 1},
+             for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop", "dune")},
+            {"cute": 1, "cyber": 1, "poolside": 1, "evergreen": 1, "citrus-pop": 1, "dune": 1},
             "Each mapped theme must render exactly one character root",
         )
 
         # Fix (3): the sleep cue is three separate Z glyphs, decorative, in every theme.
-        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop"):
+        for theme in ("cute", "cyber", "poolside", "evergreen", "citrus-pop", "dune"):
             cue = result["rendered"][theme]
             self.assertRegex(cue, r'<span class="companion-sleep-cue" aria-hidden="true">')
             self.assertEqual(
@@ -814,6 +833,102 @@ process.stdout.write(JSON.stringify({
         self.assertNotIn('content: "Z"', cue_css, "the cue must not draw its glyph from ::after")
         for glyph in ("companion-sleep-cue-z1", "companion-sleep-cue-z2", "companion-sleep-cue-z3"):
             self.assertIn(glyph, cue_css)
+
+        dune_art = result["rendered"]["dune"]
+        for slug in ("companion-muaddib-mouse", "muaddib-mouse-awake", "muaddib-mouse-sleep"):
+            self.assertEqual(
+                dune_art.count('class="{}"'.format(slug)),
+                1,
+                "Dune Muad'Dib mouse: expected exactly one .{} group".format(slug),
+            )
+        self.assertIn('viewBox="0 0 88 68"', dune_art,
+                      "Dune Muad'Dib mouse: SVG must carry viewBox='0 0 88 68'")
+        self.assertIn('aria-hidden="true"', dune_art,
+                      "Dune Muad'Dib mouse: SVG must carry aria-hidden='true'")
+        muaddib_css = _strip_comments(_read(os.path.join(COMPANION_CSS, "muaddib-mouse.css")))
+        self.assertRegex(
+            muaddib_css,
+            r"\.companion-muaddib-mouse\s+\.muaddib-mouse-sleep\s*\{[^}]*display\s*:\s*none",
+        )
+        self.assertRegex(
+            muaddib_css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-muaddib-mouse\s+\.muaddib-mouse-awake\s*\{[^}]*display\s*:\s*none',
+        )
+        self.assertRegex(
+            muaddib_css,
+            r'#companion\[data-mode="sleeping"\]\s+\.companion-muaddib-mouse\s+\.muaddib-mouse-sleep\s*\{[^}]*display\s*:\s*inline',
+        )
+        self.assertRegex(
+            muaddib_css,
+            r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)",
+        )
+
+        # The sha256 below pins the user-approved Muaddib artwork (base + awake overlay).
+        muaddib_js = os.path.join(COMPANION_CSS, "muaddib-mouse.js")
+        _muaddib_node_src = r"""
+const fs = require("fs");
+const crypto = require("crypto");
+const src = fs.readFileSync(process.argv[1], "utf8");
+function extractRects(name) {
+  const re = new RegExp("const\\s+" + name + "\\s*=\\s*\\[([\\s\\S]*?)\\];");
+  const m = src.match(re);
+  if (!m) throw new Error("Cannot find " + name);
+  const inner = m[1];
+  const rects = [];
+  const lineRe = /\[\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*"([^"]+)"\s*\]/g;
+  let lm;
+  while ((lm = lineRe.exec(inner)) !== null) {
+    rects.push({x: parseInt(lm[1]), y: parseInt(lm[2]), w: parseInt(lm[3]), h: parseInt(lm[4]), k: lm[5]});
+  }
+  return rects;
+}
+const baseRects = extractRects("MUADDIB_BASE_RECTS");
+const awakeRects = extractRects("MUADDIB_AWAKE_RECTS");
+const sleepRects = extractRects("MUADDIB_SLEEP_RECTS");
+const W = 88, H = 68;
+const grid = Array.from({length: H}, () => Array(W).fill(null));
+for (const r of baseRects) {
+  for (let dy = 0; dy < r.h; dy++) {
+    for (let dx = 0; dx < r.w; dx++) {
+      const px = r.x + dx, py = r.y + dy;
+      if (px < 0 || px >= W || py < 0 || py >= H) throw new Error("Base rect [" + r.x + "," + r.y + "," + r.w + "," + r.h + "] leaves canvas");
+      if (grid[py][px] !== null) throw new Error("Pixel (" + px + "," + py + ") written twice in base");
+      grid[py][px] = r.k;
+    }
+  }
+}
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+    if (grid[y][x] === null) throw new Error("Pixel (" + x + "," + y + ") not covered by base rects");
+  }
+}
+for (const r of awakeRects) {
+  for (let dy = 0; dy < r.h; dy++) {
+    for (let dx = 0; dx < r.w; dx++) {
+      const px = r.x + dx, py = r.y + dy;
+      if (px < 0 || px >= W || py < 0 || py >= H) throw new Error("Awake rect [" + r.x + "," + r.y + "," + r.w + "," + r.h + "] leaves canvas");
+      grid[py][px] = r.k;
+    }
+  }
+}
+let s = "";
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+    s += grid[y][x];
+  }
+}
+const hash = crypto.createHash("sha256").update(s, "utf8").digest("hex");
+console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCount: sleepRects.length, awakeKeys: awakeRects.map(r => r.k), sleepKeys: sleepRects.map(r => r.k)}));
+"""
+        _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
+        self.assertEqual(
+            _muaddib_result["hash"],
+            "50fa9333d5e15063bba87d40b40c414d7529e712ff1a80db71636c56f6fd9f2c",
+        )
+        self.assertEqual(_muaddib_result["awakeCount"], 24)
+        self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
+        self.assertEqual(_muaddib_result["sleepCount"], 2)
+        self.assertTrue(all(k == "C" for k in _muaddib_result["sleepKeys"]))
 
         # Fix (2): the awake turtle has two separate eyes inside its head, not one black bar.
         art = result["rendered"]["poolside"]
@@ -902,6 +1017,8 @@ process.stdout.write(JSON.stringify({
         self.assertLess(live.index('src="companions/woodland-owl.js"'),
                         live.index('src="companions/citrus-dog.js"'))
         self.assertLess(live.index('src="companions/citrus-dog.js"'),
+                        live.index('src="companions/muaddib-mouse.js"'))
+        self.assertLess(live.index('src="companions/muaddib-mouse.js"'),
                         live.index('src="companions/registry.js"'))
         self.assertLess(live.index('src="companions/registry.js"'),
                         live.index('src="app.js"'))
@@ -919,6 +1036,8 @@ process.stdout.write(JSON.stringify({
                         live.index('href="companions/woodland-owl.css"'))
         self.assertLess(live.index('href="companions/woodland-owl.css"'),
                         live.index('href="companions/citrus-dog.css"'))
+        self.assertLess(live.index('href="companions/citrus-dog.css"'),
+                        live.index('href="companions/muaddib-mouse.css"'))
         self.assertNotIn("cyber.js", _loaded_companion_scripts(),
                          "Parked cyber.js must not be loaded")
         self.assertNotIn("cyber.css", _loaded_companion_stylesheets(),
@@ -935,6 +1054,10 @@ process.stdout.write(JSON.stringify({
                       "The Evergreen theme's Woodland Owl renderer must be loaded")
         self.assertIn("citrus-dog.js", _loaded_companion_scripts(),
                       "The Citrus Pop theme's Citrus Dog renderer must be loaded")
+        self.assertIn("muaddib-mouse.js", _loaded_companion_scripts(),
+                      "The Dune theme's Muad'Dib mouse renderer must be loaded")
+        self.assertIn("muaddib-mouse.css", _loaded_companion_stylesheets(),
+                      "The Dune theme's Muad'Dib mouse stylesheet must be loaded")
         match = re.search(r"function\s+applyTheme\s*\(theme\)\s*\{", self.source)
         if match is None:
             self.fail("applyTheme() not found")
