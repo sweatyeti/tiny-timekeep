@@ -594,6 +594,12 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertIsNone(selection["outsideCapture"])
         self.assertEqual(len(selection["summaryRowHtml"]), 1)
         self.assertIn('class="summary-task"', selection["summaryRowHtml"][0])
+        self.assertRegex(
+            js,
+            r'<span class="summary-task" title="\$\{escapeAttr\(g\.task\)\}">')
+        self.assertIn(
+            'title="weeding"', selection["summaryRowHtml"][0],
+            "a clipped Summary name must still expose its full text on hover")
 
     def test_stop_then_start_new_keeps_api_and_naming_overlay_flow(self):
         self.assertEqual(self.results["calls"], [
@@ -785,6 +791,21 @@ class TestPixelTimerControlStyles(unittest.TestCase):
             )
         # canary: the five tracks are declared in exactly one place
         self.assertEqual(self.css.count("minmax(0,1.8fr)"), 1)
+
+        # Containment: both selectable task-name cells must clip to their own track.
+        for selector in (".now-tracking-label", ".summary-task"):
+            for prop in (r"min-width\s*:\s*0\b",
+                         r"overflow\s*:\s*hidden",
+                         r"text-overflow\s*:\s*ellipsis",
+                         r"white-space\s*:\s*nowrap"):
+                self.assertRegex(
+                    self._rule(selector), prop,
+                    "{} must confine its text to its own track".format(selector))
+        self.assertGreaterEqual(
+            self.css.count("text-overflow: ellipsis"), 2,
+            "both selectable task-name cells must clip with an ellipsis")
+        # The track is what shrinks, the containment is what stops the glyphs.
+        self.assertRegex(self._rule("#summary-table"), r"minmax\(0,1\.8fr\)")
 
         # Only task-name text is selectable; the app-wide default stays unselectable.
         for selector in (".now-tracking-label", ".log-entry-title", ".summary-task"):

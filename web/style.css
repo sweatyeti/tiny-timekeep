@@ -377,7 +377,7 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 }
 /* Copyable task name in a Summary row (rendered by app.js). Task names are the only selectable
    text in the window: the rest is covered by the app-wide `user-select: none` above. */
-.summary-task { user-select: text; -webkit-user-select: text; }
+.summary-task { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; -webkit-user-select: text; }
 .summary-row .callout { color: var(--callout); }
 .summary-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
 .summary-actions .icon-btn {

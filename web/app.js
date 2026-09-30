@@ -250,7 +250,7 @@ function renderSummary() {
       row.className = 'summary-row';
       const unloggedCls = g.callout ? 'callout' : '';
       row.innerHTML = `
-        <span class="summary-task">${escapeHtml(g.task)}</span>
+        <span class="summary-task" title="${escapeAttr(g.task)}">${escapeHtml(g.task)}</span>
         <span>${g.count}</span>
         <span class="${unloggedCls}">${fmtHM(g.unloggedMinutes)}</span>
         <span>${fmtHM(g.totalMinutes)}</span>
