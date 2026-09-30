@@ -299,9 +299,15 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   border: 0;
 }
 
-.action-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+/* Parked: .action-bar held the retired "Log group" button and the Deleted control.
+   The group-log button became redundant once every Summary row gained its own
+   Log/Unlog toggle, and Deleted has moved up into the tab row .tab-bar, so the
+   bar is gone.
+   .action-bar { display: flex; gap: 8px; margin-bottom: 14px; } */
 
-.tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.tab-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+
+.tabs { display: flex; gap: 6px; min-width: 0; }
 .tab-btn {
   font-family: var(--font-display);
   font-size: 10px;
@@ -313,6 +319,8 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   cursor: pointer;
 }
 .tab-btn.active { color: var(--accent-pink-text); border-bottom-color: var(--accent-pink); }
+
+.btn-compact { flex: 0 0 auto; width: auto; padding: 4px 6px; font-size: 9px; white-space: nowrap; }
 
 .rows { display: flex; flex-direction: column; }
 .row-main { flex: 1; min-width: 160px; }

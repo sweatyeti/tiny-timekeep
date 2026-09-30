@@ -82,14 +82,15 @@
         </div>
       </div>
 
-      <div class="action-bar">
-        <button id="log-group-btn" class="btn btn-mini">Log group</button>
-        <button id="deleted-btn" class="btn btn-mini">Deleted (<span id="deleted-count">0</span>)</button>
-      </div>
-
-      <div class="tabs">
-        <button class="tab-btn" data-tab="log">Log</button>
-        <button class="tab-btn active" data-tab="summary">Summary</button>
+      <!-- Parked: The redundant "Log group" button used to live here. Every Summary row now carries
+           its own per-task Log/Unlog toggle, so a separate group-log control was redundant. Its
+           markup, click binding, and popup handler are parked (see style.css and app.js). -->
+      <div class="tab-bar">
+        <div class="tabs">
+          <button class="tab-btn" data-tab="log">Log</button>
+          <button class="tab-btn active" data-tab="summary">Summary</button>
+        </div>
+        <button id="deleted-btn" class="btn btn-mini btn-compact">Deleted (<span id="deleted-count">0</span>)</button>
       </div>
 
       <div id="tab-log" class="tab-panel hidden">

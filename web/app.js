@@ -360,7 +360,10 @@ function wireActiveScreen() {
       api().set_preference('activeTab', activeTab);
     };
   });
-  document.getElementById('log-group-btn').onclick = openLogGroup;
+  // Parked: this binding backed the removed Log group button.
+  // Parked: Summary rows now cover the action, making this popup redundant.
+  // Parked: re-adding this binding before the markup is restored would throw on a missing element.
+  // document.getElementById('log-group-btn').onclick = openLogGroup;
   document.getElementById('deleted-btn').onclick = openDeletedEntries;
 }
 
@@ -560,6 +563,7 @@ function openEditEntry(e) {
   };
 }
 
+/* Parked: openLogGroup backed the retired Log-tab "Log group" button. Summary rows now offer the same per-task Log action directly, so this popup is unreachable. It is kept commented rather than deleted (to restore it, uncomment this function and the binding in wireActiveScreen() and put the button back in index.html). The core APIs it used are unchanged.
 async function openLogGroup() {
   const groups = await api().list_loggable_task_groups();
   if (groups.length === 0) {
@@ -580,6 +584,7 @@ async function openLogGroup() {
     };
   });
 }
+*/
 
 async function openDeletedEntries() {
   const deleted = await api().list_deleted_entries();

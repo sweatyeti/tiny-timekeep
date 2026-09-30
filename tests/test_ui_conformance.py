@@ -56,6 +56,28 @@ def _read(path):
         return handle.read()
 
 
+def _strip_html_comments(text):
+    return re.sub(r"<!--.*?-->", "", text, flags=re.S)
+
+
+def _strip_css_comments(text):
+    return re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+
+
+def _strip_js_comments(text):
+    """Strip JS comments so absence guards scan code, not parked prose.
+
+    This project parks retired UI paths as comments that necessarily name
+    the identifiers they retired; a naive search would match the comment
+    text.  Only whole-line ``//`` comments are removed (after ``/* */``
+    blocks) because a naive strip would mangle a ``//`` inside a string
+    literal.
+    """
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    text = re.sub(r"(?m)^[ \t]*//[^\n]*$", "", text)
+    return text
+
+
 class FrontendCase(unittest.TestCase):
     """Shared fixture: a real Api over a throwaway data directory."""
 
@@ -72,10 +94,16 @@ class FrontendCase(unittest.TestCase):
 
 class TestFrontendCallsExist(unittest.TestCase):
     def test_every_api_call_in_app_js_exists_on_api(self):
-        called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _read(APP_JS)))
+        # Parked handlers must not feed phantom calls into the extractor.
+        called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _strip_js_comments(_read(APP_JS))))
         assert called, "no api() calls found in app.js — the extractor or the frontend changed"
         missing = sorted(m for m in called if not hasattr(app_main.Api, m))
         assert missing == [], f"app.js calls methods Api does not have: {missing}"
+        # Canary: retired Log group call is parked, not live
+        assert "list_loggable_task_groups" not in called, "list_loggable_task_groups should be parked, not called"
+        # Live Summary group toggle still uses these
+        assert "log_task_group" in called, "log_task_group call missing from app.js"
+        assert "unlog_task_group" in called, "unlog_task_group call missing from app.js"
 
     def test_api_surface_is_the_contract_plus_the_app_level_methods(self):
         public = {name for name in dir(app_main.Api) if not name.startswith("_")}
@@ -147,6 +175,50 @@ class TestFrontendFieldsExist(FrontendCase):
         assert "api().log_task_group(" in js
         assert "api().unlog_task_group(" in js
         assert "api().stop_and_start_entry(" in js
+        html_code = _strip_html_comments(html)
+        js_code = _strip_js_comments(js)
+        css_code = _strip_css_comments(css)
+        # A. Retired Log group control
+        assert "log-group-btn" not in html_code, "index.html still renders the Log group button"
+        assert "Log group" not in html_code, "index.html still has 'Log group' in the accessibility tree"
+        assert "log-group-btn" not in js_code, "app.js still binds the removed Log group button"
+        assert "openLogGroup" not in js_code, "app.js still calls the removed Log group popup"
+        # Parking is NOT deletion — the raw text must still carry the parked code
+        assert "openLogGroup" in js, "app.js should still contain parked openLogGroup code"
+        assert "Parked" in js, "app.js should contain a 'Parked' note"
+        assert "Parked" in css, "style.css should contain a 'Parked' note"
+        assert "Parked" in html, "index.html should contain a 'Parked' note"
+        assert "summary-log-btn" in js_code, "app.js lost the Summary log button binding"
+        assert "api().log_task_group(" in js_code, "app.js lost the live log_task_group call"
+        assert "api().unlog_task_group(" in js_code, "app.js lost the live unlog_task_group call"
+        # B. Deleted control moved into the tab row
+        assert 'class="tab-bar"' in html_code, "index.html missing the new .tab-bar wrapper"
+        assert 'id="deleted-btn"' in html_code, "index.html missing #deleted-btn"
+        assert 'id="deleted-count"' in html_code, "index.html missing #deleted-count"
+        assert "action-bar" not in html_code, "the emptied action bar must be gone, not left as a blank spacer"
+        assert html_code.index('class="tabs"') < html_code.index('id="deleted-btn"') < html_code.index('id="tab-log"'), \
+            "Deleted button must sit between .tabs and #tab-log in the tab-bar row"
+        assert "getElementById('deleted-btn').onclick = openDeletedEntries" in js_code, \
+            "app.js lost the #deleted-btn click binding"
+        # C. No wired .onclick may target an element index.html does not have
+        bound = set(re.findall(r"getElementById\('([^']+)'\)\.onclick", js_code))
+        assert bound, "canary: no getElementById(...).onclick bindings found in app.js"
+        overlay_ids = {"sn-go", "ef-save", "choose-entry-save-location"}
+        orphans = sorted(id for id in bound if f'id="{id}"' not in html_code and id not in overlay_ids)
+        assert orphans == [], f"app.js binds onclick to ids not in index.html: {orphans}"
+        assert "log-group-btn" not in bound, "app.js still has an onclick binding for the removed log-group-btn"
+        # D. CSS
+        assert "action-bar" not in css_code, "the retired .action-bar rule must be parked, not live"
+        tab_bar_match = re.search(r"\.tab-bar\s*\{([^}]*)\}", css_code)
+        assert tab_bar_match, "style.css missing the .tab-bar rule"
+        assert re.search(r"display\s*:\s*flex", tab_bar_match.group(1)), ".tab-bar must declare display: flex"
+        assert re.search(r"justify-content\s*:\s*space-between", tab_bar_match.group(1)), ".tab-bar must declare justify-content: space-between"
+        btn_compact_match = re.search(r"\.btn-compact\s*\{([^}]*)\}", css_code)
+        assert btn_compact_match, "style.css missing the .btn-compact rule"
+        assert re.search(r"flex\s*:\s*0\s+0\s+auto", btn_compact_match.group(1)), ".btn-compact must declare flex: 0 0 auto"
+        assert re.search(r"width\s*:\s*auto", btn_compact_match.group(1)), ".btn-compact must declare width: auto"
+        assert re.search(r"white-space\s*:\s*nowrap", btn_compact_match.group(1)), ".btn-compact must declare white-space: nowrap"
+        assert not re.search(r"\.tabs\s*\{[^}]*margin-bottom", css_code), ".tabs must not declare margin-bottom (moved to .tab-bar)"
 
 
 class TestWrapperPassesArgumentsThrough(FrontendCase):
