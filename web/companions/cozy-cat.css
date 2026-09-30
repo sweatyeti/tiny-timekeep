@@ -8,10 +8,15 @@ body[data-theme="cute"] .companion-cozy-cat { display:block; }
 .cozy-cat-cushion { left:10px; bottom:2px; width:57px; height:10px; background:#4A3668; border:2px solid #FF9EBB; border-radius:8px; }
 .cozy-cat-tail { left:11px; top:35px; width:19px; height:24px; border:7px solid #F2E9DA; border-right:0; border-top:0; border-radius:0 0 0 17px; filter:drop-shadow(-2px 0 #1B1330); }
 .cozy-cat-body { left:25px; top:34px; width:37px; height:27px; background:#F2E9DA; border:2px solid #1B1330; border-radius:13px 13px 10px 10px; }
-.cozy-cat-ear { width:17px; height:20px; top:9px; background:#F2E9DA; border:2px solid #1B1330; transform:rotate(-16deg); }
-.cozy-cat-ear-left { left:27px; }.cozy-cat-ear-right { left:50px; transform:rotate(16deg); }
+.cozy-cat-ear { width:19px; height:23px; top:4px; background:#1B1330; border:0; clip-path:polygon(50% 0,100% 100%,0 100%); transform:rotate(-16deg); }
+.cozy-cat-ear-left { left:27px; }.cozy-cat-ear-right { left:48px; transform:rotate(16deg); }
+/* The pink ear interiors live inside their own outer ear (cozy-cat.js) so each
+   patch follows its ear into the sleeping offsets; they are no longer the
+   head-positioned .cozy-cat-inner-left / .cozy-cat-inner-right divs. */
+.cozy-cat-ear-inner { left:2px; top:2px; width:15px; height:21px; background:#F2E9DA; clip-path:polygon(50% 0,100% 100%,0 100%); }
+.cozy-cat-ear-inner:after { content:""; position:absolute; left:3px; top:4px; width:9px; height:17px; background:#FF9EBB; clip-path:polygon(50% 0,100% 100%,0 100%); }
 .cozy-cat-head { left:26px; top:17px; width:42px; height:32px; background:#F2E9DA; border:2px solid #1B1330; border-radius:14px 14px 15px 15px; }
-.cozy-cat-ear-inner { top:-3px; width:7px; height:9px; background:#FF9EBB; }.cozy-cat-inner-left { left:5px; transform:rotate(-15deg); }.cozy-cat-inner-right { right:5px; transform:rotate(15deg); }
+/* .cozy-cat-inner-left / .cozy-cat-inner-right (head-positioned pink patches) are gone: the patch is now .cozy-cat-ear-inner:after inside each ear, see above. */
 .cozy-cat-eye { top:12px; width:4px; height:6px; background:#1B1330; border-radius:2px; }.cozy-cat-eye-left { left:10px; }.cozy-cat-eye-right { right:10px; }
 .cozy-cat-nose { left:18px; top:19px; width:4px; height:3px; background:#FF8FA3; }
 .cozy-cat-mouth { left:17px; top:22px; width:6px; height:3px; border-bottom:1px solid #1B1330; border-radius:50%; }
@@ -23,7 +28,7 @@ body[data-theme="cute"] .companion-cozy-cat { display:block; }
 .cozy-cat-hourglass-top { top:4px; left:4px; width:6px; height:5px; background:#FF9EBB; clip-path:polygon(0 0,100% 0,50% 100%); }.cozy-cat-hourglass-sand { top:10px; left:6px; width:2px; height:6px; background:#FF9EBB; }.cozy-cat-hourglass-bottom { bottom:2px; left:3px; width:8px; height:4px; background:#FF9EBB; clip-path:polygon(50% 0,100% 100%,0 100%); }
 #companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-head { top:26px; left:30px; transform:rotate(-12deg); }
 #companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-ear { top:18px; left:31px; }
-#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-ear-right { left:54px; }
+#companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-ear-right { left:52px; }
 #companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-eye { top:15px; height:2px; width:7px; border-radius:0 0 6px 6px; }
 #companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-scarf { top:54px; }
 #companion[data-mode="sleeping"] .companion-cozy-cat .cozy-cat-scarf-tail { top:56px; height:5px; }
