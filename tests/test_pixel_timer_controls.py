@@ -144,6 +144,8 @@ const calls = [];
 let overlay = null;
 let closed = false;
 let renderCalls = 0;
+let taskInputFocused = false;
+document.getElementById('sn-task').focus = () => { taskInputFocused = true; };
 ctx.window.pywebview = { api: {
   async stop_tracking() {
     calls.push(['stop_tracking']);
@@ -248,9 +250,10 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
     refreshHidden: refreshIcon.classList.contains('hidden')
   };
   await start.onclick();
+  const focusedOnOpen = taskInputFocused;
   document.getElementById('sn-task').value = 'Next task';
   await document.getElementById('sn-go').onclick();
-  process.stdout.write(JSON.stringify({ active, idle, afterStop, calls, overlay, closed, renderCalls, rows,
+  process.stdout.write(JSON.stringify({ active, idle, afterStop, focusedOnOpen, calls, overlay, closed, renderCalls, rows,
     finalTask: document.getElementById('current-label').textContent,
     finalRefreshHidden: refreshIcon.classList.contains('hidden'),
     selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
@@ -613,6 +616,7 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
             "refreshHidden": True,
         })
         self.assertEqual(self.results["overlay"]["title"], "Name this task")
+        self.assertTrue(self.results["focusedOnOpen"], "the task-name field should take keyboard focus when its popup opens")
         self.assertIn('class="btn btn-primary overlay-submit"', self.results["overlay"]["body"])
         self.assertTrue(self.results["closed"])
         self.assertEqual(self.results["finalTask"], "Next task")

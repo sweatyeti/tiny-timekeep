@@ -534,6 +534,8 @@ async function openStartNewTask() {
     <button class="btn btn-primary overlay-submit" id="sn-go">Save</button>
   `);
   const input = document.getElementById('sn-task');
+  // `autofocus` does not reliably focus inputs inserted into an already-open WebView2 page.
+  input.focus();
   document.getElementById('sn-go').onclick = async () => {
     const rr = await api().edit_entry(entryId, input.value);
     closeOverlay();
