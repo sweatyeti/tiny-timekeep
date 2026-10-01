@@ -130,8 +130,6 @@ class Api:
         self._location_locked = (bool(os.environ.get(DATA_DIR_ENV))
                                  if location_locked is None else location_locked)
         self._pending_source = None
-        if not self.prefs.get_all().get("entrySaveLocation"):
-            self.prefs.set("entrySaveLocation", initial_storage_path)
         self._window = None
 
     def set_window(self, window):
@@ -162,11 +160,26 @@ class Api:
 
     # --- UI preferences (separate from the core contract — see preferences.py) ---
 
+    def _location_lock_message(self):
+        if os.environ.get(DATA_DIR_ENV):
+            return f"{DATA_DIR_ENV} controls the sessions folder."
+        return "The sessions folder was set on the command line (--sessions-dir)."
+
     def get_preferences(self):
-        preferences = self.prefs.get_all()
-        if self._location_locked:
+        preferences = dict(self.prefs.get_all())
+        stored = preferences.get("entrySaveLocation")
+        is_default = (not stored) or self._location_locked
+        if is_default:
             preferences["entrySaveLocation"] = str(self.core._store.directory.resolve())
+        if self._location_locked:
+            preferences["entrySaveLocationDefault"] = str(self.core._store.directory.resolve())
+        else:
+            try:
+                preferences["entrySaveLocationDefault"] = os.path.abspath(_default_storage_path())
+            except OSError:
+                preferences["entrySaveLocationDefault"] = str(self.core._store.directory.resolve())
         preferences["entrySaveLocationLocked"] = self._location_locked
+        preferences["entrySaveLocationIsDefault"] = is_default
         return preferences
 
     def set_preference(self, key, value, move_existing=False):
@@ -176,7 +189,7 @@ class Api:
 
     def choose_entry_save_location(self):
         if self._location_locked:
-            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+            return {"ok": False, "message": self._location_lock_message()}
         if self._window is None:
             return {"ok": False, "message": "Folder selection is unavailable."}
         try:
@@ -190,13 +203,23 @@ class Api:
 
     def set_entry_save_location(self, path, move_existing=False):
         if self._location_locked:
-            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+            return {"ok": False, "message": self._location_lock_message()}
         if not isinstance(path, str) or not path.strip():
             return {"ok": False, "message": "Choose a valid folder."}
         target = os.path.abspath(os.path.expanduser(path.strip()))
-        current = str(self.core._store.directory.resolve())
-        if os.path.abspath(target) == current:
-            return {"ok": True, "preferences": self.prefs.get_all()}
+        return self._apply_save_location(target, move_existing, persist_default=False)
+
+    def restore_default_save_location(self, move_existing=False):
+        if self._location_locked:
+            return {"ok": False, "message": self._location_lock_message()}
+        target = os.path.abspath(_default_storage_path())
+        return self._apply_save_location(target, move_existing, persist_default=True)
+
+    def _apply_save_location(self, target, move_existing, persist_default):
+        already_default = not self.prefs.get_all().get("entrySaveLocation")
+        same_dir = Path(target).resolve() == self.core._store.directory.resolve()
+        if same_dir and (not persist_default or already_default):
+            return {"ok": True, "preferences": self.get_preferences()}
         try:
             ensure_usable_sessions_dir(target)
         except SystemExit as exc:
@@ -205,7 +228,7 @@ class Api:
         source_dir = self.core._store.directory
         migrated = []
         name_map = {}
-        if move_existing:
+        if move_existing and not same_dir:
             try:
                 taken = {item.name for item in Path(target).iterdir() if item.is_file()}
                 for source in sorted(source_dir.glob("*.json")):
@@ -236,8 +259,9 @@ class Api:
                         pass
                 return {"ok": False, "message": f"Could not safely move existing sessions: {exc}"}
 
+        stored = None if persist_default else target
         try:
-            prefs = self.prefs.set("entrySaveLocation", target)
+            self.prefs.set("entrySaveLocation", stored)
         except OSError as exc:
             for _, destination in migrated:
                 try:
@@ -247,10 +271,10 @@ class Api:
             return {"ok": False, "message": f"Could not save the preference: {exc}"}
 
         session = self.core._session
-        if move_existing:
+        if move_existing and not same_dir:
             if session is not None and session.file_name in name_map:
                 session.file_name = name_map[session.file_name]
-        elif session is not None and session.is_active() and session.file_name:
+        elif session is not None and session.is_active() and session.file_name and not same_dir:
             source = self.core._store.document_path(session.file_name)
             if source.is_file():
                 destination = None
@@ -292,13 +316,13 @@ class Api:
                     self._pending_source = source
                     session.file_name = None
         self.core._store._directory = Path(target)
-        if move_existing:
+        if move_existing and not same_dir:
             for source, _ in migrated:
                 try:
                     source.unlink()
                 except OSError:
                     pass
-        return {"ok": True, "preferences": prefs}
+        return {"ok": True, "preferences": self.get_preferences()}
 
     def _after_core_save(self, result):
         source = self._pending_source
@@ -492,7 +516,8 @@ def main(argv=None):
             f"Install the pinned version:  python -m pip install -r requirements.txt"
         )
 
-    api = Api(storage_path=sessions_dir, preferences_path=preferences_path)
+    api = Api(storage_path=sessions_dir, preferences_path=preferences_path,
+              location_locked=bool(args.sessions_dir) or bool(os.environ.get(DATA_DIR_ENV)))
     window = webview.create_window(
         WINDOW_TITLE,
         INDEX_HTML,

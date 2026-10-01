@@ -624,6 +624,15 @@ body[data-theme="cyber"] .theme-btn {
   margin-top: 0.75rem;
   padding: 0.45rem 1rem;
 }
+.save-location-restore {
+  margin-top: 0.5rem;
+  padding: 0.45rem 1rem;
+  border: 2px solid var(--border-dark);
+}
+.save-location-restore:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 .save-location-confirmation {
   position: fixed;

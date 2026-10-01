@@ -441,6 +441,32 @@ function confirmSaveLocation(message) {
   });
 }
 
+function applySaveLocationControls(prefs) {
+  const pathEl = document.getElementById('entry-save-location-path');
+  if (pathEl) {
+    pathEl.textContent = prefs.entrySaveLocation || '(default location)';
+  }
+  const chooseBtn = document.getElementById('choose-entry-save-location');
+  if (chooseBtn) {
+    chooseBtn.disabled = prefs.entrySaveLocationLocked === true;
+  }
+  const restoreBtn = document.getElementById('restore-default-save-location');
+  if (restoreBtn) {
+    const locked = prefs.entrySaveLocationLocked === true;
+    restoreBtn.disabled = locked || prefs.entrySaveLocationIsDefault === true;
+    if (locked) {
+      restoreBtn.title = 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR or --sessions-dir';
+      restoreBtn.setAttribute('aria-label', restoreBtn.title);
+    } else if (prefs.entrySaveLocationIsDefault === true) {
+      restoreBtn.title = 'Already using the default location';
+      restoreBtn.setAttribute('aria-label', restoreBtn.title);
+    } else {
+      restoreBtn.title = 'Use the default location: ' + prefs.entrySaveLocationDefault;
+      restoreBtn.setAttribute('aria-label', restoreBtn.title);
+    }
+  }
+}
+
 function wireSaveLocation() {
   document.getElementById('save-location-btn').onclick = async () => {
     const prefs = await api().get_preferences();
@@ -457,12 +483,18 @@ function wireSaveLocation() {
     choose.id = 'choose-entry-save-location';
     choose.textContent = 'Choose folder…';
     choose.disabled = locked;
+    const restore = document.createElement('button');
+    restore.type = 'button';
+    restore.className = 'btn save-location-restore';
+    restore.id = 'restore-default-save-location';
+    restore.textContent = 'Restore default path';
     const hint = document.createElement('p');
     hint.textContent = locked
-      ? 'Folder is controlled by KEEPER_OF_TIME_DATA_DIR.'
+      ? 'The folder is fixed for this run (KEEPER_OF_TIME_DATA_DIR or --sessions-dir).'
       : 'Choose whether to move existing session files when you change folders.';
-    body.append(path, choose, hint);
+    body.append(path, choose, restore, hint);
     openOverlay('SAVE LOCATION', body.innerHTML);
+    applySaveLocationControls(prefs);
     document.getElementById('choose-entry-save-location').onclick = async () => {
       const selection = await api().choose_entry_save_location();
       if (!selection.ok) {
@@ -474,10 +506,22 @@ function wireSaveLocation() {
       const result = await api().set_preference('entrySaveLocation', selection.path, moveExisting);
       if (result.ok) {
         const latest = await api().get_preferences();
-        document.getElementById('entry-save-location-path').textContent = latest.entrySaveLocation;
+        applySaveLocationControls(latest);
         renderSaveLocation(latest);
       } else {
         document.getElementById('entry-save-location-path').textContent = result.message || 'Could not set folder.';
+      }
+    };
+    document.getElementById('restore-default-save-location').onclick = async () => {
+      if (!await confirmSaveLocation('Use the default folder for new sessions?\n' + prefs.entrySaveLocationDefault)) return;
+      const moveExisting = await confirmSaveLocation('Move existing session files to this folder? Choose Cancel to leave them where they are.');
+      const result = await api().restore_default_save_location(moveExisting);
+      if (result.ok) {
+        const latest = await api().get_preferences();
+        applySaveLocationControls(latest);
+        renderSaveLocation(latest);
+      } else {
+        document.getElementById('entry-save-location-path').textContent = result.message || 'Could not restore the default folder.';
       }
     };
   };

@@ -73,7 +73,7 @@ class PreferencesStore:
         if key == "activeTab":
             if not isinstance(value, str) or value not in VALID_TABS:
                 value = "summary"
-        if key == "entrySaveLocation" and (not isinstance(value, str) or not value.strip()):
+        if key == "entrySaveLocation" and value is not None and (not isinstance(value, str) or not value.strip()):
             return dict(self._data)
         self._data[key] = value
         self._save()

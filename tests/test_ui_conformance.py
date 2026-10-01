@@ -34,7 +34,7 @@ APP_LEVEL_METHODS = {
     "set_window",            # internal wiring, not reachable from JS in practice
     "move_window_to", "resize_window_to", "minimize_window", "exit_app",
     "get_preferences", "set_preference", "choose_entry_save_location",
-    "set_entry_save_location",
+    "set_entry_save_location", "restore_default_save_location",
 }
 
 # Fields the frontend reads, by payload. Every one must be present in a live payload.
@@ -203,10 +203,19 @@ class TestFrontendFieldsExist(FrontendCase):
         # C. No wired .onclick may target an element index.html does not have
         bound = set(re.findall(r"getElementById\('([^']+)'\)\.onclick", js_code))
         assert bound, "canary: no getElementById(...).onclick bindings found in app.js"
-        overlay_ids = {"sn-go", "ef-save", "choose-entry-save-location"}
+        overlay_ids = {"sn-go", "ef-save", "choose-entry-save-location", "restore-default-save-location"}
         orphans = sorted(id for id in bound if f'id="{id}"' not in html_code and id not in overlay_ids)
         assert orphans == [], f"app.js binds onclick to ids not in index.html: {orphans}"
         assert "log-group-btn" not in bound, "app.js still has an onclick binding for the removed log-group-btn"
+        # C2. Restore default path
+        assert "restore-default-save-location" in bound, "app.js must bind the restore-default-save-location button"
+        assert "api().restore_default_save_location(" in js_code, "app.js must call api().restore_default_save_location("
+        assert "Restore default path" in js_code, "app.js must reference the 'Restore default path' label"
+        assert "entrySaveLocationIsDefault" in js_code, "app.js must reference entrySaveLocationIsDefault"
+        assert "entrySaveLocationDefault" in js_code, "app.js must reference entrySaveLocationDefault"
+        _start = js_code.index("getElementById('restore-default-save-location').onclick")
+        _end = js_code.index("api().restore_default_save_location(", _start)
+        assert "confirmSaveLocation" in js_code[_start:_end], "restore handler must confirm before changing the folder"
         # D. CSS
         assert "action-bar" not in css_code, "the retired .action-bar rule must be parked, not live"
         tab_bar_match = re.search(r"\.tab-bar\s*\{([^}]*)\}", css_code)
@@ -219,6 +228,8 @@ class TestFrontendFieldsExist(FrontendCase):
         assert re.search(r"width\s*:\s*auto", btn_compact_match.group(1)), ".btn-compact must declare width: auto"
         assert re.search(r"white-space\s*:\s*nowrap", btn_compact_match.group(1)), ".btn-compact must declare white-space: nowrap"
         assert not re.search(r"\.tabs\s*\{[^}]*margin-bottom", css_code), ".tabs must not declare margin-bottom (moved to .tab-bar)"
+        assert ".save-location-restore" in css_code, "style.css must contain the .save-location-restore rule"
+        assert ".save-location-restore:disabled" in css_code, "style.css must contain the .save-location-restore:disabled rule"
 
 
 class TestWrapperPassesArgumentsThrough(FrontendCase):
