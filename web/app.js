@@ -393,7 +393,7 @@ function renderSaveLocation(prefs) {
   if (!button) return;
   button.disabled = prefs.entrySaveLocationLocked === true;
   button.title = button.disabled
-    ? 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR'
+    ? 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR or --sessions-dir'
     : 'Change entry save location';
   button.setAttribute('aria-label', button.title);
 }
