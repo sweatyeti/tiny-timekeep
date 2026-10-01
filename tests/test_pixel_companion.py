@@ -863,12 +863,12 @@ process.stdout.write(JSON.stringify({
             r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)",
         )
 
-        # The sha256 below pins the rounded head-and-body Muaddib artwork.  The face is a single
-        # fur colour with the eyes as its only detail, and the head and body now share one
-        # rounded silhouette: the lower-left contour follows a circular arc fitted to the head
-        # (centre x=43.5, radius 18.1) instead of the earlier straight taper, and the lower body
-        # is one contiguous fur mass behind a single exterior outline.  The approved tail region
-        # (x61-78, y44-58) is untouched.
+        # The sha256 below pins the corrective Muaddib artwork that followed the v2 preview:
+        # the face is a single fur colour with the eyes as its only detail.  This art is neither
+        # the earlier approved sketch nor the whiskered v2 revision.  Two corrections landed on
+        # the right cheek: first the concave notch at y41-43 was filled, then the internal jaw
+        # outline that the whisker removal had left floating on the cheek was removed so the
+        # cheek is one contiguous fur mass behind a single exterior outline.
         muaddib_js = os.path.join(COMPANION_CSS, "muaddib-mouse.js")
         _muaddib_node_src = r"""
 const fs = require("fs");
@@ -928,8 +928,8 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
         _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
         self.assertEqual(
             _muaddib_result["hash"],
-            "964378d7c11e0477b13d507ed9ac2c8a06825084a7442baf934d2b66ce4ccbbe",
-            "pinned digest of the rounded head-and-body artwork (base + awake overlay)",
+            "4102e72c023f5982923c2307481e0becd1bbfd7f5ba03dc2850c7fc439cc1805",
+            "pinned digest of the seamless-cheek artwork (base + awake overlay)",
         )
         self.assertEqual(_muaddib_result["awakeCount"], 24)
         self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
@@ -1034,37 +1034,6 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
             self.assertLessEqual(
                 abs(silhouette[i + 1] - silhouette[i]), 1,
                 "the right cheek silhouette must be smooth (silhouette %r)" % (silhouette,),
-            )
-
-        # The head and body share one rounded silhouette: the left contour is a smooth arc
-        # that never bites inward below the widest row.  The measured left edge for this
-        # artwork is [25, 25, 25, 25, 25, 26, 26, 25, 26, 26, 26, 26, 26, 27, 27, 28, 28,
-        # 29, 30, 31, 32, 33] over rows y37..y58.
-        def _body_left(row):
-            assert art_grid[row][44] in ("C", "D", "E", "F", "H"), (
-                "row %d has no head/body colour at x=44" % (row,)
-            )
-            x = 44
-            while x - 1 >= 0 and art_grid[row][x - 1] in ("C", "D", "E", "F", "H"):
-                x -= 1
-            return x
-
-        left_edge = [_body_left(y) for y in range(37, 59)]
-        self.assertEqual(
-            left_edge,
-            [25, 25, 25, 25, 25, 26, 26, 25, 26, 26, 26, 26, 26, 27, 27, 28, 28, 29, 30, 31, 32, 33],
-            "the rounded head-and-body left contour must be unchanged (left edge %r)" % (left_edge,),
-        )
-        for i in range(len(left_edge) - 1):
-            self.assertLessEqual(
-                abs(left_edge[i + 1] - left_edge[i]), 1,
-                "the head-and-body left contour must be smooth (left edge %r)" % (left_edge,),
-            )
-        for i in range(7, len(left_edge) - 1):
-            self.assertGreaterEqual(
-                left_edge[i + 1], left_edge[i],
-                "the body's left contour must not bite inward below the widest row "
-                "(left edge %r)" % (left_edge,),
             )
 
         # The approved tail is unchanged from the v2 revision.
