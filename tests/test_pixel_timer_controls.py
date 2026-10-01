@@ -770,6 +770,9 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertIsNotNone(edit_w, "Edit button width not found in CSS")
         self.assertIsNotNone(edit_h, "Edit button height not found in CSS")
         self.assertEqual(edit_w.group(1), edit_h.group(1))
+        focus_rule = self._rule(".now-tracking-label-row .current-edit-btn:focus-visible")
+        self.assertRegex(focus_rule, r"outline\s*:\s*2px\s+solid\s+var\(--text-main\)")
+        self.assertRegex(focus_rule, r"outline-offset\s*:\s*1px")
 
     def test_minimum_window_accounts_for_scrollbar_before_companion(self):
         breakpoint = re.search(r"@media\s*\(max-width\s*:\s*(\d+)px\)", self.css)

@@ -306,6 +306,8 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .now-tracking-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
 /* Descendant selector deliberately beats the generic .icon-btn sizing */
 .now-tracking-label-row .current-edit-btn { flex: 0 0 auto; width: 26px; height: 26px; font-size: 12px; line-height: 1; padding: 0; }
+/* Keyboard focus indicator for the edit button, matching timer controls */
+.now-tracking-label-row .current-edit-btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .now-tracking-start { grid-area: start; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--text-dim); }
 #companion { grid-area: companion; justify-self: end; }
 .now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }
