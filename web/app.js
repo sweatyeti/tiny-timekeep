@@ -591,7 +591,7 @@ async function openStartNewTask() {
   };
 }
 
-function openEditEntry(e, title, expectedCurrentId) {
+function openEditEntry(e, title, guard) {
   openOverlay(title || `Edit #${e.id}`, `
     <div class="field-row"><label>Task</label><input id="ef-task" value="${escapeAttr(e.task)}"></div>
     <div class="field-row"><label>Description</label><input id="ef-desc" value="${escapeAttr(e.description)}"></div>
@@ -605,10 +605,12 @@ function openEditEntry(e, title, expectedCurrentId) {
   // `autofocus` does not reliably focus inputs inserted into an already-open WebView2 page.
   document.getElementById('ef-task').focus();
   document.getElementById('ef-save').onclick = async () => {
-    // Editing the active entry by id: the active entry can change (stop, stop-and-start,
-    // another session) while this overlay is open, and a stale id would then write to
-    // whatever now holds that id. Refuse rather than persist onto the wrong entry.
-    if (expectedCurrentId !== undefined && (!state.currentEntry || state.currentEntry.id !== expectedCurrentId)) {
+    // The tracked entry can change (stop, stop-and-start) or the user can switch/resume a
+    // different session while this overlay is open. Because entry ids are per-session
+    // integers, the id alone does not identify the entry, so BOTH the entry id and the
+    // session id are re-checked and the save is refused rather than persisted onto the
+    // wrong entry.
+    if (guard && (!state.currentEntry || state.currentEntry.id !== guard.entryId || !state.session || state.session.id !== guard.sessionId)) {
       closeOverlay();
       handleResult({ ok: false, error: 'entry_not_active', message: 'The tracked entry changed while this was open, so nothing was saved.' });
       return;
@@ -626,11 +628,13 @@ function openEditEntry(e, title, expectedCurrentId) {
 function openCurrentEntryEdit() {
   if (!state || !state.currentEntry) return;
   const id = state.currentEntry.id;
-  // `currentEntry` carries only id/task/startTime; the description lives on the matching
-  // record in `state.entries`, so prefill from that record — matched by id, never from an
-  // arbitrary row — and fall back to `currentEntry` if the record is not in the view model.
-  const record = state.entries.find((entry) => entry.id === id) || state.currentEntry;
-  openEditEntry(record, 'Edit current entry', id);
+  // Description and logged status live on the matching state.entries record, matched by id
+  // and never taken from an arbitrary row. When that record is missing the entry is
+  // normalised as a running entry (empty description, loggedStatus 'N/A') so no Logged
+  // toggle is offered.
+  const record = state.entries.find((entry) => entry.id === id);
+  const target = record || { id, task: state.currentEntry.task, description: '', loggedStatus: 'N/A' };
+  openEditEntry(target, 'Edit current entry', { entryId: id, sessionId: state.session && state.session.id });
 }
 
 /* Parked: openLogGroup backed the retired Log-tab "Log group" button. Summary rows now offer the same per-task Log action directly, so this popup is unreachable. It is kept commented rather than deleted (to restore it, uncomment this function and the binding in wireActiveScreen() and put the button back in index.html). The core APIs it used are unchanged.

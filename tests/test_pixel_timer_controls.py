@@ -292,13 +292,30 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
   await document.getElementById('ef-save').onclick();
   const editCallsAfterStale = calls.filter(c => c[0] === 'edit_entry').length;
   const staleGuard = { callsAdded: editCallsAfterStale - editCallsBeforeStale, overlayTitle: overlay.title, overlayBody: overlay.body };
+  // cross-session guard: the dialog was opened on session 1, then the app switched to a
+  // DIFFERENT session whose running entry happens to carry the SAME entry id (42). Entry ids are
+  // per-session integers, so the id check alone must not be enough — save must be refused.
+  setState(currentEditFixture);
+  document.getElementById('current-edit-btn').onclick();
+  const editCallsBeforeCrossSession = calls.filter(c => c[0] === 'edit_entry').length;
+  setState({ ...currentEditFixture, session: { id: 2 } });
+  await document.getElementById('ef-save').onclick();
+  const crossSessionGuard = { callsAdded: calls.filter(c => c[0] === 'edit_entry').length - editCallsBeforeCrossSession, overlayTitle: overlay.title, overlayBody: overlay.body };
+  // missing record: the view model has no state.entries row for the active entry id, so the
+  // dialog must normalise the entry as running (empty description, no Logged toggle) instead of
+  // falling back to the raw currentEntry object (which has neither description nor loggedStatus).
+  setState({ session: { id: 1 },
+    currentEntry: { id: 55, task: 'orphan task', startTime: '2026-09-27T17:00:00Z' },
+    entries: currentEditFixture.entries });
+  document.getElementById('current-edit-btn').onclick();
+  const missingRecordOverlay = { title: overlay.title, body: overlay.body };
 
   process.stdout.write(JSON.stringify({ active, idle, afterStop, focusedOnOpen, calls: callsBeforeCurrentEdit, overlay: overlayBeforeCurrentEdit, closed, renderCalls, rows,
     finalTask: finalTaskBeforeCurrentEdit,
     finalRefreshHidden: finalRefreshHiddenBeforeCurrentEdit,
     selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
       collapsedCapture, outsideCapture, summaryRowHtml },
-    currentEditOverlay, currentEditCall, staleGuard }));
+    currentEditOverlay, currentEditCall, staleGuard, crossSessionGuard, missingRecordOverlay }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
 
@@ -549,6 +566,22 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertEqual(stale["callsAdded"], 0, "stale guard must not call edit_entry")
         self.assertIn("tracked entry changed", stale["overlayBody"],
                       "refusal overlay must mention the tracked entry changed")
+
+        # Cross-session guard: the same entry id in a different session must not be saved
+        cross = self.results["crossSessionGuard"]
+        self.assertEqual(cross["callsAdded"], 0,
+                         "a different session with the same entry id must not call edit_entry")
+        self.assertIn("tracked entry changed", cross["overlayBody"],
+                      "cross-session refusal overlay must mention the tracked entry changed")
+
+        # Missing view-model record: normalised as a running entry, so no Logged toggle and an
+        # empty (not blank-undefined) description
+        missing = self.results["missingRecordOverlay"]
+        self.assertEqual(missing["title"], "Edit current entry")
+        self.assertNotIn("ef-logged", missing["body"],
+                         "an active entry with no view-model record must not render a Logged toggle")
+        self.assertIn('id="ef-desc" value=""', missing["body"],
+                      "the normalised record must render an empty description value")
 
         # Fixes (1), (4), (5) live in app.js. Read the source rather than the run so the
         # guards cover the copy and the counter arithmetic, not just the painted classes.
