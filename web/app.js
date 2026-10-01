@@ -121,6 +121,7 @@ function renderCurrent() {
   const stopBtn = document.getElementById('stop-btn');
   const stopStartBtn = document.getElementById('stop-start-btn');
   const banner = document.getElementById('status-banner');
+  const editBtn = document.getElementById('current-edit-btn');
   const isTracking = Boolean(state.currentEntry);
   stopBtn.title = 'Stop tracking';
   stopBtn.setAttribute('aria-label', 'Stop tracking');
@@ -136,6 +137,7 @@ function renderCurrent() {
     label.setAttribute('aria-label', state.currentEntry.task);
     startEl.textContent = `Started ${fmtClock(state.currentEntry.startTime)}`;
     stopBtn.classList.remove('hidden');
+    editBtn.classList.remove('hidden');
     banner.textContent = 'ACTIVE';
     banner.className = 'status-banner active';
   } else {
@@ -144,6 +146,7 @@ function renderCurrent() {
     label.setAttribute('aria-label', 'Not tracking');
     startEl.textContent = '';
     stopBtn.classList.add('hidden');
+    editBtn.classList.add('hidden');
     banner.textContent = 'NOT TRACKING';
     banner.className = 'status-banner inactive';
   }
@@ -354,6 +357,7 @@ function wireActiveScreen() {
     handleResult(await api().stop_tracking());
   };
   document.getElementById('stop-start-btn').onclick = openStartNewTask;
+  document.getElementById('current-edit-btn').onclick = openCurrentEntryEdit;
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.onclick = () => {
       applyTab(btn.dataset.tab);
@@ -587,8 +591,8 @@ async function openStartNewTask() {
   };
 }
 
-function openEditEntry(e) {
-  openOverlay(`Edit #${e.id}`, `
+function openEditEntry(e, title, expectedCurrentId) {
+  openOverlay(title || `Edit #${e.id}`, `
     <div class="field-row"><label>Task</label><input id="ef-task" value="${escapeAttr(e.task)}"></div>
     <div class="field-row"><label>Description</label><input id="ef-desc" value="${escapeAttr(e.description)}"></div>
     ${e.loggedStatus !== 'N/A' ? `
@@ -598,7 +602,17 @@ function openEditEntry(e) {
       </label>` : ''}
     <button class="btn btn-primary overlay-submit" id="ef-save">Save</button>
   `);
+  // `autofocus` does not reliably focus inputs inserted into an already-open WebView2 page.
+  document.getElementById('ef-task').focus();
   document.getElementById('ef-save').onclick = async () => {
+    // Editing the active entry by id: the active entry can change (stop, stop-and-start,
+    // another session) while this overlay is open, and a stale id would then write to
+    // whatever now holds that id. Refuse rather than persist onto the wrong entry.
+    if (expectedCurrentId !== undefined && (!state.currentEntry || state.currentEntry.id !== expectedCurrentId)) {
+      closeOverlay();
+      handleResult({ ok: false, error: 'entry_not_active', message: 'The tracked entry changed while this was open, so nothing was saved.' });
+      return;
+    }
     const task = document.getElementById('ef-task').value;
     const desc = document.getElementById('ef-desc').value;
     const loggedEl = document.getElementById('ef-logged');
@@ -607,6 +621,16 @@ function openEditEntry(e) {
     closeOverlay();
     handleResult(r);
   };
+}
+
+function openCurrentEntryEdit() {
+  if (!state || !state.currentEntry) return;
+  const id = state.currentEntry.id;
+  // `currentEntry` carries only id/task/startTime; the description lives on the matching
+  // record in `state.entries`, so prefill from that record — matched by id, never from an
+  // arbitrary row — and fall back to `currentEntry` if the record is not in the view model.
+  const record = state.entries.find((entry) => entry.id === id) || state.currentEntry;
+  openEditEntry(record, 'Edit current entry', id);
 }
 
 /* Parked: openLogGroup backed the retired Log-tab "Log group" button. Summary rows now offer the same per-task Log action directly, so this popup is unreachable. It is kept commented rather than deleted (to restore it, uncomment this function and the binding in wireActiveScreen() and put the button back in index.html). The core APIs it used are unchanged.

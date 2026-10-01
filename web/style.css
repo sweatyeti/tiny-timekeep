@@ -301,7 +301,11 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   column-gap: 8px;
   margin-bottom: 12px;
 }
-.now-tracking-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
+/* Wrapper owns the grid-area so the label text and the edit button share the "label" cell */
+.now-tracking-label-row { grid-area: label; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.now-tracking-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
+/* Descendant selector deliberately beats the generic .icon-btn sizing */
+.now-tracking-label-row .current-edit-btn { flex: 0 0 auto; width: 26px; height: 26px; font-size: 12px; line-height: 1; padding: 0; }
 .now-tracking-start { grid-area: start; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--text-dim); }
 #companion { grid-area: companion; justify-self: end; }
 .now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }

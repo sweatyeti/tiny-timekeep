@@ -246,6 +246,31 @@ class TestWrapperPassesArgumentsThrough(FrontendCase):
         entry = next(e for e in self.api.get_state()["entries"] if e["id"] == 2)
         assert entry["task"] == "mulching", entry
         assert entry["description"] == "back bed", entry
+        # entry 2 is the active (running) entry
+        state = self.api.get_state()
+        assert state["currentEntry"]["id"] == 2, state["currentEntry"]
+        # record startTime so we can verify editing does not re-timestamp
+        recorded_start = state["currentEntry"]["startTime"]
+        # edit both task and description in a single call
+        result = self.api.edit_entry(2, "composting", "raised bed")
+        assert result["ok"] is True, result
+        state = result["state"]
+        assert state["currentEntry"]["task"] == "composting", state["currentEntry"]
+        # editing must not restart or re-timestamp the running entry
+        assert state["currentEntry"]["startTime"] == recorded_start, state["currentEntry"]
+        # restart: build a fresh Api over the same paths and resume the session
+        api2 = app_main.Api(storage_path=os.path.join(self.tmp, "sessions"),
+                            preferences_path=os.path.join(self.tmp, "preferences.json"))
+        api2.resume_session(state["session"]["id"])
+        state2 = api2.get_state()
+        entry2 = next(e for e in state2["entries"] if e["id"] == 2)
+        # persistence: new task and description survived the restart
+        assert entry2["task"] == "composting", entry2
+        assert entry2["description"] == "raised bed", entry2
+        # still the same running entry: startTime unchanged, no end, N/A status
+        assert entry2["startTime"] == recorded_start, entry2
+        assert entry2["endTime"] is None, entry2
+        assert entry2["loggedStatus"] == "N/A", entry2
 
     def test_logged_flag_only_applies_to_completed_named_entries(self):
         result = self.api.edit_entry(1, None, None, True)

@@ -85,6 +85,7 @@ const refreshIcon = makeElement('refresh-icon');
 refreshIcon.classList.add('hidden');
 start.refresh = refreshIcon;
 start.children.push(playIcon, refreshIcon);
+document.getElementById('current-edit-btn').classList.add('hidden');
 
 const ctx = {
   document,
@@ -126,6 +127,7 @@ const active = {
   taskText: document.getElementById('current-label').textContent,
   taskTitle: document.getElementById('current-label').title,
   refreshHidden: refreshIcon.classList.contains('hidden'),
+  editHidden: document.getElementById('current-edit-btn').classList.contains('hidden'),
   iconChildrenPreserved: start.children.length === childrenBeforeRender.length && start.children.every((child, i) => child === childrenBeforeRender[i])
 };
 
@@ -137,6 +139,7 @@ const idle = {
   startLabel: start.getAttribute('aria-label'),
   startTitle: start.title,
   refreshHidden: refreshIcon.classList.contains('hidden'),
+  editHidden: document.getElementById('current-edit-btn').classList.contains('hidden'),
   iconChildrenPreserved: start.children.length === childrenBeforeRender.length && start.children.every((child, i) => child === childrenBeforeRender[i])
 };
 
@@ -253,11 +256,49 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
   const focusedOnOpen = taskInputFocused;
   document.getElementById('sn-task').value = 'Next task';
   await document.getElementById('sn-go').onclick();
-  process.stdout.write(JSON.stringify({ active, idle, afterStop, focusedOnOpen, calls, overlay, closed, renderCalls, rows,
-    finalTask: document.getElementById('current-label').textContent,
-    finalRefreshHidden: refreshIcon.classList.contains('hidden'),
+
+  // --- current-entry edit control ---
+  // Snapshot first: the existing stop/start test pins the calls made by the older flows.
+  const callsBeforeCurrentEdit = calls.slice();
+  // The new section below reuses the same stub sinks (overlay object, #current-label,
+  // refreshIcon) that the older tests read at the end, so capture their values now.
+  const overlayBeforeCurrentEdit = overlay;
+  const finalTaskBeforeCurrentEdit = document.getElementById('current-label').textContent;
+  const finalRefreshHiddenBeforeCurrentEdit = refreshIcon.classList.contains('hidden');
+  const currentEditFixture = {
+    session: { id: 1 },
+    currentEntry: { id: 42, task: 'weeding the front bed', startTime: '2026-09-27T15:04:00Z' },
+    entries: [
+      { id: 42, task: 'weeding the front bed', description: 'front bed, "quoted" & <b>bolded</b>', startTime: '2026-09-27T15:04:00Z', endTime: null, isComplete: false, loggedStatus: 'N/A' },
+      { id: 7, task: 'mulching', description: 'back bed', startTime: '2026-09-27T15:00:00Z', endTime: '2026-09-27T15:30:00Z', isComplete: true, loggedStatus: 'Unlogged' }
+    ]
+  };
+  setState(currentEditFixture);
+  let efTaskFocused = false;
+  document.getElementById('ef-task').focus = () => { efTaskFocused = true; };
+  ctx.renderCurrent();
+  document.getElementById('current-edit-btn').onclick();
+  const currentEditOverlay = { title: overlay.title, body: overlay.body, focused: efTaskFocused };
+  document.getElementById('ef-task').value = 'weeding the back bed';
+  document.getElementById('ef-desc').value = 'back bed';
+  await document.getElementById('ef-save').onclick();
+  const currentEditCall = calls[calls.length - 1];
+  // stale guard: re-open, swap the active entry, then save must be refused
+  // (the stubbed edit_entry returns a partial state, so restore the fixture before reopening)
+  setState(currentEditFixture);
+  document.getElementById('current-edit-btn').onclick();
+  const editCallsBeforeStale = calls.filter(c => c[0] === 'edit_entry').length;
+  setState({ ...currentEditFixture, currentEntry: { id: 99, task: 'something else', startTime: '2026-09-27T16:00:00Z' } });
+  await document.getElementById('ef-save').onclick();
+  const editCallsAfterStale = calls.filter(c => c[0] === 'edit_entry').length;
+  const staleGuard = { callsAdded: editCallsAfterStale - editCallsBeforeStale, overlayTitle: overlay.title, overlayBody: overlay.body };
+
+  process.stdout.write(JSON.stringify({ active, idle, afterStop, focusedOnOpen, calls: callsBeforeCurrentEdit, overlay: overlayBeforeCurrentEdit, closed, renderCalls, rows,
+    finalTask: finalTaskBeforeCurrentEdit,
+    finalRefreshHidden: finalRefreshHiddenBeforeCurrentEdit,
     selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
-      collapsedCapture, outsideCapture, summaryRowHtml } }));
+      collapsedCapture, outsideCapture, summaryRowHtml },
+    currentEditOverlay, currentEditCall, staleGuard }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
 
@@ -360,8 +401,26 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
         ]
         self.assertEqual(
             [node["attrs"].get("id") for node in card_buttons],
-            ["stop-btn", "stop-start-btn"],
+            ["current-edit-btn", "stop-btn", "stop-start-btn"],
         )
+        # The Edit control for the active entry lives with the task name it edits.
+        edit_btn = self._by_id("current-edit-btn")
+        self.assertEqual(edit_btn["tag"], "button")
+        self.assertEqual(edit_btn["attrs"].get("type"), "button")
+        self.assertEqual(edit_btn["attrs"].get("aria-label"), "Edit current entry")
+        self.assertEqual(edit_btn["attrs"].get("title"), "Edit current entry")
+        self.assertIn("hidden", _classes(edit_btn))
+        wrapper = edit_btn["ancestors"][-1]
+        self.assertIn("now-tracking-label-row", _classes(wrapper))
+        wrapper_children = [
+            node for node in self.nodes
+            if node["ancestors"] and node["ancestors"][-1] is wrapper
+        ]
+        self.assertEqual(
+            [node["attrs"].get("id") for node in wrapper_children],
+            ["current-label", "current-edit-btn"],
+        )
+        self.assertIs(wrapper["ancestors"][-1], top)
 
     def test_timer_actions_are_icon_only_native_buttons_with_accessible_names(self):
         expected = {
@@ -454,6 +513,42 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertEqual(idle["startTitle"], "Start a new task")
         self.assertTrue(idle["refreshHidden"])
         self.assertTrue(idle["iconChildrenPreserved"])
+
+        self.assertFalse(active["editHidden"], "edit button must be visible when an entry is active")
+        self.assertTrue(idle["editHidden"], "edit button must be hidden when no entry is active")
+
+        edit_ov = self.results["currentEditOverlay"]
+        self.assertEqual(edit_ov["title"], "Edit current entry")
+        body = edit_ov["body"]
+
+        # Description: escaped form present in the overlay body
+        self.assertIn("front bed, &quot;quoted&quot; &amp; &lt;b&gt;bolded&lt;/b&gt;", body, "escaped description must appear in overlay body")
+        # Extract the ef-desc value attribute and confirm no raw special characters are unescaped
+        m = re.search(r'id="ef-desc"[^>]*value="([^"]*)"', body)
+        self.assertIsNotNone(m, "ef-desc field not found in overlay body")
+        desc_val = m.group(1)
+        self.assertEqual(desc_val, "front bed, &quot;quoted&quot; &amp; &lt;b&gt;bolded&lt;/b&gt;", "ef-desc value must be the HTML-escaped description")
+
+        # Task field carries the running entry's task
+        self.assertIn("weeding the front bed", body, "task field must carry the running entry's task")
+
+        # No ef-logged field (a running entry has loggedStatus 'N/A')
+        self.assertNotIn("ef-logged", body, "running entry must not render an ef-logged field")
+
+        # Task field was focused on open
+        self.assertTrue(edit_ov["focused"], "ef-task must be focused when the overlay opens")
+
+        # Recorded API call
+        self.assertEqual(
+            self.results["currentEditCall"],
+            ["edit_entry", 42, "weeding the back bed", "back bed", None],
+        )
+
+        # Stale guard: zero edit_entry calls and a refusal overlay
+        stale = self.results["staleGuard"]
+        self.assertEqual(stale["callsAdded"], 0, "stale guard must not call edit_entry")
+        self.assertIn("tracked entry changed", stale["overlayBody"],
+                      "refusal overlay must mention the tracked entry changed")
 
         # Fixes (1), (4), (5) live in app.js. Read the source rather than the run so the
         # guards cover the copy and the counter arithmetic, not just the painted classes.
@@ -662,6 +757,19 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(self._rule("#companion"), r"grid-area\s*:\s*companion")
         self.assertRegex(self._rule(".now-tracking-label"), r"text-overflow\s*:\s*ellipsis")
         self.assertRegex(self._rule(".now-tracking-label"), r"white-space\s*:\s*nowrap")
+        self.assertRegex(self._rule(".now-tracking-label-row"), r"grid-area\s*:\s*label")
+        self.assertRegex(self._rule(".now-tracking-label-row"), r"display\s*:\s*flex")
+        self.assertRegex(self._rule(".now-tracking-label-row"), r"gap\s*:\s*6px")
+        self.assertRegex(self._rule(".now-tracking-label-row"), r"min-width\s*:\s*0")
+        self.assertRegex(self._rule(".now-tracking-label"), r"flex\s*:\s*1\s+1\s+auto")
+        self.assertRegex(self._rule(".now-tracking-label"), r"min-width\s*:\s*0")
+        edit_rule = self._rule(".now-tracking-label-row .current-edit-btn")
+        self.assertRegex(edit_rule, r"flex\s*:\s*0\s+0\s+auto")
+        edit_w = re.search(r"width\s*:\s*(\d+)px", edit_rule)
+        edit_h = re.search(r"height\s*:\s*(\d+)px", edit_rule)
+        self.assertIsNotNone(edit_w, "Edit button width not found in CSS")
+        self.assertIsNotNone(edit_h, "Edit button height not found in CSS")
+        self.assertEqual(edit_w.group(1), edit_h.group(1))
 
     def test_minimum_window_accounts_for_scrollbar_before_companion(self):
         breakpoint = re.search(r"@media\s*\(max-width\s*:\s*(\d+)px\)", self.css)
@@ -700,6 +808,9 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         expanded_width = content_width - int(left_margin.group(1)) - int(right_margin.group(1))
         left_column = expanded_width - companion_width - column_gap
         self.assertGreaterEqual(left_column, stop_width + action_gap + start_width)
+        edit_width = css_px(self._rule(".now-tracking-label-row .current-edit-btn"), r"width\s*:\s*(\d+)px", "edit button width")
+        label_row_gap = css_px(self._rule(".now-tracking-label-row"), r"gap\s*:\s*(\d+)px", "label row gap")
+        self.assertGreaterEqual(left_column, edit_width + label_row_gap)
 
     def test_compact_geometry_visible_focus_and_log_column_template(self):
         stop = self._rule(".now-tracking-actions #stop-btn")
