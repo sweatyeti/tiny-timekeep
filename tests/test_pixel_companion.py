@@ -543,6 +543,36 @@ class TestPixelCompanionStyles(unittest.TestCase):
                     "{} {} animation clips at the bottom".format(avatar, state),
                 )
 
+        # The Dune Muad'Dib canvas is the one theme-specific avatar scaled up
+        # to fill the frame.  88 px is the tallest it can render without the
+        # 2 px awake bob clipping the top of the 92 px interior.  At
+        # --companion-scale: 1 it covered only 68 of those 92 px, which is
+        # what these assertions catch.
+        dune_canvas_width, dune_canvas_height, dune_scale = next(
+            dims for slug, dims in cases if slug == "muaddib-mouse"
+        )
+        dune_rendered_width = dune_canvas_width * dune_scale
+        dune_rendered_height = dune_canvas_height * dune_scale
+        self.assertLessEqual(
+            dune_rendered_height, inner_height - 2 * awake_motion,
+            "muaddib-mouse rendered height {} exceeds the {} px frame interior "
+            "minus the 2 px awake bob headroom".format(
+                dune_rendered_height, inner_height - 2 * awake_motion
+            ),
+        )
+        self.assertGreaterEqual(
+            dune_rendered_height, 0.99 * (inner_height - 2 * awake_motion),
+            "muaddib-mouse rendered height {} does not fill at least 99% of the "
+            "{} px available interior height".format(
+                dune_rendered_height, inner_height - 2 * awake_motion
+            ),
+        )
+        self.assertGreaterEqual(
+            dune_rendered_width, 0.9 * inner_width,
+            "muaddib-mouse rendered width {} does not fill at least 90% of the "
+            "{} px interior width".format(dune_rendered_width, inner_width),
+        )
+
     def test_theme_scoping_of_every_mapped_avatar(self):
         rules = self._companion_rules()
 

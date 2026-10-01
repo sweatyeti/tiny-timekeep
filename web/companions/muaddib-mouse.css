@@ -1,5 +1,10 @@
-/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68. */
-.companion-muaddib-mouse { --companion-scale: 1; display:none; position:relative; width:88px; height:68px; flex:none; }
+/* 88 × 68 canvas; all painted SVG shapes stay within 88 × 68.
+   Displayed at --companion-scale 1.2941 (113.88 × 88 CSS px) so the Dune
+   avatar fills the 124 × 92 frame interior.  88 px is the tallest the
+   artwork can be without the 2 px awake bob clipping it at the top; the
+   88:68 aspect leaves ~5 px letterboxing on each side.  This is the only
+   theme scaled up; every other avatar keeps --companion-scale: 1. */
+.companion-muaddib-mouse { --companion-scale: 1.2941; display:none; position:relative; width:88px; height:68px; flex:none; }
 body[data-theme="dune"] .companion-muaddib-mouse { display:block; }
 .companion-muaddib-mouse svg { display:block; overflow:visible; }
 .companion-muaddib-mouse .muaddib-mouse-sleep { display:none; }
