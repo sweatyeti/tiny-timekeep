@@ -865,8 +865,10 @@ process.stdout.write(JSON.stringify({
 
         # The sha256 below pins the corrective Muaddib artwork that followed the v2 preview:
         # the face is a single fur colour with the eyes as its only detail.  This art is neither
-        # the earlier approved sketch nor the whiskered v2 revision.  The right cheek contour
-        # was smoothed after the eyes-only revision to remove a concave notch at y41-43.
+        # the earlier approved sketch nor the whiskered v2 revision.  Two corrections landed on
+        # the right cheek: first the concave notch at y41-43 was filled, then the internal jaw
+        # outline that the whisker removal had left floating on the cheek was removed so the
+        # cheek is one contiguous fur mass behind a single exterior outline.
         muaddib_js = os.path.join(COMPANION_CSS, "muaddib-mouse.js")
         _muaddib_node_src = r"""
 const fs = require("fs");
@@ -926,8 +928,8 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
         _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
         self.assertEqual(
             _muaddib_result["hash"],
-            "492b7678dc3c6ead9b0251039d606b326df9bc9f33fe4682e460c1aa8141a0bd",
-            "pinned digest of the smoothed-cheek artwork (base + awake overlay)",
+            "4102e72c023f5982923c2307481e0becd1bbfd7f5ba03dc2850c7fc439cc1805",
+            "pinned digest of the seamless-cheek artwork (base + awake overlay)",
         )
         self.assertEqual(_muaddib_result["awakeCount"], 24)
         self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
@@ -976,6 +978,32 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
                     art_grid[y][x], ("D", "C", "H"),
                     f"face cell ({x},{y}) has key {art_grid[y][x]!r}; only D, C, H allowed",
                 )
+
+        # The whisker removal exposed the old internal jaw outline as a dark stripe floating
+        # on the cheek, and the user rejected that; the cheek must read as one contiguous
+        # fur mass with the eyes as its only internal detail.
+        FACE_INTERIOR = {
+            39: (28, 57),
+            40: (28, 58),
+            41: (29, 59),
+            42: (29, 59),
+            43: (30, 59),
+            44: (30, 58),
+        }
+        cells_scanned = 0
+        for y, (x0, x1) in FACE_INTERIOR.items():
+            for x in range(x0, x1 + 1):
+                cells_scanned += 1
+                self.assertIn(
+                    art_grid[y][x], ("D", "H"),
+                    f"face interior cell ({x},{y}) has key {art_grid[y][x]!r}; "
+                    "face interior may contain only fur and eyes - no internal "
+                    "dark stripe, no sliver of another colour",
+                )
+        self.assertEqual(
+            cells_scanned, 182,
+            "the face-interior scan must cover the whole cheek window",
+        )
 
         # Whisker pixels are gone: the dark "B" strands and the cream "E" shading must not appear
         # in the regions where v2 placed them.
