@@ -865,7 +865,8 @@ process.stdout.write(JSON.stringify({
 
         # The sha256 below pins the corrective Muaddib artwork that followed the v2 preview:
         # the face is a single fur colour with the eyes as its only detail.  This art is neither
-        # the earlier approved sketch nor the whiskered v2 revision.
+        # the earlier approved sketch nor the whiskered v2 revision.  The right cheek contour
+        # was smoothed after the eyes-only revision to remove a concave notch at y41-43.
         muaddib_js = os.path.join(COMPANION_CSS, "muaddib-mouse.js")
         _muaddib_node_src = r"""
 const fs = require("fs");
@@ -925,8 +926,8 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
         _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
         self.assertEqual(
             _muaddib_result["hash"],
-            "9c8c7ee10c05d8d4008d243b0299facfc06d69c80e4d729de994108e9d8fa9b1",
-            "pinned digest of the corrective artwork (base + awake overlay)",
+            "492b7678dc3c6ead9b0251039d606b326df9bc9f33fe4682e460c1aa8141a0bd",
+            "pinned digest of the smoothed-cheek artwork (base + awake overlay)",
         )
         self.assertEqual(_muaddib_result["awakeCount"], 24)
         self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
@@ -955,21 +956,21 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
         self.assertEqual(len(grid_str), 88 * 68, "grid must be 88x68")
         art_grid = [grid_str[y * 88:(y + 1) * 88] for y in range(68)]
 
-        # The face carries nothing but eyes: every cell inside the head that is not the dark
-        # outline "C" and not an eye "H" must be the single fur key "D".
-        FACE_ROWS = {
-            39: (28, 57),
-            40: (28, 58),
-            41: (29, 54),
-            42: (29, 54),
-            43: (30, 53),
-            44: (30, 58),
-            45: (31, 54),
-            46: (32, 53),
-            47: (34, 51),
-            48: (36, 49),
+        # The window now spans the whole head band, so the widened right cheek is covered
+        # by the same uniformity rule.
+        HEAD_ROWS = {
+            39: (25, 60),
+            40: (25, 60),
+            41: (25, 61),
+            42: (26, 61),
+            43: (26, 61),
+            44: (27, 61),
+            45: (28, 61),
+            46: (29, 62),
+            47: (30, 63),
+            48: (31, 62),
         }
-        for y, (x0, x1) in FACE_ROWS.items():
+        for y, (x0, x1) in HEAD_ROWS.items():
             for x in range(x0, x1 + 1):
                 self.assertIn(
                     art_grid[y][x], ("D", "C", "H"),
@@ -982,12 +983,30 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
             count = sum(1 for x in range(x0, x1 + 1) if art_grid[row][x] == key)
             self.assertEqual(count, 0, f"whisker key {key} found in row {row}, x {x0}-{x1}")
 
-        for (row, x0, x1) in ((40, 61, 65), (41, 57, 60), (42, 58, 60), (43, 56, 64)):
+        # The backdrop window starts right of the new cheek outline at x=60-61.
+        for (row, x0, x1) in ((40, 61, 66), (41, 62, 66), (42, 62, 66), (43, 62, 68)):
             for x in range(x0, x1 + 1):
                 self.assertEqual(
                     art_grid[row][x], "A",
                     f"backdrop expected at ({x},{row}); got {art_grid[row][x]!r}",
                 )
+
+        # The earlier eyes-only revision left a 5-6 px concave bite at y41-43 because the
+        # removed whiskers had been carrying the outer contour.  The measured silhouette for
+        # this artwork is [60, 60, 60, 60, 60, 61, 61, 61, 61].
+        silhouette = [
+            max(x for x in range(40, 67) if art_grid[y][x] != "A")
+            for y in range(36, 45)
+        ]
+        self.assertGreaterEqual(
+            min(silhouette), 60,
+            "the right cheek must not bite inward (silhouette %r)" % (silhouette,),
+        )
+        for i in range(len(silhouette) - 1):
+            self.assertLessEqual(
+                abs(silhouette[i + 1] - silhouette[i]), 1,
+                "the right cheek silhouette must be smooth (silhouette %r)" % (silhouette,),
+            )
 
         # The approved tail is unchanged from the v2 revision.
         tail = "".join(art_grid[y][x] for y in range(44, 59) for x in range(61, 79))
