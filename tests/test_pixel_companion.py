@@ -918,17 +918,69 @@ for (let y = 0; y < H; y++) {
   }
 }
 const hash = crypto.createHash("sha256").update(s, "utf8").digest("hex");
-console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCount: sleepRects.length, awakeKeys: awakeRects.map(r => r.k), sleepKeys: sleepRects.map(r => r.k)}));
+console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCount: sleepRects.length, awakeKeys: awakeRects.map(r => r.k), sleepKeys: sleepRects.map(r => r.k), grid: s}));
 """
         _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
         self.assertEqual(
             _muaddib_result["hash"],
-            "50fa9333d5e15063bba87d40b40c414d7529e712ff1a80db71636c56f6fd9f2c",
+            "53eb253c4f7d6826bf4e4bcb40526ac9adf388376b4ee4275d08b3b5d2fbbcf1",
         )
         self.assertEqual(_muaddib_result["awakeCount"], 24)
         self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
         self.assertEqual(_muaddib_result["sleepCount"], 2)
         self.assertTrue(all(k == "C" for k in _muaddib_result["sleepKeys"]))
+
+        # Matt's feedback on the approved sketch moved the tail root down to the rump and added
+        # facial whiskers. The hash above pins the approved-after-feedback art; the digest below
+        # proves the change touched nothing outside the two windows it was allowed to touch.
+        grid_str = _muaddib_result["grid"]
+        self.assertEqual(len(grid_str), 88 * 68)
+        art_grid = [grid_str[y * 88:(y + 1) * 88] for y in range(68)]
+
+        TAIL_WINDOW = (61, 36, 78, 58)
+        WHISKER_WINDOW = (33, 40, 67, 44)
+
+        outside_chars = []
+        for y in range(68):
+            for x in range(88):
+                in_tail = TAIL_WINDOW[0] <= x <= TAIL_WINDOW[2] and TAIL_WINDOW[1] <= y <= TAIL_WINDOW[3]
+                in_whisker = WHISKER_WINDOW[0] <= x <= WHISKER_WINDOW[2] and WHISKER_WINDOW[1] <= y <= WHISKER_WINDOW[3]
+                if not in_tail and not in_whisker:
+                    outside_chars.append(art_grid[y][x])
+        outside_hash = hashlib.sha256("".join(outside_chars).encode("utf-8")).hexdigest()
+        self.assertEqual(
+            outside_hash,
+            "180ef462194060c7a46375f977dec50764fdc8c2c27d3ae1667bd9f498e7ac0f",
+        )
+
+        # The tail no longer rises to eye level: in the originally approved sketch its topmost
+        # pixel was at y=36, level with the eyes.
+        tail_top = min(y for y in range(36, 59) for x in range(68, 79) if art_grid[y][x] != "A")
+        self.assertGreaterEqual(tail_top, 42)
+
+        # ... and it now visibly joins the body at the rump: the approved sketch left 12 backdrop
+        # pixels in this window, the joined tail leaves none.
+        backdrop_count = 0
+        for y in range(47, 51):
+            for x in range(61, 67):
+                if art_grid[y][x] == "A":
+                    backdrop_count += 1
+        self.assertEqual(backdrop_count, 0)
+
+        # Whiskers, both sides: dark strands over the cheek fur on the left (the approved sketch
+        # had none there) and a light strand past the muzzle on the right.
+        left_whisker_count = 0
+        for y in range(40, 42):
+            for x in range(33, 44):
+                if art_grid[y][x] == "B":
+                    left_whisker_count += 1
+        self.assertGreaterEqual(left_whisker_count, 8)
+
+        right_whisker_count = 0
+        for x in range(59, 66):
+            if art_grid[43][x] == "E":
+                right_whisker_count += 1
+        self.assertGreaterEqual(right_whisker_count, 5)
 
         # Fix (2): the awake turtle has two separate eyes inside its head, not one black bar.
         art = result["rendered"]["poolside"]
