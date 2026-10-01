@@ -863,7 +863,9 @@ process.stdout.write(JSON.stringify({
             r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)",
         )
 
-        # The sha256 below pins the user-approved Muaddib artwork (base + awake overlay).
+        # The sha256 below pins the corrective Muaddib artwork that followed the v2 preview:
+        # the face is a single fur colour with the eyes as its only detail.  This art is neither
+        # the earlier approved sketch nor the whiskered v2 revision.
         muaddib_js = os.path.join(COMPANION_CSS, "muaddib-mouse.js")
         _muaddib_node_src = r"""
 const fs = require("fs");
@@ -918,45 +920,87 @@ for (let y = 0; y < H; y++) {
   }
 }
 const hash = crypto.createHash("sha256").update(s, "utf8").digest("hex");
-console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCount: sleepRects.length, awakeKeys: awakeRects.map(r => r.k), sleepKeys: sleepRects.map(r => r.k), grid: s}));
+console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCount: sleepRects.length, awakeKeys: awakeRects.map(r => r.k), sleepKeys: sleepRects.map(r => r.k), awakeRects: awakeRects.map(r => [r.x, r.y, r.w, r.h, r.k]), sleepRects: sleepRects.map(r => [r.x, r.y, r.w, r.h, r.k]), grid: s}));
 """
         _muaddib_result = _run_node_json(_muaddib_node_src, muaddib_js)
         self.assertEqual(
             _muaddib_result["hash"],
-            "53eb253c4f7d6826bf4e4bcb40526ac9adf388376b4ee4275d08b3b5d2fbbcf1",
+            "9c8c7ee10c05d8d4008d243b0299facfc06d69c80e4d729de994108e9d8fa9b1",
+            "pinned digest of the corrective artwork (base + awake overlay)",
         )
         self.assertEqual(_muaddib_result["awakeCount"], 24)
         self.assertTrue(all(k == "H" for k in _muaddib_result["awakeKeys"]))
         self.assertEqual(_muaddib_result["sleepCount"], 2)
         self.assertTrue(all(k == "C" for k in _muaddib_result["sleepKeys"]))
 
-        # Matt's feedback on the approved sketch moved the tail root down to the rump and added
-        # facial whiskers. The hash above pins the approved-after-feedback art; the digest below
-        # proves the change touched nothing outside the two windows it was allowed to touch.
+        # The eye rects are unchanged from the rejected v2 revision.
+        self.assertEqual(
+            _muaddib_result["sleepRects"],
+            [[35, 37, 5, 1, "C"], [49, 36, 5, 1, "C"]],
+            "the closed-eye rects must be unchanged",
+        )
+        self.assertEqual(
+            _muaddib_result["awakeRects"],
+            [[36, 36, 1, 1, "H"], [36, 37, 1, 1, "H"], [36, 38, 1, 1, "H"], [36, 39, 1, 1, "H"],
+             [37, 36, 1, 1, "H"], [37, 37, 1, 1, "H"], [37, 38, 1, 1, "H"], [37, 39, 1, 1, "H"],
+             [38, 36, 1, 1, "H"], [38, 37, 1, 1, "H"], [38, 38, 1, 1, "H"], [38, 39, 1, 1, "H"],
+             [50, 35, 1, 1, "H"], [50, 36, 1, 1, "H"], [50, 37, 1, 1, "H"], [50, 38, 1, 1, "H"],
+             [51, 35, 1, 1, "H"], [51, 36, 1, 1, "H"], [51, 37, 1, 1, "H"], [51, 38, 1, 1, "H"],
+             [52, 35, 1, 1, "H"], [52, 36, 1, 1, "H"], [52, 37, 1, 1, "H"], [52, 38, 1, 1, "H"]],
+            "the open-eye rects must be unchanged",
+        )
+
+        # Split the painted grid into per-row strings for structural checks.
         grid_str = _muaddib_result["grid"]
-        self.assertEqual(len(grid_str), 88 * 68)
+        self.assertEqual(len(grid_str), 88 * 68, "grid must be 88x68")
         art_grid = [grid_str[y * 88:(y + 1) * 88] for y in range(68)]
 
-        TAIL_WINDOW = (61, 36, 78, 58)
-        WHISKER_WINDOW = (33, 40, 67, 44)
+        # The face carries nothing but eyes: every cell inside the head that is not the dark
+        # outline "C" and not an eye "H" must be the single fur key "D".
+        FACE_ROWS = {
+            39: (28, 57),
+            40: (28, 58),
+            41: (29, 54),
+            42: (29, 54),
+            43: (30, 53),
+            44: (30, 58),
+            45: (31, 54),
+            46: (32, 53),
+            47: (34, 51),
+            48: (36, 49),
+        }
+        for y, (x0, x1) in FACE_ROWS.items():
+            for x in range(x0, x1 + 1):
+                self.assertIn(
+                    art_grid[y][x], ("D", "C", "H"),
+                    f"face cell ({x},{y}) has key {art_grid[y][x]!r}; only D, C, H allowed",
+                )
 
-        outside_chars = []
-        for y in range(68):
-            for x in range(88):
-                in_tail = TAIL_WINDOW[0] <= x <= TAIL_WINDOW[2] and TAIL_WINDOW[1] <= y <= TAIL_WINDOW[3]
-                in_whisker = WHISKER_WINDOW[0] <= x <= WHISKER_WINDOW[2] and WHISKER_WINDOW[1] <= y <= WHISKER_WINDOW[3]
-                if not in_tail and not in_whisker:
-                    outside_chars.append(art_grid[y][x])
-        outside_hash = hashlib.sha256("".join(outside_chars).encode("utf-8")).hexdigest()
+        # Whisker pixels are gone: the dark "B" strands and the cream "E" shading must not appear
+        # in the regions where v2 placed them.
+        for (row, x0, x1, key) in ((40, 33, 38, "B"), (41, 39, 43, "B"), (44, 35, 47, "B")):
+            count = sum(1 for x in range(x0, x1 + 1) if art_grid[row][x] == key)
+            self.assertEqual(count, 0, f"whisker key {key} found in row {row}, x {x0}-{x1}")
+
+        for (row, x0, x1) in ((40, 61, 65), (41, 57, 60), (42, 58, 60), (43, 56, 64)):
+            for x in range(x0, x1 + 1):
+                self.assertEqual(
+                    art_grid[row][x], "A",
+                    f"backdrop expected at ({x},{row}); got {art_grid[row][x]!r}",
+                )
+
+        # The approved tail is unchanged from the v2 revision.
+        tail = "".join(art_grid[y][x] for y in range(44, 59) for x in range(61, 79))
         self.assertEqual(
-            outside_hash,
-            "180ef462194060c7a46375f977dec50764fdc8c2c27d3ae1667bd9f498e7ac0f",
+            hashlib.sha256(tail.encode("utf-8")).hexdigest(),
+            "92dfe1126c5d232cd0ae20268e7420c1cafb64fc09d461dd9c1afe154cac359b",
+            "the approved tail must be unchanged",
         )
 
         # The tail no longer rises to eye level: in the originally approved sketch its topmost
         # pixel was at y=36, level with the eyes.
         tail_top = min(y for y in range(36, 59) for x in range(68, 79) if art_grid[y][x] != "A")
-        self.assertGreaterEqual(tail_top, 42)
+        self.assertGreaterEqual(tail_top, 42, "tail must not rise above y=42")
 
         # ... and it now visibly joins the body at the rump: the approved sketch left 12 backdrop
         # pixels in this window, the joined tail leaves none.
@@ -965,23 +1009,7 @@ console.log(JSON.stringify({hash: hash, awakeCount: awakeRects.length, sleepCoun
             for x in range(61, 67):
                 if art_grid[y][x] == "A":
                     backdrop_count += 1
-        self.assertEqual(backdrop_count, 0)
-
-        # Whiskers, both sides: dark strands over the cheek fur on the left (the approved sketch
-        # had none there) and a light strand past the muzzle on the right.
-        left_whisker_count = 0
-        for y in range(40, 42):
-            for x in range(33, 44):
-                if art_grid[y][x] == "B":
-                    left_whisker_count += 1
-        self.assertGreaterEqual(left_whisker_count, 8)
-
-        right_whisker_count = 0
-        for x in range(59, 66):
-            if art_grid[43][x] == "E":
-                right_whisker_count += 1
-        self.assertGreaterEqual(right_whisker_count, 5)
-
+        self.assertEqual(backdrop_count, 0, "no backdrop pixels in the rump-join window")
         # Fix (2): the awake turtle has two separate eyes inside its head, not one black bar.
         art = result["rendered"]["poolside"]
         awake = re.search(r'<g class="poolside-turtle-awake">(.*?)</g>', art, re.S)
