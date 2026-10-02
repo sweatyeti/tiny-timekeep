@@ -105,8 +105,14 @@ async function renderSessionList() {
   for (const s of sessions) {
     const row = document.createElement('div');
     row.className = 'session-item';
-    const label = s.isUnfinished ? `${s.name} (unfinished)` : s.name;
-    row.innerHTML = `<span>${escapeHtml(label)}</span><button>Resume</button>`;
+    // The core's generated name carries a UTC clock; nothing stored is rewritten here — only the
+    // rendered label is localised (see sessionDisplayName). A name the user typed is shown as typed.
+    const displayName = sessionDisplayName(s);
+    const nameLine = s.isUnfinished ? `${displayName} (unfinished)` : displayName;
+    const escapedName = escapeHtml(nameLine);
+    const times = sessionTimeLine(s);
+    const timesHtml = times !== '' ? `<span class="session-times">${escapeHtml(times)}</span>` : '';
+    row.innerHTML = `<span class="session-info"><span class="session-name">${escapedName}</span>${timesHtml}</span><button aria-label="${escapeAttr('Resume ' + nameLine)}">Resume</button>`;
     row.querySelector('button').onclick = async () => {
       const r = await api().resume_session(s.id);
       handleResult(r);
@@ -816,6 +822,76 @@ function fmtHM(minutes) {
 function fmtClock(iso) {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// ---------- session list: local times ----------
+// The core named an unnamed session from its own UTC clock ("Session YYYY-MM-DD HH:mm"), and that
+// name is persisted and also names the document file — so it is never rewritten here. These helpers
+// only decide what the list DISPLAYS: a name that is exactly the core's generated form for that
+// session's own startedAt is shown as the local equivalent of that timestamp, and every other name
+// is shown exactly as stored. Sessions created after this change already carry a local name of that
+// shape from the app wrapper (main.py Api.start_session), which therefore never matches the UTC form.
+
+function parseSessionTimestamp(iso) {
+  if (typeof iso !== 'string') return null;
+  const trimmed = iso.trim();
+  if (trimmed === '') return null;
+  // The core reads an offset-less timestamp as UTC while JS would read it as local, so the UTC
+  // designator is added to keep the display agreeing with the value the core computed.
+  const tzRe = /(?:Z|[+-]\d{2}:?\d{2})$/;
+  const toParse = tzRe.test(trimmed) ? trimmed : trimmed + 'Z';
+  const d = new Date(toParse);
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+function fmtLocalDateTime(iso) {
+  const d = parseSessionTimestamp(iso);
+  if (d === null) return null;
+  const y = String(d.getFullYear()).padStart(4, '0');
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${mo}-${day} ${h}:${mi}`;
+}
+
+function coreGeneratedSessionName(iso) {
+  const d = parseSessionTimestamp(iso);
+  if (d === null) return null;
+  const y = String(d.getUTCFullYear()).padStart(4, '0');
+  const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const h = String(d.getUTCHours()).padStart(2, '0');
+  const mi = String(d.getUTCMinutes()).padStart(2, '0');
+  return `Session ${y}-${mo}-${day} ${h}:${mi}`;
+}
+
+function sessionDisplayName(s) {
+  const nameRe = /^Session \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+  if (typeof s.name === 'string' && nameRe.test(s.name)) {
+    const generated = coreGeneratedSessionName(s.startedAt);
+    if (generated !== null && s.name === generated) {
+      const local = fmtLocalDateTime(s.startedAt);
+      if (local !== null) {
+        return 'Session ' + local;
+      }
+    }
+  }
+  return s.name;
+}
+
+function sessionTimeLine(s) {
+  const parts = [];
+  const startStr = fmtLocalDateTime(s.startedAt);
+  if (startStr !== null) {
+    parts.push('Started ' + startStr);
+  }
+  const endStr = fmtLocalDateTime(s.endedAt);
+  if (endStr !== null) {
+    parts.push('Ended ' + endStr);
+  }
+  return parts.join(' \u00b7 ');
 }
 
 function getCompanionState(viewModel) {

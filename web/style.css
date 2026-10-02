@@ -268,8 +268,18 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   border: 2px solid var(--border-dark);
   padding: 10px;
   display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
 }
-.session-item button { font-family: var(--font-display); font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; }
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.session-name { overflow-wrap: anywhere; }
+.session-times { color: var(--text-dim); font-size: 15px; overflow-wrap: anywhere; }
+.session-item button { font-family: var(--font-display); font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; flex: 0 0 auto; white-space: nowrap; }
 .session-item.deleted-item { align-items: flex-start; }
 
 .now-tracking {

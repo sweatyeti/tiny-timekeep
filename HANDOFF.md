@@ -11,7 +11,8 @@ document is state: what's done, what's pending, and what to watch out for.
 
 **UI (`web/` + `main.py` + `preferences.py`):** built and working against
 the contract, currently on **contract v1.5**. Covers:
-- Start/resume screen (`list_sessions`, `start_session`, `resume_session`)
+- Start/resume screen (`list_sessions`, `start_session`, `resume_session`) — each saved session is
+  listed by name **and by its local start/end date-time** (see the local-time note below)
 - Active session: ACTIVE/NOT TRACKING banner, "Started HH:MM" (not a live
   elapsed clock — decided against ticking display), Stop / Start new /
   Stop & start new actions (entry starts immediately on click with task
@@ -117,6 +118,19 @@ imports it anymore.
   the suite and `--check` pass, and now also refuses to reuse a `.venv` built with an interpreter
   other than 3.14.7 (`-RecreateVenv` deletes and rebuilds it). Remaining: no installer, no startup
   shortcut, no code signing.
+- **Local time on the start/resume screen (2026-10-02).** The core names an unnamed session from its
+  own *UTC* clock (`Session YYYY-MM-DD HH:mm`); that name is persisted and is also what names the
+  document file, so it is never rewritten by the UI. Two rules make the list read locally:
+  `Api.start_session` (the app wrapper in `main.py` — the vendored core stays verbatim) substitutes a
+  **local**-time name of the same shape when the caller leaves the name blank, and `web/app.js`
+  displays a name that is exactly the core's generated form for that session's own `startedAt` as the
+  local equivalent of that timestamp — which is how sessions saved *before* the change are backfilled.
+  A name the user typed is shown exactly as typed, even one that looks like a timestamp; a document is
+  never renamed, rewritten or migrated, and stored `startedAt`/`endedAt` stay UTC ISO. Caveats: the
+  wrapper reads the wall clock microseconds before the core stamps the session, so a minute boundary
+  between those two reads can leave the stored label one minute off (the list always shows the
+  authoritative `startedAt`); and the display rule only rewrites a name that matches its own
+  `startedAt` minute exactly.
 - **Google Fonts are fetched from the CDN** by `web/index.html`, so a cold first launch waits on
   the network — measured **25.9 s** to `loaded` on a cold cache. Vendoring the font files into
   `web/` and dropping the remote `@import`/`<link>` removes both the stall and the offline

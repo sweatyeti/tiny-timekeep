@@ -16,9 +16,12 @@ import os
 import json
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
+from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -45,7 +48,7 @@ FIELDS_READ = {
                   "loggedStatus"},
     "summary[]": {"task", "count", "unloggedMinutes", "totalMinutes", "callout"},
     "totals": {"unloggedMinutes", "totalMinutes"},
-    "list_sessions[]": {"id", "name", "isUnfinished"},
+    "list_sessions[]": {"id", "name", "startedAt", "endedAt", "isUnfinished"},
     "list_loggable_task_groups[]": {"task", "unloggedCount"},
     "list_deleted_entries[]": {"id", "task", "startTime", "endTime", "description"},
 }
@@ -126,16 +129,23 @@ class TestFrontendCallsExist(unittest.TestCase):
 
 
 class TestFrontendFieldsExist(FrontendCase):
-    def test_live_view_model_carries_every_field_the_frontend_reads(self):
+    def test_every_field_the_frontend_reads_exists_in_a_live_payload(self):
         state = self.api.get_state()
-        for group in ("session", "currentEntry", "totals"):
-            missing = FIELDS_READ[group] - set(state[group])
-            assert missing == set(), f"{group} is missing {sorted(missing)}"
-        for group, payload in (("entries[]", state["entries"]), ("summary[]", state["summary"])):
-            missing = FIELDS_READ[group] - set(payload[0])
-            assert missing == set(), f"{group} is missing {sorted(missing)}"
-
-    def test_query_rows_carry_every_field_the_frontend_reads(self):
+        with self.subTest(group="session"):
+            missing = FIELDS_READ["session"] - set(state["session"])
+            assert missing == set(), f"session is missing {sorted(missing)}"
+        with self.subTest(group="currentEntry"):
+            missing = FIELDS_READ["currentEntry"] - set(state["currentEntry"])
+            assert missing == set(), f"currentEntry is missing {sorted(missing)}"
+        with self.subTest(group="totals"):
+            missing = FIELDS_READ["totals"] - set(state["totals"])
+            assert missing == set(), f"totals is missing {sorted(missing)}"
+        with self.subTest(group="entries[]"):
+            missing = FIELDS_READ["entries[]"] - set(state["entries"][0])
+            assert missing == set(), f"entries[] is missing {sorted(missing)}"
+        with self.subTest(group="summary[]"):
+            missing = FIELDS_READ["summary[]"] - set(state["summary"][0])
+            assert missing == set(), f"summary[] is missing {sorted(missing)}"
         rows = {
             "list_sessions[]": self.api.list_sessions(),
             "list_loggable_task_groups[]": self.api.list_loggable_task_groups(),
@@ -143,10 +153,18 @@ class TestFrontendFieldsExist(FrontendCase):
         self.api.stop_tracking()          # a running entry cannot be deleted
         self.api.delete_entry(2)
         rows["list_deleted_entries[]"] = self.api.list_deleted_entries()
-        for group, payload in rows.items():
-            assert payload, f"{group} came back empty — cannot check its shape"
-            missing = FIELDS_READ[group] - set(payload[0])
-            assert missing == set(), f"{group} is missing {sorted(missing)}"
+        with self.subTest(group="list_sessions[]"):
+            assert rows["list_sessions[]"], "list_sessions[] came back empty — cannot check its shape"
+            missing = FIELDS_READ["list_sessions[]"] - set(rows["list_sessions[]"][0])
+            assert missing == set(), f"list_sessions[] is missing {sorted(missing)}"
+        with self.subTest(group="list_loggable_task_groups[]"):
+            assert rows["list_loggable_task_groups[]"], "list_loggable_task_groups[] came back empty — cannot check its shape"
+            missing = FIELDS_READ["list_loggable_task_groups[]"] - set(rows["list_loggable_task_groups[]"][0])
+            assert missing == set(), f"list_loggable_task_groups[] is missing {sorted(missing)}"
+        with self.subTest(group="list_deleted_entries[]"):
+            assert rows["list_deleted_entries[]"], "list_deleted_entries[] came back empty — cannot check its shape"
+            missing = FIELDS_READ["list_deleted_entries[]"] - set(rows["list_deleted_entries[]"][0])
+            assert missing == set(), f"list_deleted_entries[] is missing {sorted(missing)}"
 
     def test_frontend_carries_no_removed_surface(self):
         for path in (APP_JS, INDEX_HTML, os.path.join(WEB, "style.css")):
@@ -230,6 +248,43 @@ class TestFrontendFieldsExist(FrontendCase):
         assert not re.search(r"\.tabs\s*\{[^}]*margin-bottom", css_code), ".tabs must not declare margin-bottom (moved to .tab-bar)"
         assert ".save-location-restore" in css_code, "style.css must contain the .save-location-restore rule"
         assert ".save-location-restore:disabled" in css_code, "style.css must contain the .save-location-restore:disabled rule"
+
+        # E. Session list reads in the viewer's local time
+        for fn in ("parseSessionTimestamp", "fmtLocalDateTime", "coreGeneratedSessionName",
+                   "sessionDisplayName", "sessionTimeLine"):
+            assert fn in js_code, f"js must define helper {fn}"
+        assert "coreGeneratedSessionName(s.startedAt)" in js_code, \
+            "generated-name guard must compare against the session's own startedAt"
+        assert "s.name === generated" in js_code, \
+            "generated-name guard must be an exact-match against s.name"
+        assert 'class="session-info"' in js_code, "rendered row must carry class=\"session-info\""
+        assert 'class="session-times"' in js_code, "rendered row must carry class=\"session-times\""
+        assert "escapeAttr('Resume ' + nameLine)" in js_code, \
+            "resume button must use escapeAttr('Resume ' + nameLine)"
+        start = js_code.index("async function renderSessionList")
+        end = js_code.index("function renderCurrent", start)
+        body = js_code[start:end]
+        assert body, "renderSessionList slice is empty"
+        assert "resume_session(" in body, "renderSessionList must call resume_session("
+        calls = set(re.findall(r"api\(\)\.(\w+)", body))
+        assert calls == {"list_sessions", "resume_session"}, \
+            f"renderSessionList must only call list_sessions and resume_session, found {sorted(calls)}"
+        css_stripped = re.sub(r"/\*.*?\*/", "", css_code, flags=re.DOTALL)
+        m = re.search(r"\.session-info\s*\{([^}]*)\}", css_stripped)
+        assert m is not None, "style.css must contain a .session-info rule"
+        assert "min-width: 0" in m.group(1), ".session-info must declare min-width: 0"
+        assert "flex: 1 1 auto" in m.group(1), ".session-info must declare flex: 1 1 auto"
+        m = re.search(r"\.session-name\s*\{([^}]*)\}", css_stripped)
+        assert m is not None, "style.css must contain a .session-name rule"
+        assert "overflow-wrap: anywhere" in m.group(1), ".session-name must declare overflow-wrap: anywhere"
+        m = re.search(r"\.session-times\s*\{([^}]*)\}", css_stripped)
+        assert m is not None, "style.css must contain a .session-times rule"
+        assert "overflow-wrap: anywhere" in m.group(1), ".session-times must declare overflow-wrap: anywhere"
+        assert "color: var(--text-dim)" in m.group(1), ".session-times must declare color: var(--text-dim)"
+        m = re.search(r"\.session-item\s+button\s*\{([^}]*)\}", css_stripped)
+        assert m is not None, "style.css must contain a .session-item button rule"
+        assert "flex: 0 0 auto" in m.group(1), ".session-item button must declare flex: 0 0 auto"
+        assert "white-space: nowrap" in m.group(1), ".session-item button must declare white-space: nowrap"
 
 
 class TestWrapperPassesArgumentsThrough(FrontendCase):
@@ -350,6 +405,343 @@ class TestChromeAndTheming(unittest.TestCase):
             300,
             "picker must fit within the 300 px minimum window width",
         )
+
+def _run_node_session_list(script, *args, tz=None):
+    cmd = ["node", "-e", script] + [str(a) for a in args]
+    kwargs = {"capture_output": True, "text": True, "timeout": 30}
+    if tz is not None:
+        kwargs["env"] = {**os.environ, "TZ": tz}
+    proc = subprocess.run(cmd, **kwargs)
+    if proc.returncode != 0:
+        raise AssertionError("Node script failed (exit {})\nstdout: {}\nstderr: {}".format(
+            proc.returncode, proc.stdout, proc.stderr))
+    return json.loads(proc.stdout)
+
+
+_NODE_SESSION_LIST = r"""
+const fs = require('fs');
+const vm = require('vm');
+
+const appPath = process.argv[1];
+const rows = JSON.parse(process.argv[2]);
+
+function makeStub() {
+  var attrs = {};
+  var classes = new Set();
+  var stub = {
+    className: '',
+    innerHTML: '',
+    style: {},
+    children: [],
+    onclick: null,
+    appendChild: function(child) { this.children.push(child); return child; },
+    classList: {
+      add: function() { for (var i = 0; i < arguments.length; i++) classes.add(arguments[i]); },
+      remove: function() { for (var i = 0; i < arguments.length; i++) classes.delete(arguments[i]); },
+      contains: function(c) { return classes.has(c); },
+      toggle: function(c) { if (classes.has(c)) classes.delete(c); else classes.add(c); }
+    },
+    setAttribute: function(k, v) { attrs[k] = v; },
+    getAttribute: function(k) { return Object.prototype.hasOwnProperty.call(attrs, k) ? attrs[k] : null; },
+    querySelector: function() { return makeStub(); },
+    querySelectorAll: function() { return []; },
+    focus: function() {},
+    click: function() {},
+    addEventListener: function() {},
+    removeEventListener: function() {}
+  };
+  return stub;
+}
+
+var elementMap = {};
+var bodyStub = makeStub();
+
+var document = {
+  getElementById: function(id) {
+    if (!elementMap[id]) elementMap[id] = makeStub();
+    return elementMap[id];
+  },
+  createElement: function() { return makeStub(); },
+  querySelector: function() { return null; },
+  querySelectorAll: function() { return []; },
+  body: bodyStub,
+  addEventListener: function() {},
+  removeEventListener: function() {}
+};
+
+var source = fs.readFileSync(appPath, 'utf8');
+
+var ctx = vm.createContext({
+  console: console,
+  Date: Date,
+  Math: Math,
+  Promise: Promise,
+  setTimeout: setTimeout,
+  clearTimeout: clearTimeout,
+  setInterval: setInterval,
+  clearInterval: clearInterval,
+  document: document,
+  addEventListener: function() {},
+  removeEventListener: function() {}
+});
+ctx.window = ctx;
+
+vm.runInContext(source, ctx);
+
+ctx.window.pywebview = {
+  api: {
+    list_sessions: function() { return Promise.resolve(rows); },
+    resume_session: function() { return Promise.resolve({ ok: true, state: { session: null } }); }
+  }
+};
+
+ctx.renderSessionList().then(function() {
+  var listEl = document.getElementById('session-list');
+  var out = {
+    rows: listEl.children.map(function(child) {
+      var html = child.innerHTML;
+      var nameMatch = html.match(/class="session-name">([^<]*)/);
+      var timesMatch = html.match(/class="session-times">([^<]*)/);
+      var ariaMatch = html.match(/aria-label="([^"]*)"/);
+      return {
+        className: child.className,
+        html: html,
+        name: nameMatch ? nameMatch[1] : null,
+        times: timesMatch ? timesMatch[1] : null,
+        aria: ariaMatch ? ariaMatch[1] : null
+      };
+    }),
+    containerHtml: listEl.innerHTML
+  };
+  process.stdout.write(JSON.stringify(out));
+}).catch(function(err) {
+  process.stderr.write(String(err && err.stack || err));
+  process.exit(1);
+});
+"""
+
+
+class TestSessionListLocalization(unittest.TestCase):
+    """Pins two rules: (1) generated session names and the list view display in the viewer's local time;
+    (2) stored session documents are never rewritten, renamed, or migrated by the API or renderer."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix="koot-session-list-")
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def _api(self, suffix=""):
+        return app_main.Api(
+            storage_path=os.path.join(self.tmp, "sessions" + suffix),
+            preferences_path=os.path.join(self.tmp, "preferences" + suffix + ".json"),
+        )
+
+    @staticmethod
+    def _parse_name_suffix(name):
+        return datetime.strptime(name[len("Session "):], "%Y-%m-%d %H:%M")
+
+    def test_session_list_localises_times_and_the_initial_name(self):
+        # ── PART A: initial nameless session is named locally ──
+        api = self._api()
+        result = api.start_session(None, "weeding")
+        self.assertIs(result["ok"], True, "start_session ok")
+        row = api.list_sessions()[0]
+        self.assertIsNotNone(
+            re.fullmatch(r"Session \d{4}-\d{2}-\d{2} \d{2}:\d{2}", row["name"]),
+            f"generated name format: {row['name']}")
+        local_start = datetime.fromisoformat(row["startedAt"]).astimezone().replace(tzinfo=None)
+        named = self._parse_name_suffix(row["name"])
+        # Tolerance: the wrapper reads the wall clock just before the core stamps the session,
+        # so a minute boundary between those two reads can shift the label by one minute;
+        # the list itself always shows the authoritative startedAt.
+        self.assertLessEqual(
+            abs((named - local_start).total_seconds()), 60,
+            f"name {row['name']} vs local start {local_start}")
+        self.assertTrue(row["startedAt"].endswith("+00:00"), f"startedAt UTC: {row['startedAt']}")
+        json_files = [f for f in os.listdir(os.path.join(self.tmp, "sessions")) if f.endswith(".json")]
+        self.assertEqual(len(json_files), 1, f"expected exactly one session file, found: {json_files}")
+        with open(os.path.join(self.tmp, "sessions", json_files[0]), "r") as f:
+            doc = json.load(f)
+        self.assertEqual(doc["startedAt"], row["startedAt"], "stored startedAt unchanged")
+        self.assertEqual(doc["name"], row["name"], "stored name matches local-time name shown in list")
+        api.start_session("Garden work", "weeding")
+        self.assertIn("Garden work", [r["name"] for r in api.list_sessions()], "explicit name preserved")
+
+        # ── PART B: existing document is never rewritten, renamed, or migrated ──
+        legacy_path = os.path.join(self.tmp, "sessions", "legacy-session.json")
+        os.makedirs(os.path.dirname(legacy_path), exist_ok=True)
+        legacy_doc = {
+            "schemaVersion": 2,
+            "sessionId": "11111111-2222-3333-4444-555555555555",
+            "name": "Session 2026-10-01 13:30",
+            "startedAt": "2026-10-01T13:30:46+00:00",
+            "endedAt": "2026-10-01T14:15:12+00:00",
+            "entries": [],
+        }
+        with open(legacy_path, "w") as f:
+            json.dump(legacy_doc, f)
+
+        def _read_bytes(path):
+            with open(path, "rb") as handle:
+                return handle.read()
+
+        snapshot = _read_bytes(legacy_path)
+        api2 = self._api()
+        rows = api2.list_sessions()
+        legacy_row = next(r for r in rows if r["id"] == "11111111-2222-3333-4444-555555555555")
+        self.assertEqual(legacy_row["name"], "Session 2026-10-01 13:30", "legacy name")
+        self.assertEqual(legacy_row["startedAt"], "2026-10-01T13:30:46+00:00", "legacy startedAt")
+        self.assertTrue(os.path.isfile(legacy_path), "legacy exists after list_sessions")
+        self.assertEqual(_read_bytes(legacy_path), snapshot, "legacy bytes after list_sessions")
+        api2.start_session("After the legacy", "x")
+        self.assertTrue(os.path.isfile(legacy_path), "legacy exists after start_session")
+        self.assertEqual(_read_bytes(legacy_path), snapshot, "legacy bytes after start_session")
+
+        # ── PART C: TZ-pinned name generation (Windows has no time.tzset, so this is skipped there) ──
+        if hasattr(time, "tzset"):
+            orig_tz = os.environ.get("TZ")
+            try:
+                for zone in ("America/New_York", "Asia/Kolkata"):
+                    with self.subTest(zone=zone):
+                        os.environ["TZ"] = zone
+                        time.tzset()
+                        api_tz = self._api(suffix=f"-{zone.replace('/', '_')}")
+                        api_tz.start_session(None, "task")
+                        row_tz = api_tz.list_sessions()[0]
+                        local_start_tz = datetime.fromisoformat(row_tz["startedAt"]).astimezone().replace(tzinfo=None)
+                        named_tz = self._parse_name_suffix(row_tz["name"])
+                        self.assertLessEqual(
+                            abs((named_tz - local_start_tz).total_seconds()), 60,
+                            f"{zone}: name {row_tz['name']} vs local {local_start_tz}")
+                        utc_label = "Session " + datetime.fromisoformat(row_tz["startedAt"]).strftime("%Y-%m-%d %H:%M")
+                        self.assertNotEqual(row_tz["name"], utc_label,
+                                            f"{zone}: name must be local, not UTC ({utc_label})")
+            finally:
+                if orig_tz is None:
+                    os.environ.pop("TZ", None)
+                else:
+                    os.environ["TZ"] = orig_tz
+                time.tzset()
+
+        # ── PART D: the real renderer under pinned timezones ──
+        def _render(fixtures, tz):
+            return _run_node_session_list(_NODE_SESSION_LIST, APP_JS, json.dumps(fixtures), tz=tz)
+
+        with self.subTest(case=1, desc="NY generated name localised"):
+            fixtures = [{"name": "Session 2026-10-01 13:30", "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": "2026-10-01T14:15:00+00:00", "isUnfinished": False, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["name"], "Session 2026-10-01 09:30", f"NY name: {r['name']}")
+            self.assertEqual(r["times"], "Started 2026-10-01 09:30 \u00b7 Ended 2026-10-01 10:15", f"NY times: {r['times']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("Session 2026-10-01 09:30", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=2, desc="Kolkata half-hour offset"):
+            fixtures = [{"name": "Session 2026-10-01 13:30", "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": "2026-10-01T14:15:00+00:00", "isUnfinished": False, "isUnreadable": False}]
+            out = _render(fixtures, "Asia/Kolkata")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["name"], "Session 2026-10-01 19:00", f"Kolkata name: {r['name']}")
+            self.assertEqual(r["times"], "Started 2026-10-01 19:00 \u00b7 Ended 2026-10-01 19:45", f"Kolkata times: {r['times']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("Session 2026-10-01 19:00", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=3, desc="DST one-hour difference"):
+            fixtures = [
+                {"name": "Session 2026-07-15 13:30", "startedAt": "2026-07-15T13:30:00+00:00",
+                 "endedAt": None, "isUnfinished": False, "isUnreadable": False},
+                {"name": "Session 2026-01-15 13:30", "startedAt": "2026-01-15T13:30:00+00:00",
+                 "endedAt": None, "isUnfinished": False, "isUnreadable": False},
+            ]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            n1 = self._parse_name_suffix(out["rows"][0]["name"])
+            n2 = self._parse_name_suffix(out["rows"][1]["name"])
+            diff_min = abs((n1.hour * 60 + n1.minute) - (n2.hour * 60 + n2.minute))
+            self.assertEqual(diff_min, 60, f"DST rows differ by {diff_min} min, expected 60")
+
+        with self.subTest(case=4, desc="day rollover"):
+            fixtures = [{"name": "rollover", "startedAt": "2026-10-02T03:00:00+00:00",
+                         "endedAt": "2026-10-02T04:30:00+00:00", "isUnfinished": False, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["times"], "Started 2026-10-01 23:00 \u00b7 Ended 2026-10-02 00:30", f"rollover: {r['times']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("rollover", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=5, desc="custom name + unfinished"):
+            fixtures = [{"name": "Garden work", "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": None, "isUnfinished": True, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["name"], "Garden work (unfinished)", f"unfinished name: {r['name']}")
+            self.assertEqual(r["times"], "Started 2026-10-01 09:30", f"unfinished times: {r['times']}")
+            self.assertNotIn("Ended", r["times"], "no fabricated end")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("Garden work (unfinished)", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=6, desc="handwritten lookalike not translated"):
+            fixtures = [{"name": "Session 2020-01-01 09:00", "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": None, "isUnfinished": True, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["name"], "Session 2020-01-01 09:00 (unfinished)", f"lookalike: {r['name']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("Session 2020-01-01 09:00 (unfinished)", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=7, desc="wrapper local name not double-translated"):
+            fixtures = [{"name": "Session 2026-10-01 09:30", "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": None, "isUnfinished": True, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertEqual(r["name"], "Session 2026-10-01 09:30 (unfinished)", f"no double-translate: {r['name']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+            self.assertIn("Session 2026-10-01 09:30 (unfinished)", r["aria"], f"aria name: {r['aria']}")
+
+        with self.subTest(case=8, desc="unreadable timestamps"):
+            fixtures = [
+                {"name": "broken", "startedAt": "not-a-timestamp", "endedAt": "also-bad",
+                 "isUnfinished": False, "isUnreadable": False},
+                {"name": "unreadable", "startedAt": None, "endedAt": None,
+                 "isUnfinished": False, "isUnreadable": False},
+            ]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            for i, (r, exp) in enumerate(zip(out["rows"], ["broken", "unreadable"])):
+                self.assertEqual(r["className"], "session-item", f"className row {i}")
+                self.assertIsNone(r["times"], f"times None row {i}: {r['times']}")
+                self.assertEqual(r["name"], exp, f"name row {i}: {r['name']}")
+                self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix row {i}")
+                self.assertIn(exp, r["aria"], f"aria name row {i}")
+
+        with self.subTest(case=9, desc="HTML escaping"):
+            fixtures = [{"name": 'Garden <b>work</b> & "co"', "startedAt": "2026-10-01T13:30:00+00:00",
+                         "endedAt": None, "isUnfinished": False, "isUnreadable": False}]
+            out = _render(fixtures, "America/New_York")
+            self.assertEqual(len(out["rows"]), len(fixtures), "canary row count")
+            r = out["rows"][0]
+            self.assertEqual(r["className"], "session-item", "className")
+            self.assertIn("&lt;b&gt;", r["html"], f"escaped: {r['html']}")
+            self.assertNotIn("<b>", r["html"], f"no raw tag: {r['html']}")
+            self.assertTrue(r["aria"].startswith("Resume "), f"aria prefix: {r['aria']}")
+
+        with self.subTest(case=10, desc="empty list"):
+            out = _render([], "America/New_York")
+            self.assertEqual(out["rows"], [], "empty rows")
+            self.assertIn("No saved sessions yet.", out["containerHtml"], f"empty msg: {out['containerHtml']}")
+
 
 if __name__ == "__main__":
     unittest.main()

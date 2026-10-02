@@ -355,6 +355,11 @@ class Api:
         return self.core.list_sessions()
 
     def start_session(self, name=None, first_task=None):
+        # The core's own generator names an unnamed session from its UTC clock; that name is
+        # persisted, names the document file, and is shown to the user, so the wrapper supplies
+        # a local-time name instead. The vendored core is deliberately left untouched.
+        if name is None or str(name).strip() == "":
+            name = "Session " + datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
         return self._after_core_save(self.core.start_session(name, first_task))
 
     def resume_session(self, session_id):
