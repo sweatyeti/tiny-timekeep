@@ -128,6 +128,7 @@ function renderCurrent() {
   const stopStartBtn = document.getElementById('stop-start-btn');
   const banner = document.getElementById('status-banner');
   const editBtn = document.getElementById('current-edit-btn');
+  const descEl = document.getElementById('current-desc');
   const isTracking = Boolean(state.currentEntry);
   stopBtn.title = 'Stop tracking';
   stopBtn.setAttribute('aria-label', 'Stop tracking');
@@ -156,7 +157,20 @@ function renderCurrent() {
     banner.textContent = 'NOT TRACKING';
     banner.className = 'status-banner inactive';
   }
+  renderCurrentDescription(descEl);
   updateElapsedCounter();
+}
+
+// The running entry's description lives on its own state.entries record (state.currentEntry has
+// none), matched by id so no other row can supply it. A null, missing or whitespace-only
+// description clears and hides the line instead of reserving an empty row.
+function renderCurrentDescription(descEl) {
+  if (!descEl) return;
+  const entries = Array.isArray(state.entries) ? state.entries : [];
+  const record = state.currentEntry ? entries.find((entry) => entry.id === state.currentEntry.id) : null;
+  const description = record && typeof record.description === 'string' ? record.description.trim() : '';
+  descEl.textContent = description;
+  descEl.classList.toggle('hidden', description === '');
 }
 
 let _elapsedTimerId = null;

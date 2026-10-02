@@ -312,8 +312,15 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   margin-bottom: 12px;
 }
 /* Wrapper owns the grid-area so the label text and the edit button share the "label" cell */
-.now-tracking-label-row { grid-area: label; display: flex; align-items: center; gap: 6px; min-width: 0; }
-.now-tracking-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
+.now-tracking-label-row { grid-area: label; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* The title line keeps the Edit control a fixed small gap after the rendered task title instead of
+   at the far edge of the cell. The label shrinks (never grows) so the button stays beside short
+   titles and the title ellipsizes when the row is too narrow for both. */
+.now-tracking-title-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.now-tracking-label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
+/* The running entry's description: muted, directly under the title, wrapping within the cell.
+   The .hidden class removes it from the layout entirely when there is no description. */
+.now-tracking-desc { min-width: 0; font-size: 15px; color: var(--text-dim); white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Descendant selector deliberately beats the generic .icon-btn sizing */
 .now-tracking-label-row .current-edit-btn { flex: 0 0 auto; width: 26px; height: 26px; font-size: 12px; line-height: 1; padding: 0; }
 /* Keyboard focus indicator for the edit button, matching timer controls */

@@ -310,12 +310,37 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
   document.getElementById('current-edit-btn').onclick();
   const missingRecordOverlay = { title: overlay.title, body: overlay.body };
 
+  // --- current-entry description line ---
+  // The description must come from the RUNNING entry's own state.entries record (matched by id),
+  // be set as text (never HTML), and be hidden — occupying no space — when it is absent or blank.
+  const descEl = document.getElementById('current-desc');
+  const descSamples = {};
+  function sampleDesc(name, fixture) {
+    setState(fixture);
+    ctx.renderCurrent();
+    descSamples[name] = {
+      text: descEl.textContent,
+      hidden: descEl.classList.contains('hidden'),
+      html: descEl.innerHTML
+    };
+  }
+  const runningEntry = currentEditFixture.currentEntry;
+  sampleDesc('matched', currentEditFixture);
+  sampleDesc('empty', { session: { id: 1 }, currentEntry: runningEntry,
+    entries: [{ id: 42, task: 'weeding the front bed', description: '   ', startTime: 'x' }] });
+  sampleDesc('nullDescription', { session: { id: 1 }, currentEntry: runningEntry,
+    entries: [{ id: 42, task: 'weeding the front bed', description: null, startTime: 'x' }] });
+  sampleDesc('staleIdOnly', { session: { id: 1 }, currentEntry: runningEntry,
+    entries: [{ id: 7, task: 'another row', description: 'another row description', startTime: 'x' }] });
+  sampleDesc('noEntries', { session: { id: 1 }, currentEntry: runningEntry });
+  sampleDesc('idle', { session: { id: 1 }, currentEntry: null, entries: currentEditFixture.entries });
+
   process.stdout.write(JSON.stringify({ active, idle, afterStop, focusedOnOpen, calls: callsBeforeCurrentEdit, overlay: overlayBeforeCurrentEdit, closed, renderCalls, rows,
     finalTask: finalTaskBeforeCurrentEdit,
     finalRefreshHidden: finalRefreshHiddenBeforeCurrentEdit,
     selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
       collapsedCapture, outsideCapture, summaryRowHtml },
-    currentEditOverlay, currentEditCall, staleGuard, crossSessionGuard, missingRecordOverlay }));
+    currentEditOverlay, currentEditCall, staleGuard, crossSessionGuard, missingRecordOverlay, descSamples }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
 
@@ -420,24 +445,41 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
             [node["attrs"].get("id") for node in card_buttons],
             ["current-edit-btn", "stop-btn", "stop-start-btn"],
         )
-        # The Edit control for the active entry lives with the task name it edits.
+        # The Edit control for the active entry lives with the task name it edits, on a title line
+        # whose only children are the task name and the button, so the button can sit beside the
+        # rendered title instead of at the far edge of the cell.
         edit_btn = self._by_id("current-edit-btn")
         self.assertEqual(edit_btn["tag"], "button")
         self.assertEqual(edit_btn["attrs"].get("type"), "button")
         self.assertEqual(edit_btn["attrs"].get("aria-label"), "Edit current entry")
         self.assertEqual(edit_btn["attrs"].get("title"), "Edit current entry")
         self.assertIn("hidden", _classes(edit_btn))
-        wrapper = edit_btn["ancestors"][-1]
-        self.assertIn("now-tracking-label-row", _classes(wrapper))
-        wrapper_children = [
+        title_line = edit_btn["ancestors"][-1]
+        self.assertIn("now-tracking-title-line", _classes(title_line))
+        title_line_children = [
             node for node in self.nodes
-            if node["ancestors"] and node["ancestors"][-1] is wrapper
+            if node["ancestors"] and node["ancestors"][-1] is title_line
         ]
         self.assertEqual(
-            [node["attrs"].get("id") for node in wrapper_children],
+            [node["attrs"].get("id") for node in title_line_children],
             ["current-label", "current-edit-btn"],
         )
-        self.assertIs(wrapper["ancestors"][-1], top)
+        label_row = title_line["ancestors"][-1]
+        self.assertIn("now-tracking-label-row", _classes(label_row))
+        # The muted description line is the row's second child: under the title, and shipped empty
+        # and hidden so a running entry with no description reserves no space.
+        desc = self._by_id("current-desc")
+        self.assertEqual(desc["tag"], "div")
+        self.assertEqual(_classes(desc), {"now-tracking-desc", "hidden"})
+        label_row_children = [
+            node for node in self.nodes
+            if node["ancestors"] and node["ancestors"][-1] is label_row
+        ]
+        self.assertEqual(
+            [_classes(node) for node in label_row_children],
+            [{"now-tracking-title-line"}, {"now-tracking-desc", "hidden"}],
+        )
+        self.assertIs(label_row["ancestors"][-1], top)
 
     def test_timer_actions_are_icon_only_native_buttons_with_accessible_names(self):
         expected = {
@@ -533,6 +575,18 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
 
         self.assertFalse(active["editHidden"], "edit button must be visible when an entry is active")
         self.assertTrue(idle["editHidden"], "edit button must be hidden when no entry is active")
+
+        # The muted description under the title is read from the running entry's OWN state.entries
+        # record (matched by id), set as text, and hidden with no reserved space when it is absent.
+        desc = self.results["descSamples"]
+        self.assertEqual(desc["matched"]["text"], "front bed, \"quoted\" & <b>bolded</b>")
+        self.assertFalse(desc["matched"]["hidden"], "a running entry's description must be shown")
+        self.assertEqual(desc["matched"]["html"], "", "the description must be set as text, never HTML")
+        # A blank, null, missing, or other-row description must never leak onto the running entry.
+        for name in ("empty", "nullDescription", "staleIdOnly", "noEntries", "idle"):
+            with self.subTest(sample=name):
+                self.assertEqual(desc[name]["text"], "", "no description must leave the line empty")
+                self.assertTrue(desc[name]["hidden"], "no description must hide the line entirely")
 
         edit_ov = self.results["currentEditOverlay"]
         self.assertEqual(edit_ov["title"], "Edit current entry")
@@ -792,10 +846,22 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(self._rule(".now-tracking-label"), r"white-space\s*:\s*nowrap")
         self.assertRegex(self._rule(".now-tracking-label-row"), r"grid-area\s*:\s*label")
         self.assertRegex(self._rule(".now-tracking-label-row"), r"display\s*:\s*flex")
+        self.assertRegex(self._rule(".now-tracking-label-row"), r"flex-direction\s*:\s*column")
         self.assertRegex(self._rule(".now-tracking-label-row"), r"gap\s*:\s*6px")
         self.assertRegex(self._rule(".now-tracking-label-row"), r"min-width\s*:\s*0")
-        self.assertRegex(self._rule(".now-tracking-label"), r"flex\s*:\s*1\s+1\s+auto")
+        # The title line holds the task name and the Edit control: a fixed small gap, and the name
+        # shrinks (flex-grow 0) so the button stays beside the RENDERED title rather than being
+        # pushed to the far edge of the cell next to the companion.
+        self.assertRegex(self._rule(".now-tracking-title-line"), r"display\s*:\s*flex")
+        self.assertRegex(self._rule(".now-tracking-title-line"), r"gap\s*:\s*6px")
+        self.assertRegex(self._rule(".now-tracking-title-line"), r"min-width\s*:\s*0")
+        self.assertRegex(self._rule(".now-tracking-label"), r"flex\s*:\s*0\s+1\s+auto")
         self.assertRegex(self._rule(".now-tracking-label"), r"min-width\s*:\s*0")
+        # The running entry's description: muted, under the title, wrapping inside the cell.
+        desc_rule = self._rule(".now-tracking-desc")
+        self.assertRegex(desc_rule, r"min-width\s*:\s*0")
+        self.assertRegex(desc_rule, r"color\s*:\s*var\(--text-dim\)")
+        self.assertRegex(desc_rule, r"overflow-wrap\s*:\s*anywhere")
         edit_rule = self._rule(".now-tracking-label-row .current-edit-btn")
         self.assertRegex(edit_rule, r"flex\s*:\s*0\s+0\s+auto")
         edit_w = re.search(r"width\s*:\s*(\d+)px", edit_rule)
@@ -970,7 +1036,7 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertRegex(self._rule("html, body"), r"user-select\s*:\s*none")
         self.assertRegex(self._rule("input, textarea"), r"user-select\s*:\s*text")
         for selector in (".summary-row", ".summary-head", "#entry-rows", ".log-entry-desc",
-                         ".log-entry-time", ".log-entry-id", "#titlebar-label"):
+                         ".now-tracking-desc", ".log-entry-time", ".log-entry-id", "#titlebar-label"):
             self.assertNotRegex(self._rule(selector), r"user-select",
                                 "{} must not become selectable".format(selector))
 
