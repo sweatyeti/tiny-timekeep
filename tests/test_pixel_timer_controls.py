@@ -791,6 +791,50 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertNotIn('id="tab-tasks"', segment)
         self.assertNotIn('id="tab-summary"', segment)
 
+        # Summary tab DOM order: totals -> guidance -> header -> rows
+        guidance_text = 'Log/Unlog marks every completed entry of that task'
+        tab_summary_idx = html_content.index('id="tab-summary"')
+        summary_totals_idx = html_content.index('id="summary-totals"')
+        guidance_idx = html_content.index(guidance_text)
+        summary_head_idx = html_content.index('class="summary-head"')
+        summary_rows_idx = html_content.index('id="summary-rows"')
+        self.assertLess(tab_summary_idx, summary_totals_idx,
+                        "Summary tab must open before the totals block")
+        self.assertLess(summary_totals_idx, guidance_idx,
+                        "totals must sit above the guidance in the Summary tab")
+        self.assertLess(guidance_idx, summary_head_idx,
+                        "guidance must sit above the table header in the Summary tab")
+        self.assertLess(summary_head_idx, summary_rows_idx,
+                        "table header must sit above the rows in the Summary tab")
+        # Exactly one of each element, nothing extra between tab and table
+        summary_table_idx = html_content.index('id="summary-table"')
+        summary_segment = html_content[tab_summary_idx:summary_table_idx]
+        self.assertEqual(summary_segment.count('id="summary-totals"'), 1,
+                         "exactly one summary-totals element expected")
+        self.assertEqual(summary_segment.count(guidance_text), 1,
+                         "exactly one guidance sentence expected")
+        self.assertEqual(summary_segment.count('id="summary-table"'), 0,
+                         "summary-table must not appear inside the pre-table segment")
+        # Reading order must come from the DOM, not a CSS `order` shortcut.
+        with open(STYLE_CSS, "r", encoding="utf-8") as source:
+            css_text = source.read()
+        css_stripped = re.sub(r"/\*.*?\*/", "", css_text, flags=re.S)
+        self.assertIsNone(
+            re.search(r"(?<![\w-])order\s*:", css_stripped),
+            "CSS order property must not reorder the Summary tab",
+        )
+        # Values still sourced from state (presentation-only change)
+        totals_writer_idx = js.index("document.getElementById('summary-totals').innerHTML")
+        totals_slice = js[totals_writer_idx:]
+        self.assertIn("state.totals.unloggedMinutes", totals_slice,
+                      "totals must read unloggedMinutes from state")
+        self.assertIn("state.totals.totalMinutes", totals_slice,
+                      "totals must read totalMinutes from state")
+        self.assertIn("state.summary", js,
+                      "summary rows must be sourced from state.summary")
+        self.assertIn("document.getElementById('summary-rows')", js,
+                      "summary-rows element must be referenced in render code")
+
         # Selection: the Summary task cell carries the selectable class, render() captures and
         # re-applies the selection around the rebuild, and the offsets survive it.
         self.assertIn('class="summary-task"', js)
@@ -1064,6 +1108,60 @@ class TestPixelTimerControlStyles(unittest.TestCase):
             )
         # canary: the five tracks are declared in exactly one place
         self.assertEqual(self.css.count("minmax(0,1.8fr)"), 1)
+
+        # Summary tab reorder: totals moved from footer to header
+        self.assertRegex(
+            self._rule(".summary-totals"),
+            r"border-bottom\s*:\s*2px solid var\(--panel-row-alt\)",
+            "the totals separator must sit on the block's bottom edge now that the totals are above the table",
+        )
+        self.assertRegex(
+            self._rule(".summary-totals"),
+            r"padding-bottom\s*:\s*8px",
+            "the totals block must have bottom padding to separate it from the table",
+        )
+        self.assertRegex(
+            self._rule(".summary-totals"),
+            r"margin-bottom\s*:\s*8px",
+            "the totals block must have bottom margin to space it from the table",
+        )
+        self.assertNotRegex(
+            self._rule(".summary-totals"),
+            r"border-top",
+            "the old footer top border must be removed",
+        )
+        self.assertNotRegex(
+            self._rule(".summary-totals"),
+            r"margin-top",
+            "the old footer top margin must be removed",
+        )
+        with self.subTest("summary guidance spacing"):
+            block = self._rule("#tab-summary > .hint-text")
+            self.assertRegex(
+                block,
+                r"padding\s*:\s*0\s+4px\s+8px",
+                "the Summary guidance must use the Log tab hint rhythm",
+            )
+            self.assertNotRegex(
+                block,
+                r"padding-top\s*:\s*10px",
+                "the Summary guidance must not inherit the shared .hint-text top padding",
+            )
+        self.assertRegex(
+            self._rule(".log-hint"),
+            r"padding\s*:\s*0\s+4px\s+8px",
+            "the Log tab hint keeps its own spacing",
+        )
+        self.assertIn(
+            ".summary-totals {",
+            self.css,
+            "the Summary totals rule must stay present",
+        )
+        self.assertIn(
+            "#tab-summary > .hint-text {",
+            self.css,
+            "the Summary guidance rule must stay present",
+        )
 
         # Containment: both selectable task-name cells must clip to their own track.
         for selector in (".now-tracking-label", ".summary-task"):

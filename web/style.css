@@ -473,11 +473,17 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 /* wrap buttons to their own line so the four data columns keep their width */
 @media (max-width: 359px) { .summary-row .summary-actions { grid-column: 1 / -1; } }
 .summary-totals {
-  margin-top: 12px;
   display: flex; justify-content: space-between;
   font-size: 17px;
-  border-top: 2px solid var(--panel-row-alt);
-  padding-top: 10px;
+  border-bottom: 2px solid var(--panel-row-alt);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+/* Summary guidance sits between the totals and the table; give it the same 8px rhythm under the
+   separator and above the table (.log-hint uses the same 0 4px 8px), not .hint-text's top padding. */
+#tab-summary > .hint-text {
+  padding: 0 4px 8px;
 }
 
 .empty-state { color: var(--text-dim); font-size: 17px; padding: 16px 4px; }
