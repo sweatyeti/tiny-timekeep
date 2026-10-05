@@ -296,6 +296,29 @@ class TestWrapperPassesArgumentsThrough(FrontendCase):
         assert entry["task"] == "weeding", entry
         assert entry["description"] == "back bed, weeded", entry
 
+        started = self.api.stop_and_start_entry()
+        new_id = started["state"]["currentEntry"]["id"]
+        assert new_id != 2, started
+
+        saved = self.api.edit_entry(new_id, "composting", 'raised <bed> & "bins"')
+        assert saved["ok"] is True, saved
+        assert saved["state"]["currentEntry"]["task"] == "composting", saved
+        session_id = saved["state"]["session"]["id"]
+
+        reopened = app_main.Api(storage_path=os.path.join(self.tmp, "sessions"), preferences_path=os.path.join(self.tmp, "preferences.json"))
+        reopened.resume_session(session_id)
+        entry2 = next(e for e in reopened.get_state()["entries"] if e["id"] == new_id)
+        assert entry2["task"] == "composting", entry2
+        assert entry2["description"] == 'raised <bed> & "bins"', entry2
+        assert entry2["endTime"] is None, entry2
+
+        blank = self.api.edit_entry(new_id, "composting", "")
+        assert blank["ok"] is True, blank
+        reopened2 = app_main.Api(storage_path=os.path.join(self.tmp, "sessions"), preferences_path=os.path.join(self.tmp, "preferences.json"))
+        reopened2.resume_session(session_id)
+        entry3 = next(e for e in reopened2.get_state()["entries"] if e["id"] == new_id)
+        assert entry3["description"] == "", entry3
+
     def test_task_edit_does_not_touch_the_description(self):
         self.api.edit_entry(2, "mulching")
         entry = next(e for e in self.api.get_state()["entries"] if e["id"] == 2)

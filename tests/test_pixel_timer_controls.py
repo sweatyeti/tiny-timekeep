@@ -255,6 +255,7 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
   await start.onclick();
   const focusedOnOpen = taskInputFocused;
   document.getElementById('sn-task').value = 'Next task';
+  document.getElementById('sn-desc').value = 'Next task description';
   await document.getElementById('sn-go').onclick();
 
   // --- current-entry edit control ---
@@ -265,6 +266,28 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
   const overlayBeforeCurrentEdit = overlay;
   const finalTaskBeforeCurrentEdit = document.getElementById('current-label').textContent;
   const finalRefreshHiddenBeforeCurrentEdit = refreshIcon.classList.contains('hidden');
+  // --- new-task naming popup: stale guard, cross-session guard, blank description ---
+  const editEntryCount = () => calls.filter(c => c[0] === 'edit_entry').length;
+  // stale entry id
+  await start.onclick();
+  const snStaleCountBefore = editEntryCount();
+  setState({ session: { id: 1 }, currentEntry: { id: 77, task: 'something else', startTime: '2026-09-27T16:00:00Z' } });
+  document.getElementById('sn-task').value = 'Wrong row';
+  await document.getElementById('sn-go').onclick();
+  const snStaleGuard = { callsAdded: editEntryCount() - snStaleCountBefore, overlayBody: overlay.body };
+  // cross-session
+  await start.onclick();
+  const snCrossSessionCountBefore = editEntryCount();
+  setState({ session: { id: 2 }, currentEntry: { id: 42, task: 'unnamed', startTime: '2026-09-27T16:00:00Z' } });
+  document.getElementById('sn-task').value = 'Wrong session';
+  await document.getElementById('sn-go').onclick();
+  const snCrossSessionGuard = { callsAdded: editEntryCount() - snCrossSessionCountBefore, overlayBody: overlay.body };
+  // blank description
+  await start.onclick();
+  document.getElementById('sn-task').value = 'Blank task';
+  document.getElementById('sn-desc').value = '';
+  await document.getElementById('sn-go').onclick();
+  const blankDescCall = calls[calls.length - 1];
   const currentEditFixture = {
     session: { id: 1 },
     currentEntry: { id: 42, task: 'weeding the front bed', startTime: '2026-09-27T15:04:00Z' },
@@ -340,7 +363,8 @@ const summaryRowHtml = document.getElementById('summary-rows').children.map((row
     finalRefreshHidden: finalRefreshHiddenBeforeCurrentEdit,
     selection: { captured: capturedSelection, restored: restoredSelection, clampedEndOffset,
       collapsedCapture, outsideCapture, summaryRowHtml },
-    currentEditOverlay, currentEditCall, staleGuard, crossSessionGuard, missingRecordOverlay, descSamples }));
+    currentEditOverlay, currentEditCall, staleGuard, crossSessionGuard, missingRecordOverlay, descSamples,
+    snStaleGuard, snCrossSessionGuard, blankDescCall }));
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
 
@@ -796,7 +820,7 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertEqual(self.results["calls"], [
             ["stop_tracking"],
             ["stop_and_start_entry"],
-            ["edit_entry", 42, "Next task"],
+            ["edit_entry", 42, "Next task", "Next task description"],
         ])
         self.assertEqual(self.results["afterStop"], {
             "stopHidden": True,
@@ -809,6 +833,32 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         self.assertTrue(self.results["closed"])
         self.assertEqual(self.results["finalTask"], "Next task")
         self.assertFalse(self.results["finalRefreshHidden"])
+
+        body = self.results["overlay"]["body"]
+        self.assertIn('<label>Description</label>', body,
+                      "Description label must appear in the overlay body")
+        self.assertIn('id="sn-task"', body,
+                      "Task field id must appear in the overlay body")
+        self.assertIn('id="sn-desc"', body,
+                      "Description field id must appear in the overlay body")
+        self.assertTrue(
+            body.index('id="sn-task"') < body.index('id="sn-desc"'),
+            "Task field must come before Description field in the overlay body",
+        )
+        self.assertIn('placeholder="Description (optional)"', body,
+                      "Description placeholder must appear in the overlay body")
+        self.assertNotIn('sn-logged', body,
+                         "Running-entry popup must not offer a Logged control (sn-logged)")
+        self.assertNotIn('Logged', body,
+                         "Running-entry popup must not offer a Logged control (text)")
+
+        self.assertEqual(self.results["blankDescCall"], ["edit_entry", 42, "Blank task", ""])
+
+        for key in ("snStaleGuard", "snCrossSessionGuard"):
+            guard = self.results[key]
+            self.assertEqual(guard["callsAdded"], 0, f"{key} must not call edit_entry")
+            self.assertIn("tracked entry changed", guard["overlayBody"],
+                          f"{key} refusal must mention the tracked entry changed")
 
 
 class TestPixelTimerControlStyles(unittest.TestCase):

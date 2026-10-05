@@ -596,16 +596,28 @@ async function openStartNewTask() {
   state = r.state;
   render();
   const entryId = state.currentEntry.id;
+  const sessionId = state.session && state.session.id;
 
   openOverlay('Name this task', `
     <div class="field-row"><label>Task</label><input id="sn-task" placeholder="Task name" autofocus></div>
+    <div class="field-row"><label>Description</label><input id="sn-desc" placeholder="Description (optional)"></div>
     <button class="btn btn-primary overlay-submit" id="sn-go">Save</button>
   `);
   const input = document.getElementById('sn-task');
   // `autofocus` does not reliably focus inputs inserted into an already-open WebView2 page.
   input.focus();
+  const descInput = document.getElementById('sn-desc');
   document.getElementById('sn-go').onclick = async () => {
-    const rr = await api().edit_entry(entryId, input.value);
+    // The tracked entry can change (stop / stop-and-start) or the user can
+    // switch/resume a different session while this overlay is open. Both the
+    // entry id and session id are re-checked so the save cannot land on the
+    // wrong row.
+    if (!state.currentEntry || state.currentEntry.id !== entryId || !state.session || state.session.id !== sessionId) {
+      closeOverlay();
+      handleResult({ ok: false, error: 'entry_not_active', message: 'The tracked entry changed while this was open, so nothing was saved.' });
+      return;
+    }
+    const rr = await api().edit_entry(entryId, input.value, descInput.value);
     closeOverlay();
     handleResult(rr);
   };
