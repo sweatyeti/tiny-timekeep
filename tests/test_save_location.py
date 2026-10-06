@@ -5,6 +5,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import main
@@ -27,6 +28,94 @@ class SaveLocationTests(unittest.TestCase):
 
     def _stored_preference(self):
         return PreferencesStore(self.prefs_path).get_all()["entrySaveLocation"]
+
+    # ------------------------------------------------------------------
+    # open_entry_save_location
+    # ------------------------------------------------------------------
+
+    def test_open_folder_windows(self):
+        with patch.object(main.sys, "platform", "win32"), \
+             patch.object(main.os, "startfile", create=True) as mock_startfile:
+            result = self.api.open_entry_save_location()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["path"], os.path.abspath(self.source))
+        mock_startfile.assert_called_once_with(os.path.abspath(self.source))
+
+    def test_open_folder_darwin(self):
+        with patch.object(main.sys, "platform", "darwin"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertTrue(result["ok"])
+        mock_popen.assert_called_once_with(["open", os.path.abspath(self.source)], shell=False)
+
+    def test_open_folder_linux(self):
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertTrue(result["ok"])
+        mock_popen.assert_called_once_with(["xdg-open", os.path.abspath(self.source)], shell=False)
+
+    def test_open_folder_posix_argv_is_list_no_shell(self):
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            self.api.open_entry_save_location()
+        args, kwargs = mock_popen.call_args
+        self.assertIsInstance(args[0], list)
+        self.assertEqual(kwargs.get("shell"), False)
+
+    def test_open_folder_shell_metacharacters(self):
+        tricky = os.path.join(self.tmp, "dir with spaces & $(rm -rf) `echo`")
+        os.makedirs(tricky)
+        self.api.core._store._directory = Path(tricky)
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertTrue(result["ok"])
+        args, kwargs = mock_popen.call_args
+        self.assertEqual(args[0], ["xdg-open", os.path.abspath(tricky)])
+        self.assertEqual(kwargs.get("shell"), False)
+
+    def test_open_folder_missing_path(self):
+        self.api.core._store._directory = Path("/nonexistent/koot/xyz")
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertFalse(result["ok"])
+        mock_popen.assert_not_called()
+
+    def test_open_folder_file_not_directory(self):
+        fpath = os.path.join(self.tmp, "afile.txt")
+        with open(fpath, "w") as f:
+            f.write("x")
+        self.api.core._store._directory = Path(fpath)
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertFalse(result["ok"])
+        mock_popen.assert_not_called()
+
+    def test_open_folder_opener_error(self):
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen", side_effect=OSError("spawn failed")):
+            result = self.api.open_entry_save_location()
+        self.assertFalse(result["ok"])
+        self.assertIn("spawn failed", result["message"])
+
+    def test_open_folder_unsupported_platform(self):
+        with patch.object(main.sys, "platform", "freebsd"):
+            result = self.api.open_entry_save_location()
+        self.assertFalse(result["ok"])
+        self.assertIn("Unsupported platform", result["message"])
+
+    def test_open_folder_uses_store_directory_not_pref(self):
+        # The backend must use core._store.directory, not a passed path
+        self.assertEqual(self.api.core._store.directory, Path(self.source))
+        with patch.object(main.sys, "platform", "linux"), \
+             patch.object(main.subprocess, "Popen") as mock_popen:
+            result = self.api.open_entry_save_location()
+        self.assertTrue(result["ok"])
+        args, _ = mock_popen.call_args
+        self.assertEqual(args[0][1], os.path.abspath(self.source))
 
     def test_preference_defaults_to_current_location_and_persists(self):
         self.assertIsNone(DEFAULT_PREFERENCES["entrySaveLocation"])

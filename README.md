@@ -32,7 +32,7 @@ gate below stops a stale copy from running silently.
 main.py                   the only meeting point: builds the core, starts pywebview
 timetracker_core/         the core, vendored verbatim at the repo root (stdlib-only; do not edit here)
 web/                      the frontend (drop-in)
-tests/                    50 app-specific checks; canonical core tests stay in keeper-of-time-core
+tests/                    60 app-specific checks; canonical core tests stay in keeper-of-time-core
 specs/                    the contract (v1.5) and the functional spec (v2.0)
 packaging/                pyinstaller spec + build.ps1
 CORE-VERSION              which core commit this copy came from
@@ -136,10 +136,11 @@ GitHub Release before announcing it.
 
 ## Verified in this copy
 
-- `python -m unittest discover -s tests` → **50 app-specific tests, OK**. Verified on Python
-  3.14.7 (the pinned interpreter) and on 3.11.9 on the same Windows machine, and on 3.11.15 on
-  Linux. The byte-identical copies of the core's 73 canonical tests were removed from this app
-  repository; they remain unchanged and run in the separate `keeper-of-time-core` repository.
+- `python -m unittest discover -s tests` → **60 app-specific tests, OK** on Python 3.14.7 (the
+  pinned interpreter). The previous 50-test suite was also verified on 3.11.9 on the same Windows
+  machine and on 3.11.15 on Linux. The byte-identical copies of the core's 73 canonical tests were
+  removed from this app repository; they remain unchanged and run in the separate `keeper-of-time-core`
+  repository.
 - `python main.py --check` → `Keeper of Time: contract v1.5`, golden fixture matching the contract's §2 view model
   exactly (weeding 2/30/75 callout true; unnamed 1/15/15 callout false; totals 30/75), no
   `isActive` in the session object, and the sessions directory reported. Passes on 3.14.7.

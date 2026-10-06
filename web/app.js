@@ -512,11 +512,16 @@ function wireSaveLocation() {
     restore.className = 'btn save-location-restore';
     restore.id = 'restore-default-save-location';
     restore.textContent = 'Restore default path';
+    const openFolder = document.createElement('button');
+    openFolder.type = 'button';
+    openFolder.className = 'btn save-location-open';
+    openFolder.id = 'open-entry-save-location';
+    openFolder.textContent = 'Open folder';
     const hint = document.createElement('p');
     hint.textContent = locked
       ? 'The folder is fixed for this run (KEEPER_OF_TIME_DATA_DIR or --sessions-dir).'
       : 'Choose whether to move existing session files when you change folders.';
-    body.append(path, choose, restore, hint);
+    body.append(path, choose, restore, openFolder, hint);
     openOverlay('SAVE LOCATION', body.innerHTML);
     applySaveLocationControls(prefs);
     document.getElementById('choose-entry-save-location').onclick = async () => {
@@ -546,6 +551,12 @@ function wireSaveLocation() {
         renderSaveLocation(latest);
       } else {
         document.getElementById('entry-save-location-path').textContent = result.message || 'Could not restore the default folder.';
+      }
+    };
+    document.getElementById('open-entry-save-location').onclick = async () => {
+      const result = await api().open_entry_save_location();
+      if (!result.ok) {
+        document.getElementById('entry-save-location-path').textContent = result.message || 'Could not open folder.';
       }
     };
   };

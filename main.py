@@ -24,6 +24,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone, timedelta
@@ -200,6 +201,29 @@ class Api:
         if not result:
             return {"ok": False, "cancelled": True}
         return {"ok": True, "path": os.path.abspath(os.path.expanduser(result[0]))}
+
+    def open_entry_save_location(self):
+        folder = self.core._store.directory
+        if folder is None:
+            return {"ok": False, "message": "Save location is not set."}
+        try:
+            resolved = os.path.abspath(os.path.expanduser(str(folder)))
+        except (OSError, ValueError):
+            return {"ok": False, "message": "Save location path is malformed."}
+        if not os.path.isdir(resolved):
+            return {"ok": False, "message": "Target is not an existing directory."}
+        try:
+            if sys.platform == "win32":
+                os.startfile(resolved)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", resolved], shell=False)
+            elif sys.platform == "linux":
+                subprocess.Popen(["xdg-open", resolved], shell=False)
+            else:
+                return {"ok": False, "message": f"Unsupported platform: {sys.platform}"}
+        except Exception as exc:
+            return {"ok": False, "message": str(exc)}
+        return {"ok": True, "path": resolved}
 
     def set_entry_save_location(self, path, move_existing=False):
         if self._location_locked:
