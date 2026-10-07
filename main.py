@@ -40,10 +40,11 @@ if BASE_DIR not in sys.path:
 from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
-# Display name vs technical identifier: the window and title bar say "tinyTimekeep", while the
-# executable, the data folder and the process name stay space-free.
+# The app/process identifier and preferences folder stay stable; session files use their own
+# folder name so new installs can use the display name without changing either identifier.
 APP_NAME = "KeeperOfTime"
 WINDOW_TITLE = "tinyTimekeep"
+SESSIONS_DIR_NAME = "tinyTimekeep"
 DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
 
 # Keep in lockstep with specs/core-logic-contract.md's frontmatter `version:`. This
@@ -72,12 +73,18 @@ def _default_storage_path():
     """Per-user data, never beside the executable.
 
     A one-file PyInstaller build unpacks to a temp directory and starts empty each run, so the
-    storage path has to be somewhere that outlives the process.
+    storage path has to be somewhere that outlives the process. An existing legacy sessions
+    directory takes precedence over the new default so existing installations stay in place.
     """
     override = os.environ.get(DATA_DIR_ENV)
     if override:
         return os.path.expanduser(override)
-    path = os.path.join(_user_data_base(), APP_NAME, "sessions")
+    user_data_base = _user_data_base()
+    legacy_path = os.path.join(user_data_base, APP_NAME, "sessions")
+    if os.path.isdir(legacy_path):
+        path = legacy_path
+    else:
+        path = os.path.join(user_data_base, SESSIONS_DIR_NAME, "sessions")
     os.makedirs(path, exist_ok=True)
     return path
 

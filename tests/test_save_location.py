@@ -4,9 +4,10 @@ import json
 import os
 import shutil
 import tempfile
+from types import SimpleNamespace
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import main
 from preferences import DEFAULT_PREFERENCES, PreferencesStore
@@ -20,6 +21,7 @@ class SaveLocationTests(unittest.TestCase):
         self.target = os.path.join(self.tmp, "chosen")
         self.prefs_path = os.path.join(self.tmp, "preferences.json")
         self.default = os.path.join(self.tmp, "default")
+        self._original_default_storage_path = main._default_storage_path
         self._default_patch = patch.object(main, "_default_storage_path", return_value=self.default)
         self._default_patch.start()
         self.addCleanup(self._default_patch.stop)
@@ -28,6 +30,107 @@ class SaveLocationTests(unittest.TestCase):
 
     def _stored_preference(self):
         return PreferencesStore(self.prefs_path).get_all()["entrySaveLocation"]
+
+    def _default_path_in(self, localappdata, override=""):
+        with patch.dict(os.environ, {
+            "LOCALAPPDATA": localappdata,
+            main.DATA_DIR_ENV: override,
+        }):
+            return self._original_default_storage_path()
+
+    def test_fresh_install_uses_tinytimekeep_sessions_folder(self):
+        localappdata = os.path.join(self.tmp, "Local")
+
+        selected = self._default_path_in(localappdata)
+
+        expected = os.path.join(localappdata, "tinyTimekeep", "sessions")
+        self.assertEqual(selected, expected)
+        self.assertTrue(os.path.isdir(expected))
+        self.assertFalse(os.path.exists(os.path.join(localappdata, "KeeperOfTime", "sessions")))
+
+    def test_existing_legacy_sessions_folder_stays_in_use_without_copying_files(self):
+        localappdata = os.path.join(self.tmp, "Local")
+        legacy = Path(localappdata) / "KeeperOfTime" / "sessions"
+        original = legacy / "existing-session.json"
+        original.parent.mkdir(parents=True)
+        original_bytes = b'{"sessionId":"legacy","title":"Keep in place"}\n'
+        original.write_bytes(original_bytes)
+
+        selected = self._default_path_in(localappdata)
+
+        self.assertEqual(selected, str(legacy))
+        self.assertEqual(original.read_bytes(), original_bytes)
+        self.assertFalse((Path(localappdata) / "tinyTimekeep" / "sessions").exists())
+
+    def test_legacy_sessions_folder_wins_when_both_defaults_exist(self):
+        localappdata = Path(self.tmp) / "Local"
+        legacy = localappdata / "KeeperOfTime" / "sessions"
+        new_default = localappdata / "tinyTimekeep" / "sessions"
+        legacy_file = legacy / "legacy.json"
+        new_file = new_default / "new.json"
+        legacy_file.parent.mkdir(parents=True)
+        new_file.parent.mkdir(parents=True)
+        legacy_bytes = b"legacy bytes stay here"
+        new_bytes = b"new-default bytes stay here"
+        legacy_file.write_bytes(legacy_bytes)
+        new_file.write_bytes(new_bytes)
+
+        selected = self._default_path_in(str(localappdata))
+
+        self.assertEqual(selected, str(legacy))
+        self.assertEqual(legacy_file.read_bytes(), legacy_bytes)
+        self.assertEqual(new_file.read_bytes(), new_bytes)
+        self.assertEqual([path.name for path in legacy.iterdir()], ["legacy.json"])
+        self.assertEqual([path.name for path in new_default.iterdir()], ["new.json"])
+
+    def test_environment_override_takes_precedence_over_both_default_folders(self):
+        localappdata = Path(self.tmp) / "Local"
+        legacy = localappdata / "KeeperOfTime" / "sessions"
+        new_default = localappdata / "tinyTimekeep" / "sessions"
+        legacy.mkdir(parents=True)
+        new_default.mkdir(parents=True)
+        override = Path(self.tmp) / "custom sessions"
+
+        selected = self._default_path_in(str(localappdata), str(override))
+
+        self.assertEqual(selected, str(override))
+        self.assertFalse(override.exists())
+
+    def test_preferences_file_keeps_keeper_of_time_location(self):
+        localappdata = os.path.join(self.tmp, "Local")
+        with patch.dict(os.environ, {"LOCALAPPDATA": localappdata}):
+            selected = main._default_preferences_path()
+
+        self.assertEqual(
+            selected,
+            os.path.join(localappdata, "KeeperOfTime", "preferences.json"),
+        )
+        self.assertEqual(main.APP_NAME, "KeeperOfTime")
+
+    def test_explicit_custom_location_remains_selected_on_startup(self):
+        localappdata = Path(self.tmp) / "Local"
+        custom = Path(self.tmp) / "custom sessions"
+        preferences_path = localappdata / "KeeperOfTime" / "preferences.json"
+        PreferencesStore(str(preferences_path)).set("entrySaveLocation", str(custom))
+        fake_webview = SimpleNamespace(
+            create_window=Mock(return_value=object()),
+            start=Mock(),
+        )
+
+        with patch.dict(os.environ, {
+            "LOCALAPPDATA": str(localappdata),
+            main.DATA_DIR_ENV: "",
+        }), patch.dict("sys.modules", {"webview": fake_webview}):
+            result = main.main([])
+
+        self.assertEqual(result, 0)
+        api = fake_webview.create_window.call_args.kwargs["js_api"]
+        self.assertEqual(api.core._store.directory, custom)
+        self.assertEqual(api.get_preferences()["entrySaveLocation"], str(custom))
+        self.assertEqual(
+            PreferencesStore(str(preferences_path)).get_all()["entrySaveLocation"],
+            str(custom),
+        )
 
     # ------------------------------------------------------------------
     # open_entry_save_location
