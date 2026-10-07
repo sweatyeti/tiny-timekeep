@@ -15,14 +15,14 @@ session, switch between tasks as you work, then review your entries and totals.
 
 The active tracking screen in all six supported themes:
 
-| Theme | Active tracking screen |
-|---|---|
-| Cute | ![Active tracking screen in the Cute theme](docs/screenshots/themes/cute.png) |
-| Cyber | ![Active tracking screen in the Cyber theme](docs/screenshots/themes/cyber.png) |
-| Poolside | ![Active tracking screen in the Poolside theme](docs/screenshots/themes/poolside.png) |
-| Evergreen | ![Active tracking screen in the Evergreen theme](docs/screenshots/themes/evergreen.png) |
-| Citrus Pop | ![Active tracking screen in the Citrus Pop theme](docs/screenshots/themes/citrus-pop.png) |
-| Dune | ![Active tracking screen in the Dune theme](docs/screenshots/themes/dune.png) |
+<p>
+<span><strong>Cute</strong><br><a href="docs/screenshots/themes/cute.png"><img src="docs/screenshots/themes/cute.png" width="180" alt="Active tracking screen in the Cute theme"></a></span><!--
+--><span><strong>Cyber</strong><br><a href="docs/screenshots/themes/cyber.png"><img src="docs/screenshots/themes/cyber.png" width="180" alt="Active tracking screen in the Cyber theme"></a></span><!--
+--><span><strong>Poolside</strong><br><a href="docs/screenshots/themes/poolside.png"><img src="docs/screenshots/themes/poolside.png" width="180" alt="Active tracking screen in the Poolside theme"></a></span><br>
+<span><strong>Evergreen</strong><br><a href="docs/screenshots/themes/evergreen.png"><img src="docs/screenshots/themes/evergreen.png" width="180" alt="Active tracking screen in the Evergreen theme"></a></span><!--
+--><span><strong>Citrus Pop</strong><br><a href="docs/screenshots/themes/citrus-pop.png"><img src="docs/screenshots/themes/citrus-pop.png" width="180" alt="Active tracking screen in the Citrus Pop theme"></a></span><!--
+--><span><strong>Dune</strong><br><a href="docs/screenshots/themes/dune.png"><img src="docs/screenshots/themes/dune.png" width="180" alt="Active tracking screen in the Dune theme"></a></span>
+</p>
 
 ## Download and run
 
