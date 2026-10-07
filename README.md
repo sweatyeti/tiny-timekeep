@@ -41,8 +41,10 @@ account, typically `C:\Users\<your-name>\AppData\Local`.
 Use the folder button in the app's bottom toolbar to see or open the current folder,
 choose a different folder, or restore the default path. Your choice is remembered for
 future launches. When changing folders, the app asks whether to move existing session
-files. If you leave them where they are, they stay in the old folder and new sessions
-are saved to the selected folder.
+files. If you choose to move them, existing session files go to the selected folder. If
+you decline, the active session is still moved there so tracking can continue, while
+other existing session files remain in the old folder. New sessions are saved in the
+selected folder.
 
 ## Troubleshooting
 
