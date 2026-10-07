@@ -27,8 +27,11 @@ The active tracking screen in all six supported themes:
 ## Download and run
 
 1. Open the [tinyTimekeep releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
-2. Open the newest release and download `tinyTimekeep.exe` from its **Assets** section.
-   Releases currently contain pre-release builds; there is no stable v1.0 release yet.
+2. Open the newest release and download the executable shown under its **Assets**
+   section. Releases currently contain pre-release builds; there is no stable v1.0
+   release yet.
+   Releases through `v1.0-beta3` use `KeeperOfTime.exe`.
+   Future releases built from the updated packaging will use `tinyTimekeep.exe`.
 3. Run the downloaded file. There is no installer.
 
 The published app is for Windows and requires the Microsoft Edge WebView2 Runtime,

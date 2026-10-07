@@ -79,17 +79,20 @@ class AppIconTests(unittest.TestCase):
             1,
             msg="README.md: 'tinyTimekeep.exe' must appear exactly once",
         )
-        download_lines = [
-            ln for ln in readme.splitlines()
-            if "tinyTimekeep.exe" in ln and "download" in ln.lower()
-        ]
-        self.assertEqual(
-            len(download_lines),
-            1,
-            msg="README.md: the single 'tinyTimekeep.exe' mention must be on a download instruction line",
+
+        # Legacy-release statements must be present as exact substrings
+        self.assertIn(
+            "Releases through `v1.0-beta3` use `KeeperOfTime.exe`.",
+            readme,
+            msg="README.md: must state that releases through v1.0-beta3 use KeeperOfTime.exe",
+        )
+        self.assertIn(
+            "Future releases built from the updated packaging will use `tinyTimekeep.exe`.",
+            readme,
+            msg="README.md: must state that future releases will use tinyTimekeep.exe",
         )
 
-        # Old executable name must be absent from all four files
+        # Old executable name must be absent from spec, build script, and release workflow
         self.assertNotIn(
             "KeeperOfTime.exe",
             spec,
@@ -104,11 +107,6 @@ class AppIconTests(unittest.TestCase):
             "KeeperOfTime.exe",
             workflow,
             msg="release.yml: must not reference old 'KeeperOfTime.exe'",
-        )
-        self.assertNotIn(
-            "KeeperOfTime.exe",
-            readme,
-            msg="README.md: must not reference old 'KeeperOfTime.exe'",
         )
 
     def test_main_passes_bundled_ico_to_pywebview(self):
