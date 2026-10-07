@@ -3,6 +3,14 @@
 Keeper of Time is a small Windows desktop app for tracking time in sessions. Start a
 session, switch between tasks as you work, then review your entries and totals.
 
+## Screenshots
+
+![Active tracking view for the fictional Studio day session, with the current task and summary totals](docs/screenshots/active-tracking.png)
+
+![Log view with fictional task entries and logged or unlogged status](docs/screenshots/log.png)
+
+![Save location dialog showing the current session folder and its controls](docs/screenshots/save-location.png)
+
 ## Download and run
 
 1. Open the [Keeper of Time releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
