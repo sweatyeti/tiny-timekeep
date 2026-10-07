@@ -18,7 +18,7 @@ implementation now.
 
 Run:    python main.py
 Check:  python main.py --check      (no window, no pywebview — verifies the core wiring)
-Build:  packaging/build.ps1         (Windows, produces dist/KeeperOfTime.exe)
+Build:  packaging/build.ps1         (Windows, produces dist/tinyTimekeep.exe)
 """
 import argparse
 import json

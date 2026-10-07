@@ -1,6 +1,6 @@
-# Keeper of Time
+# tinyTimekeep
 
-Keeper of Time is a small Windows desktop app for tracking time in sessions. Start a
+tinyTimekeep is a small Windows desktop app for tracking time in sessions. Start a
 session, switch between tasks as you work, then review your entries and totals.
 
 ## Screenshots
@@ -26,8 +26,8 @@ The active tracking screen in all six supported themes:
 
 ## Download and run
 
-1. Open the [Keeper of Time releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
-2. Open the newest release and download `KeeperOfTime.exe` from its **Assets** section.
+1. Open the [tinyTimekeep releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
+2. Open the newest release and download `tinyTimekeep.exe` from its **Assets** section.
    Releases currently contain pre-release builds; there is no stable v1.0 release yet.
 3. Run the downloaded file. There is no installer.
 

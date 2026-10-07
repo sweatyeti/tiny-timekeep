@@ -1,4 +1,4 @@
-# Build the Windows app: one self-contained KeeperOfTime.exe in dist/.
+# Build the Windows app: one self-contained tinyTimekeep.exe in dist/.
 # Run from the project root in PowerShell:  .\packaging\build.ps1
 param(
     [switch]$RecreateVenv  # delete an existing .venv and build a fresh one
@@ -51,9 +51,9 @@ if ($LASTEXITCODE -ne 0) { throw "app tests failed - not packaging a broken buil
 
 & .venv\Scripts\python -m PyInstaller packaging\keeper-of-time.spec --noconfirm
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed - not packaging a broken build." }
-if (-not (Test-Path "dist\KeeperOfTime.exe")) { throw "dist\KeeperOfTime.exe was not produced." }
+if (-not (Test-Path "dist\tinyTimekeep.exe")) { throw "dist\tinyTimekeep.exe was not produced." }
 
 Write-Host ""
-Write-Host "Built: dist\KeeperOfTime.exe"
+Write-Host "Built: dist\tinyTimekeep.exe"
 Write-Host "Sessions will be written to: $env:LOCALAPPDATA\KeeperOfTime\sessions"
 Write-Host "Target machine needs the WebView2 runtime (present by default on Win10/11)."

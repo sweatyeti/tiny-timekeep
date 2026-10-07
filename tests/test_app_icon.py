@@ -41,6 +41,76 @@ class AppIconTests(unittest.TestCase):
         self.assertIn('(str(ICON), "assets")', spec)
         self.assertIn("icon=str(ICON)", spec)
 
+        # --- Regression guard: consistent future executable filename ---
+        self.assertEqual(
+            spec.count('name="tinyTimekeep"'),
+            1,
+            msg="spec: PyInstaller EXE name stem must appear exactly once as 'tinyTimekeep'",
+        )
+
+        build_script = (ROOT / "packaging" / "build.ps1").read_text(encoding="utf-8")
+        self.assertEqual(
+            build_script.count("dist\\tinyTimekeep.exe"),
+            3,
+            msg="build.ps1: must reference 'dist\\tinyTimekeep.exe' exactly 3 times (Test-Path, error, Built)",
+        )
+
+        workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+        self.assertEqual(
+            workflow.count("dist/tinyTimekeep.exe"),
+            5,
+            msg="release.yml: must reference 'dist/tinyTimekeep.exe' exactly 5 times (check, error, confirmation, upload, publish)",
+        )
+        self.assertEqual(
+            workflow.count("          name: tinyTimekeep-exe"),
+            2,
+            msg="release.yml: both artifact label lines must be exactly '          name: tinyTimekeep-exe'",
+        )
+        artifact_name_lines = [ln for ln in workflow.splitlines() if ln.startswith("          name: ")]
+        self.assertEqual(
+            len(artifact_name_lines),
+            2,
+            msg="release.yml: exactly two indented artifact 'name:' lines expected (upload and download)",
+        )
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertEqual(
+            readme.count("tinyTimekeep.exe"),
+            1,
+            msg="README.md: 'tinyTimekeep.exe' must appear exactly once",
+        )
+        download_lines = [
+            ln for ln in readme.splitlines()
+            if "tinyTimekeep.exe" in ln and "download" in ln.lower()
+        ]
+        self.assertEqual(
+            len(download_lines),
+            1,
+            msg="README.md: the single 'tinyTimekeep.exe' mention must be on a download instruction line",
+        )
+
+        # Old executable name must be absent from all four files
+        self.assertNotIn(
+            "KeeperOfTime.exe",
+            spec,
+            msg="spec: must not reference old 'KeeperOfTime.exe'",
+        )
+        self.assertNotIn(
+            "KeeperOfTime.exe",
+            build_script,
+            msg="build.ps1: must not reference old 'KeeperOfTime.exe'",
+        )
+        self.assertNotIn(
+            "KeeperOfTime.exe",
+            workflow,
+            msg="release.yml: must not reference old 'KeeperOfTime.exe'",
+        )
+        self.assertNotIn(
+            "KeeperOfTime.exe",
+            readme,
+            msg="README.md: must not reference old 'KeeperOfTime.exe'",
+        )
+
     def test_main_passes_bundled_ico_to_pywebview(self):
         calls = {}
         fake_webview = types.ModuleType("webview")

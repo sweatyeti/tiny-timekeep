@@ -38,7 +38,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="KeeperOfTime",
+    name="tinyTimekeep",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
