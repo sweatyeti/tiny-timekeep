@@ -11,6 +11,19 @@ session, switch between tasks as you work, then review your entries and totals.
 
 ![Save location dialog showing the current session folder and its controls](docs/screenshots/save-location.png)
 
+## Themes
+
+The active tracking screen in all six supported themes:
+
+| Theme | Active tracking screen |
+|---|---|
+| Cute | ![Active tracking screen in the Cute theme](docs/screenshots/themes/cute.png) |
+| Cyber | ![Active tracking screen in the Cyber theme](docs/screenshots/themes/cyber.png) |
+| Poolside | ![Active tracking screen in the Poolside theme](docs/screenshots/themes/poolside.png) |
+| Evergreen | ![Active tracking screen in the Evergreen theme](docs/screenshots/themes/evergreen.png) |
+| Citrus Pop | ![Active tracking screen in the Citrus Pop theme](docs/screenshots/themes/citrus-pop.png) |
+| Dune | ![Active tracking screen in the Dune theme](docs/screenshots/themes/dune.png) |
+
 ## Download and run
 
 1. Open the [Keeper of Time releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
