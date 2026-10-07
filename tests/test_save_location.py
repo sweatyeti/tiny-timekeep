@@ -48,9 +48,10 @@ class SaveLocationTests(unittest.TestCase):
         self.assertTrue(os.path.isdir(expected))
         self.assertFalse(os.path.exists(os.path.join(localappdata, "KeeperOfTime", "sessions")))
 
-    def test_existing_legacy_sessions_folder_stays_in_use_without_copying_files(self):
+    def test_existing_legacy_sessions_folder_is_left_untouched_but_not_default(self):
         localappdata = os.path.join(self.tmp, "Local")
         legacy = Path(localappdata) / "KeeperOfTime" / "sessions"
+        new_default = Path(localappdata) / "tinyTimekeep" / "sessions"
         original = legacy / "existing-session.json"
         original.parent.mkdir(parents=True)
         original_bytes = b'{"sessionId":"legacy","title":"Keep in place"}\n'
@@ -58,11 +59,12 @@ class SaveLocationTests(unittest.TestCase):
 
         selected = self._default_path_in(localappdata)
 
-        self.assertEqual(selected, str(legacy))
+        self.assertEqual(selected, str(new_default))
         self.assertEqual(original.read_bytes(), original_bytes)
-        self.assertFalse((Path(localappdata) / "tinyTimekeep" / "sessions").exists())
+        self.assertTrue(new_default.is_dir())
+        self.assertEqual(list(new_default.iterdir()), [])
 
-    def test_legacy_sessions_folder_wins_when_both_defaults_exist(self):
+    def test_new_default_wins_when_both_legacy_and_new_folders_exist(self):
         localappdata = Path(self.tmp) / "Local"
         legacy = localappdata / "KeeperOfTime" / "sessions"
         new_default = localappdata / "tinyTimekeep" / "sessions"
@@ -77,11 +79,34 @@ class SaveLocationTests(unittest.TestCase):
 
         selected = self._default_path_in(str(localappdata))
 
-        self.assertEqual(selected, str(legacy))
+        self.assertEqual(selected, str(new_default))
         self.assertEqual(legacy_file.read_bytes(), legacy_bytes)
         self.assertEqual(new_file.read_bytes(), new_bytes)
         self.assertEqual([path.name for path in legacy.iterdir()], ["legacy.json"])
         self.assertEqual([path.name for path in new_default.iterdir()], ["new.json"])
+
+    def test_startup_uses_new_default_when_legacy_folder_already_exists(self):
+        localappdata = Path(self.tmp) / "Local"
+        legacy = localappdata / "KeeperOfTime" / "sessions"
+        new_default = localappdata / "tinyTimekeep" / "sessions"
+        legacy.mkdir(parents=True)
+        fake_webview = SimpleNamespace(
+            create_window=Mock(return_value=object()),
+            start=Mock(),
+        )
+
+        with patch.dict(os.environ, {
+            "LOCALAPPDATA": str(localappdata),
+            main.DATA_DIR_ENV: "",
+        }), patch.dict("sys.modules", {"webview": fake_webview}), \
+             patch.object(main, "_default_storage_path", self._original_default_storage_path):
+            result = main.main([])
+
+        self.assertEqual(result, 0)
+        api = fake_webview.create_window.call_args.kwargs["js_api"]
+        self.assertEqual(api.core._store.directory, new_default)
+        self.assertTrue(legacy.is_dir())
+        self.assertEqual(list(legacy.iterdir()), [])
 
     def test_environment_override_takes_precedence_over_both_default_folders(self):
         localappdata = Path(self.tmp) / "Local"

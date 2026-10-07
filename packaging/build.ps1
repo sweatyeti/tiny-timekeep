@@ -55,6 +55,6 @@ if (-not (Test-Path "dist\tinyTimekeep.exe")) { throw "dist\tinyTimekeep.exe was
 
 Write-Host ""
 Write-Host "Built: dist\tinyTimekeep.exe"
-Write-Host "New-install sessions default: $env:LOCALAPPDATA\tinyTimekeep\sessions"
-Write-Host "An existing KeeperOfTime\sessions folder remains in use; files are not moved automatically."
+Write-Host "Sessions default for all installations: $env:LOCALAPPDATA\tinyTimekeep\sessions"
+Write-Host "Existing KeeperOfTime\sessions files are left in place; they are not moved automatically."
 Write-Host "Target machine needs the WebView2 runtime (present by default on Win10/11)."

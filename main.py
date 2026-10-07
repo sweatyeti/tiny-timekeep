@@ -41,7 +41,7 @@ from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
 # The app/process identifier and preferences folder stay stable; session files use their own
-# folder name so new installs can use the display name without changing either identifier.
+# folder name so the default can change without changing either identifier.
 APP_NAME = "KeeperOfTime"
 WINDOW_TITLE = "tinyTimekeep"
 SESSIONS_DIR_NAME = "tinyTimekeep"
@@ -73,18 +73,15 @@ def _default_storage_path():
     """Per-user data, never beside the executable.
 
     A one-file PyInstaller build unpacks to a temp directory and starts empty each run, so the
-    storage path has to be somewhere that outlives the process. An existing legacy sessions
-    directory takes precedence over the new default so existing installations stay in place.
+    storage path has to be somewhere that outlives the process. The current default is used for
+    all installations; existing legacy session files are left in place and never migrated here.
     """
     override = os.environ.get(DATA_DIR_ENV)
     if override:
         return os.path.expanduser(override)
-    user_data_base = _user_data_base()
-    legacy_path = os.path.join(user_data_base, APP_NAME, "sessions")
-    if os.path.isdir(legacy_path):
-        path = legacy_path
-    else:
-        path = os.path.join(user_data_base, SESSIONS_DIR_NAME, "sessions")
+    # Do not auto-detect the old KeeperOfTime folder: all installations use the new default.
+    # Any legacy session files remain untouched unless the user explicitly selects that folder.
+    path = os.path.join(_user_data_base(), SESSIONS_DIR_NAME, "sessions")
     os.makedirs(path, exist_ok=True)
     return path
 

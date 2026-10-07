@@ -49,13 +49,12 @@ needed for the fonts to appear as intended.
 
 ## Session files and save location
 
-For new installations, session files are stored on this PC in:
+By default, all installations—including upgrades—save new sessions on this PC in:
 
 `%LOCALAPPDATA%\tinyTimekeep\sessions`
 
-If an existing installation already has `%LOCALAPPDATA%\KeeperOfTime\sessions`,
-the app continues using that folder. Existing session files are not moved
-automatically.
+If you already have session files in `%LOCALAPPDATA%\KeeperOfTime\sessions`,
+they remain there. The app does not move or copy them automatically.
 
 On most Windows PCs, `%LOCALAPPDATA%` points to a folder under your Windows user
 account, typically `C:\Users\<your-name>\AppData\Local`.

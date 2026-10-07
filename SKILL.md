@@ -112,10 +112,11 @@ major versions. Core has zero non-stdlib dependencies (`json`, `uuid`,
 `dataclasses`, `pathlib`, timezone-aware `datetime`).
 
 **Storage:**
-- Sessions: `%LOCALAPPDATA%\tinyTimekeep\sessions` for new installations; an existing
-  `%LOCALAPPDATA%\KeeperOfTime\sessions` stays in use and is never moved automatically.
-  The location is overridable — `TimeTrackerCore.__init__(storage_path, clock=None)`, or
-  `KEEPER_OF_TIME_DATA_DIR` at the app level.
+- Sessions: `%LOCALAPPDATA%\tinyTimekeep\sessions` is the default for all installations,
+  including upgrades. Existing `%LOCALAPPDATA%\KeeperOfTime\sessions` files remain in place;
+  they are not moved or copied automatically. A saved custom location or
+  `KEEPER_OF_TIME_DATA_DIR` can override the default; the core accepts an explicit
+  `TimeTrackerCore.__init__(storage_path, clock=None)` path.
 - UI preferences: `%LOCALAPPDATA%\KeeperOfTime\preferences.json` — a
   sibling file, deliberately *not* inside the sessions folder, since it's
   app/UI settings, not session data. Atomic writes (temp file + `os.replace`),
