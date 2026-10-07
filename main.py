@@ -199,7 +199,7 @@ class Api:
             return {"ok": False, "message": "Folder selection is unavailable."}
         try:
             import webview
-            result = self._window.create_file_dialog(webview.FOLDER_DIALOG)
+            result = self._window.create_file_dialog(webview.FileDialog.FOLDER)
         except Exception as exc:
             return {"ok": False, "message": str(exc)}
         if not result:

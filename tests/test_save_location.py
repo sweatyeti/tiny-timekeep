@@ -157,6 +157,19 @@ class SaveLocationTests(unittest.TestCase):
             str(custom),
         )
 
+    def test_choose_folder_uses_current_file_dialog_enum(self):
+        window = SimpleNamespace(create_file_dialog=Mock(return_value=[self.target]))
+        self.api.set_window(window)
+        folder_dialog = object()
+        fake_webview = SimpleNamespace(FileDialog=SimpleNamespace(FOLDER=folder_dialog))
+
+        with patch.dict("sys.modules", {"webview": fake_webview}):
+            result = self.api.choose_entry_save_location()
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["path"], os.path.abspath(self.target))
+        window.create_file_dialog.assert_called_once_with(folder_dialog)
+
     # ------------------------------------------------------------------
     # open_entry_save_location
     # ------------------------------------------------------------------
