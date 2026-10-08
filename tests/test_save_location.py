@@ -323,7 +323,7 @@ class SaveLocationTests(unittest.TestCase):
             self.assertEqual(str(self.api.core._store.directory), os.path.abspath(self.default))
             self.assertIsNone(self._stored_preference())
             prefs = self.api.get_preferences()
-            self.assertEqual(prefs["entrySaveLocation"], os.path.abspath(self.default))
+            self.assertEqual(prefs["entrySaveLocation"], self._resolved(self.default))
             self.assertEqual(prefs["entrySaveLocationDefault"], os.path.abspath(self.default))
             self.assertTrue(prefs["entrySaveLocationIsDefault"])
             self.assertFalse(prefs["entrySaveLocationLocked"])
@@ -351,7 +351,7 @@ class SaveLocationTests(unittest.TestCase):
             self.assertFalse(result["ok"])
             self.assertEqual(str(locked.core._store.directory), os.path.abspath(self.source))
             self.assertEqual(locked.get_preferences()["entrySaveLocation"],
-                             os.path.abspath(self.source))
+                             self._resolved(self.source))
             self.assertTrue(locked.get_preferences()["entrySaveLocationLocked"])
             self.assertEqual(self._stored_preference(), os.path.abspath(self.target))
 
