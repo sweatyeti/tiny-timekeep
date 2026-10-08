@@ -81,11 +81,10 @@ class AppIconTests(unittest.TestCase):
             msg="README.md: 'tinyTimeKeep.exe' must appear exactly once",
         )
 
-        self.assertIn("Previously published prereleases retain their original executable filenames.", readme)
         self.assertIn(
-            "Future releases built from the updated packaging will use `tinyTimeKeep.exe`.",
+            "section. As of the full v1.0 release, the name is `tinyTimeKeep.exe`.",
             readme,
-            msg="README.md: must state that future releases will use tinyTimeKeep.exe",
+            msg="README.md: must state the current executable name for v1.0",
         )
 
         # Old executable name must be absent from spec, build script, and release workflow
