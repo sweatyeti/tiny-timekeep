@@ -15,6 +15,15 @@
  * loaded by index.html, and its entry below is commented out with an explanation
  * rather than left dangling.
  *
+ * The supplied Neon Robot artwork (renderNeonRobot in
+ * companions/neon-robot.js plus companions/neon-robot.css) is parked exactly
+ * like the old cat, cyber and sun: its files are kept in the repository for
+ * reference, its script and stylesheet are no longer loaded by index.html, and
+ * its entry below is commented out with an explanation rather than left
+ * dangling. The Cyber theme is now painted by the supplied Hooded Netrunner
+ * (renderHoodedNetrunner in companions/hooded-netrunner.js plus
+ * companions/hooded-netrunner.css).
+ *
  * The original Poolside sun avatar (renderSunAvatar in companions/sun.js plus
  * companions/sun.css) is parked exactly like the old cat and cyber: its files
  * are kept in the repository for reference, its script and stylesheet are no
@@ -35,12 +44,22 @@
  * (renderCitrusDog in companions/citrus-dog.js plus
  * companions/citrus-dog.css) and parks NOTHING, because there is no retired
  * Citrus Pop avatar file to keep for reference.
+ *
+ * The Dune theme never had an avatar of its own: before this change
+ * COMPANION_REGISTRY had no dune key at all, so Dune was one of the unknown
+ * themes that rendered no avatar and only the shared sleep cue appeared. This
+ * change therefore ADDS the user-approved Muad'Dib desert mouse renderer
+ * (renderMuaddibMouse in companions/muaddib-mouse.js plus
+ * companions/muaddib-mouse.css) and parks NOTHING, because there is no
+ * retired Dune avatar file to keep for reference.
  */
 const COMPANION_AVATARS = {
   // The original Cute cat artwork is parked (see top comment).
   // cat: renderCatAvatar,
   'cozy-cat': renderCozyCat,
-  'neon-robot': renderNeonRobot,
+  // The supplied Neon Robot artwork is parked (see top comment).
+  // 'neon-robot': renderNeonRobot,
+  'hooded-netrunner': renderHoodedNetrunner,
   // The original Cyber cyborg renderer is parked (see top comment).
   // cyber: renderCyberAvatar,
   'poolside-turtle': renderPoolsideTurtle,
@@ -48,14 +67,16 @@ const COMPANION_AVATARS = {
   // sun: renderSunAvatar,
   'woodland-owl': renderWoodlandOwl,
   'citrus-dog': renderCitrusDog,
+  'muaddib-mouse': renderMuaddibMouse,
 };
 
 const COMPANION_REGISTRY = {
   cute: 'cozy-cat',
-  cyber: 'neon-robot',
+  cyber: 'hooded-netrunner',
   poolside: 'poolside-turtle',
   evergreen: 'woodland-owl',
-  'citrus-pop': 'citrus-dog'
+  'citrus-pop': 'citrus-dog',
+  dune: 'muaddib-mouse'
 };
 
 function resolveCompanionAvatar(theme) {
@@ -73,5 +94,5 @@ function renderCompanionScene(theme) {
   _companionCurrentAvatar = avatar;
   const renderAvatar = avatar && COMPANION_AVATARS[avatar];
   scene.innerHTML = (renderAvatar ? renderAvatar() : '') +
-    '<span class="companion-sleep-cue"></span>';
+    '<span class="companion-sleep-cue" aria-hidden="true"><i class="companion-sleep-cue-z1">Z</i><i class="companion-sleep-cue-z2">Z</i><i class="companion-sleep-cue-z3">Z</i></span>';
 }

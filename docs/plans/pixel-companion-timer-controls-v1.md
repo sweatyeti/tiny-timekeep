@@ -2,7 +2,7 @@
 
 **Status:** Approved for implementation. This is a follow-up to the app-wide 128×96 companion layout, not a new avatar design. The approved direction is the corrected two-control sketch at `/home/hermes/.hermes/cache/scratch/stop-controls-beside-avatar-sketch-v2.png`. The sketch is illustrative; this document resolves its rough erasure/artifact details and is authoritative for behavior.
 
-**Goal:** In an active Keeper of Time session, place two *compact, icon-only* tracking actions on the LEFT of the avatar, alongside the task text. The avatar stays on the RIGHT. The actions must not sit underneath the avatar or stretch across the card.
+**Goal:** In an active tinyTimeKeep session, place two *compact, icon-only* tracking actions on the LEFT of the avatar, alongside the task text. The avatar stays on the RIGHT. The actions must not sit underneath the avatar or stretch across the card.
 
 **Architecture:** UI-only change to the existing `#screen-active .now-tracking` markup, its grid CSS, and `renderCurrent()` in `web/app.js`. Keep the existing button IDs, click handlers, Python bridge/API, tracking behavior, and shared avatar renderer untouched. No dependency or storage change.
 

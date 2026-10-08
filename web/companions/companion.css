@@ -34,8 +34,37 @@
   pointer-events: none;
 }
 
-.companion-sleep-cue::after {
-  content: "Z";
+/* .companion-sleep-cue::after { content: "Z"; } — superseded; three <i> glyphs are painted below */
+
+.companion-sleep-cue-z1,
+.companion-sleep-cue-z2,
+.companion-sleep-cue-z3 {
+  position: absolute;
+  font-family: var(--font-body);
+  color: var(--text-dim);
+  font-style: normal;
+  line-height: 1;
+  width: 10px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.companion-sleep-cue-z3 {
+  top: 0;
+  right: 0;
+  font-size: 19px;
+}
+
+.companion-sleep-cue-z2 {
+  top: 15px;
+  right: 11px;
+  font-size: 15px;
+}
+
+.companion-sleep-cue-z1 {
+  top: 30px;
+  right: 22px;
+  font-size: 11px;
 }
 
 #companion[data-mode="sleeping"] .companion-eye {
@@ -45,7 +74,7 @@
 
 /* Parked Cyber cyborg avatar rules (companions/cyber.js +
    companions/cyber.css, no longer loaded by index.html). The Cyber
-   theme now renders the Neon Robot avatar. These rules are inert but
+   theme now renders the Hooded Netrunner avatar. These rules are inert but
    deliberately kept so the parked path can be restored. */
 #companion[data-mode="sleeping"] .companion-cyber-eye {
   height: 1px;

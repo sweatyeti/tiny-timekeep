@@ -1,5 +1,5 @@
 """
-Keeper of Time — pywebview host.
+tinyTimeKeep — pywebview host.
 
 Wires the web UI (web/) to the real TimeTrackerCore (timetracker_core package), and exposes the
 app-level surface the UI also needs: window chrome (frameless drag/resize) and UI preferences.
@@ -18,12 +18,13 @@ implementation now.
 
 Run:    python main.py
 Check:  python main.py --check      (no window, no pywebview — verifies the core wiring)
-Build:  packaging/build.ps1         (Windows, produces dist/KeeperOfTime.exe)
+Build:  packaging/build.ps1         (Windows, produces dist/tinyTimeKeep.exe)
 """
 import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from datetime import datetime, timezone, timedelta
@@ -39,23 +40,23 @@ if BASE_DIR not in sys.path:
 from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
-# Display name vs technical identifier: the window and title bar say "tinyTimekeep", while the
-# executable, the data folder and the process name stay space-free.
-APP_NAME = "KeeperOfTime"
-WINDOW_TITLE = "tinyTimekeep"
-DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
+# Use the app's current name consistently for sessions and preferences.
+APP_NAME = "tinyTimeKeep"
+WINDOW_TITLE = "tinyTimeKeep"
+SESSIONS_DIR_NAME = APP_NAME
+DATA_DIR_ENV = "TINYTIMEKEEP_DATA_DIR"
 
 # Keep in lockstep with specs/core-logic-contract.md's frontmatter `version:`. This
 # is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
 # if timetracker_core ships a contract change this UI hasn't been updated
 # for, fail loudly here rather than disagree silently at runtime.
-EXPECTED_CONTRACT_VERSION = "v1.4"
+EXPECTED_CONTRACT_VERSION = "v1.5"
 
 # Resolved relative to this file, not the current working directory — matters
 # once this is launched via a shortcut/startup entry rather than a terminal
 # already cd'd into this folder.
 INDEX_HTML = os.path.join(BASE_DIR, "web", "index.html")
-APP_ICON = os.path.join(BASE_DIR, "assets", "keeper-of-time.ico")
+APP_ICON = os.path.join(BASE_DIR, "assets", "tinyTimeKeep.ico")
 
 
 def _user_data_base():
@@ -71,12 +72,14 @@ def _default_storage_path():
     """Per-user data, never beside the executable.
 
     A one-file PyInstaller build unpacks to a temp directory and starts empty each run, so the
-    storage path has to be somewhere that outlives the process.
+    storage path has to be somewhere that outlives the process. The current default is used for
+    all installations; existing legacy session files are left in place and never migrated here.
     """
     override = os.environ.get(DATA_DIR_ENV)
     if override:
         return os.path.expanduser(override)
-    path = os.path.join(_user_data_base(), APP_NAME, "sessions")
+    # Do not discover, read, copy, or migrate data from previous storage locations.
+    path = os.path.join(_user_data_base(), SESSIONS_DIR_NAME, "sessions")
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -130,8 +133,6 @@ class Api:
         self._location_locked = (bool(os.environ.get(DATA_DIR_ENV))
                                  if location_locked is None else location_locked)
         self._pending_source = None
-        if not self.prefs.get_all().get("entrySaveLocation"):
-            self.prefs.set("entrySaveLocation", initial_storage_path)
         self._window = None
 
     def set_window(self, window):
@@ -162,11 +163,26 @@ class Api:
 
     # --- UI preferences (separate from the core contract — see preferences.py) ---
 
+    def _location_lock_message(self):
+        if os.environ.get(DATA_DIR_ENV):
+            return f"{DATA_DIR_ENV} controls the sessions folder."
+        return "The sessions folder was set on the command line (--sessions-dir)."
+
     def get_preferences(self):
-        preferences = self.prefs.get_all()
-        if self._location_locked:
+        preferences = dict(self.prefs.get_all())
+        stored = preferences.get("entrySaveLocation")
+        is_default = (not stored) or self._location_locked
+        if is_default:
             preferences["entrySaveLocation"] = str(self.core._store.directory.resolve())
+        if self._location_locked:
+            preferences["entrySaveLocationDefault"] = str(self.core._store.directory.resolve())
+        else:
+            try:
+                preferences["entrySaveLocationDefault"] = os.path.abspath(_default_storage_path())
+            except OSError:
+                preferences["entrySaveLocationDefault"] = str(self.core._store.directory.resolve())
         preferences["entrySaveLocationLocked"] = self._location_locked
+        preferences["entrySaveLocationIsDefault"] = is_default
         return preferences
 
     def set_preference(self, key, value, move_existing=False):
@@ -176,27 +192,60 @@ class Api:
 
     def choose_entry_save_location(self):
         if self._location_locked:
-            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+            return {"ok": False, "message": self._location_lock_message()}
         if self._window is None:
             return {"ok": False, "message": "Folder selection is unavailable."}
         try:
             import webview
-            result = self._window.create_file_dialog(webview.FOLDER_DIALOG)
+            result = self._window.create_file_dialog(webview.FileDialog.FOLDER)
         except Exception as exc:
             return {"ok": False, "message": str(exc)}
         if not result:
             return {"ok": False, "cancelled": True}
         return {"ok": True, "path": os.path.abspath(os.path.expanduser(result[0]))}
 
+    def open_entry_save_location(self):
+        folder = self.core._store.directory
+        if folder is None:
+            return {"ok": False, "message": "Save location is not set."}
+        try:
+            resolved = os.path.abspath(os.path.expanduser(str(folder)))
+        except (OSError, ValueError):
+            return {"ok": False, "message": "Save location path is malformed."}
+        if not os.path.isdir(resolved):
+            return {"ok": False, "message": "Target is not an existing directory."}
+        try:
+            if sys.platform == "win32":
+                os.startfile(resolved)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", resolved], shell=False)
+            elif sys.platform == "linux":
+                subprocess.Popen(["xdg-open", resolved], shell=False)
+            else:
+                return {"ok": False, "message": f"Unsupported platform: {sys.platform}"}
+        except Exception as exc:
+            return {"ok": False, "message": str(exc)}
+        return {"ok": True, "path": resolved}
+
     def set_entry_save_location(self, path, move_existing=False):
         if self._location_locked:
-            return {"ok": False, "message": f"{DATA_DIR_ENV} controls the sessions folder."}
+            return {"ok": False, "message": self._location_lock_message()}
         if not isinstance(path, str) or not path.strip():
             return {"ok": False, "message": "Choose a valid folder."}
         target = os.path.abspath(os.path.expanduser(path.strip()))
-        current = str(self.core._store.directory.resolve())
-        if os.path.abspath(target) == current:
-            return {"ok": True, "preferences": self.prefs.get_all()}
+        return self._apply_save_location(target, move_existing, persist_default=False)
+
+    def restore_default_save_location(self, move_existing=False):
+        if self._location_locked:
+            return {"ok": False, "message": self._location_lock_message()}
+        target = os.path.abspath(_default_storage_path())
+        return self._apply_save_location(target, move_existing, persist_default=True)
+
+    def _apply_save_location(self, target, move_existing, persist_default):
+        already_default = not self.prefs.get_all().get("entrySaveLocation")
+        same_dir = Path(target).resolve() == self.core._store.directory.resolve()
+        if same_dir and (not persist_default or already_default):
+            return {"ok": True, "preferences": self.get_preferences()}
         try:
             ensure_usable_sessions_dir(target)
         except SystemExit as exc:
@@ -205,7 +254,7 @@ class Api:
         source_dir = self.core._store.directory
         migrated = []
         name_map = {}
-        if move_existing:
+        if move_existing and not same_dir:
             try:
                 taken = {item.name for item in Path(target).iterdir() if item.is_file()}
                 for source in sorted(source_dir.glob("*.json")):
@@ -236,8 +285,9 @@ class Api:
                         pass
                 return {"ok": False, "message": f"Could not safely move existing sessions: {exc}"}
 
+        stored = None if persist_default else target
         try:
-            prefs = self.prefs.set("entrySaveLocation", target)
+            self.prefs.set("entrySaveLocation", stored)
         except OSError as exc:
             for _, destination in migrated:
                 try:
@@ -247,10 +297,10 @@ class Api:
             return {"ok": False, "message": f"Could not save the preference: {exc}"}
 
         session = self.core._session
-        if move_existing:
+        if move_existing and not same_dir:
             if session is not None and session.file_name in name_map:
                 session.file_name = name_map[session.file_name]
-        elif session is not None and session.is_active() and session.file_name:
+        elif session is not None and session.is_active() and session.file_name and not same_dir:
             source = self.core._store.document_path(session.file_name)
             if source.is_file():
                 destination = None
@@ -292,13 +342,13 @@ class Api:
                     self._pending_source = source
                     session.file_name = None
         self.core._store._directory = Path(target)
-        if move_existing:
+        if move_existing and not same_dir:
             for source, _ in migrated:
                 try:
                     source.unlink()
                 except OSError:
                     pass
-        return {"ok": True, "preferences": prefs}
+        return {"ok": True, "preferences": self.get_preferences()}
 
     def _after_core_save(self, result):
         source = self._pending_source
@@ -331,6 +381,11 @@ class Api:
         return self.core.list_sessions()
 
     def start_session(self, name=None, first_task=None):
+        # The core's own generator names an unnamed session from its UTC clock; that name is
+        # persisted, names the document file, and is shown to the user, so the wrapper supplies
+        # a local-time name instead. The vendored core is deliberately left untouched.
+        if name is None or str(name).strip() == "":
+            name = "Session " + datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
         return self._after_core_save(self.core.start_session(name, first_task))
 
     def resume_session(self, session_id):
@@ -353,6 +408,9 @@ class Api:
 
     def log_task_group(self, task):
         return self._after_core_save(self.core.log_task_group(task))
+
+    def unlog_task_group(self, task):
+        return self._after_core_save(self.core.unlog_task_group(task))
 
     def list_deleted_entries(self):
         return self.core.list_deleted_entries()
@@ -386,7 +444,7 @@ def run_checks():
     print(f"{WINDOW_TITLE}: contract {CONTRACT_VERSION} (expected {EXPECTED_CONTRACT_VERSION})")
     check_contract_version()
 
-    workdir = tempfile.mkdtemp(prefix="keeper-of-time-check-")
+    workdir = tempfile.mkdtemp(prefix="tinyTimeKeep-check-")
     try:
         clock = _FixedClock(datetime(2026, 9, 23, 9, 0, 0, tzinfo=timezone.utc))
         core = TimeTrackerCore(workdir, clock=clock)
@@ -425,7 +483,7 @@ def run_checks():
                 print(f"  got      {json.dumps(state[field])}", file=sys.stderr)
                 return 1
         if "isActive" in state["session"]:
-            print("FAIL: 'isActive' is not part of contract v1.4", file=sys.stderr)
+            print("FAIL: 'isActive' is not part of contract v1.5", file=sys.stderr)
             return 1
 
         # v1.4: a deleted row carries the description the restore screen renders.
@@ -489,7 +547,8 @@ def main(argv=None):
             f"Install the pinned version:  python -m pip install -r requirements.txt"
         )
 
-    api = Api(storage_path=sessions_dir, preferences_path=preferences_path)
+    api = Api(storage_path=sessions_dir, preferences_path=preferences_path,
+              location_locked=bool(args.sessions_dir) or bool(os.environ.get(DATA_DIR_ENV)))
     window = webview.create_window(
         WINDOW_TITLE,
         INDEX_HTML,

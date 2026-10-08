@@ -10,10 +10,15 @@
   --accent-mint: #7de8c8;
   --accent-pink-text: var(--accent-pink);
   --accent-mint-text: var(--accent-mint);
-  --inactive: #dd6f97;    /* NOT TRACKING banner. A deeper, richer rose on purpose: it must
-                             read as "in the same family as" the title bar without being the
-                             same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
-                             at #ff8fa3). Do not collapse these back into one token. */
+  /* --inactive: #dd6f97; — superseded by --status-inactive.
+     NOT TRACKING banner. A deeper, richer rose on purpose: it must
+     read as "in the same family as" the title bar without being the
+     same pink (--titlebar is pale at #ff9ebb, --accent-pink pale-rose
+     at #ff8fa3). Do not collapse these back into one token. */
+  --status-active: #5BE38C;
+  --status-active-ink: #10241A;
+  --status-inactive: #FFB020;
+  --status-inactive-ink: #2A1A05;
   --text-main: #f2e9da;
   --text-dim: #b9a9d1;
   --callout: #ff6b6b;
@@ -36,7 +41,11 @@ body[data-theme="cyber"] {
   --accent-mint: #00ffff;
   --accent-pink-text: #ff00ff;
   --accent-mint-text: #00ffff;
-  --inactive: #ff6600;
+  /* --inactive: #ff6600; — superseded by --status-inactive. */
+  --status-active: #00FFFF;
+  --status-active-ink: #050510;
+  --status-inactive: #FF7A18;
+  --status-inactive-ink: #1A0A02;
   --text-main: #e8e8ff;
   --text-dim: #7788aa;
   --callout: #ff4444;
@@ -67,7 +76,11 @@ body[data-theme="poolside"] {
   --accent-mint: #A8DED9;
   --accent-pink-text: #A45A12;
   --accent-mint-text: #236F80;
-  --inactive: #F3AD7F;
+  /* --inactive: #F3AD7F; — superseded by --status-inactive. */
+  --status-active: #1F7A5A;
+  --status-active-ink: #EAF8FF;
+  --status-inactive: #A8442A;
+  --status-inactive-ink: #FFF3E6;
   --text-main: #123A4A;
   --text-dim: #416779;
   --callout: #AE3E4A;
@@ -88,7 +101,11 @@ body[data-theme="evergreen"] {
   --accent-mint: #AED08B;
   --accent-pink-text: #E6A86E;
   --accent-mint-text: #AED08B;
-  --inactive: #C17A48;
+  /* --inactive: #C17A48; — superseded by --status-inactive. */
+  --status-active: #C7E85A;
+  --status-active-ink: #1A2410;
+  --status-inactive: #EF6B4A;
+  --status-inactive-ink: #241503;
   --text-main: #F2EBDD;
   --text-dim: #A5BEA9;
   --callout: #F08472;
@@ -109,13 +126,41 @@ body[data-theme="citrus-pop"] {
   --accent-mint: #F0F3C5;
   --accent-pink-text: #815400;
   --accent-mint-text: #4B6A13;
-  --inactive: #F5CE6B;
+  /* --inactive: #F5CE6B; — superseded by --status-inactive. */
+  --status-active: #1E7A3C;
+  --status-active-ink: #F2FFF4;
+  --status-inactive: #B83C16;
+  --status-inactive-ink: #FFF1E8;
   --text-main: #26271D;
   --text-dim: #5C6144;
   --callout: #B3442D;
   --stop-ink: #FFFFFF;
   --logged: #496B1F;
   --border-dark: #26271D;
+}
+
+body[data-theme="dune"] {
+  --bg-top: #241536;
+  --bg-bottom: #7C4A24;
+  --panel: #33221A;
+  --panel-row: #261812;
+  --panel-row-alt: #452E1F;
+  --titlebar: #3B2A6B;
+  --titlebar-text: #F2E4C8;
+  --accent-pink: #E08A3C;
+  --accent-mint: #5FD3A6;
+  --accent-pink-text: #F0A868;
+  --accent-mint-text: #7FE0B8;
+  --status-active: #2FBF86;
+  --status-active-ink: #10241C;
+  --status-inactive: #F0A33A;
+  --status-inactive-ink: #2A1A05;
+  --text-main: #F5E7CF;
+  --text-dim: #C0A98A;
+  --callout: #FF6B4A;
+  --stop-ink: #1A1024;
+  --logged: #9FDB8A;
+  --border-dark: #1A1024;
 }
 
 * { box-sizing: border-box; }
@@ -201,6 +246,10 @@ input {
 }
 input::placeholder { color: var(--text-dim); }
 
+/* The app is `user-select: none` (see html, body above); text fields opt back in so editing and
+   text selection inside them behave normally. */
+input, textarea { user-select: text; -webkit-user-select: text; }
+
 .btn {
   font-family: var(--font-display);
   font-size: 11px;
@@ -219,8 +268,18 @@ input::placeholder { color: var(--text-dim); }
   border: 2px solid var(--border-dark);
   padding: 10px;
   display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
 }
-.session-item button { font-family: var(--font-display); font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; }
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.session-name { overflow-wrap: anywhere; }
+.session-times { color: var(--text-dim); font-size: 15px; overflow-wrap: anywhere; }
+.session-item button { font-family: var(--font-display); font-size: 10px; background: var(--accent-mint); border: 2px solid var(--border-dark); padding: 6px 8px; cursor: pointer; flex: 0 0 auto; white-space: nowrap; }
 .session-item.deleted-item { align-items: flex-start; }
 
 .now-tracking {
@@ -238,8 +297,11 @@ input::placeholder { color: var(--text-dim); }
   margin: -14px -14px 12px -14px; /* bleed to the panel's edges */
   border-bottom: 3px solid var(--border-dark);
 }
-.status-banner.active { background: var(--accent-mint); color: var(--border-dark); }
-.status-banner.inactive { background: var(--inactive); color: var(--border-dark); }
+/* Parked: .status-banner.active { background: var(--accent-mint); color: var(--border-dark); }
+   .status-banner.inactive { background: var(--inactive); color: var(--border-dark); }
+   — superseded by --status-active / --status-inactive tokens. */
+.status-banner.active { background: var(--status-active); color: var(--status-active-ink); }
+.status-banner.inactive { background: var(--status-inactive); color: var(--status-inactive-ink); }
 .hint-text { font-size: 14px; color: var(--text-dim); padding: 10px 4px 0; }
 .now-tracking-top {
   display: grid;
@@ -249,7 +311,20 @@ input::placeholder { color: var(--text-dim); }
   column-gap: 8px;
   margin-bottom: 12px;
 }
-.now-tracking-label { grid-area: label; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; }
+/* Wrapper owns the grid-area so the label text and the edit button share the "label" cell */
+.now-tracking-label-row { grid-area: label; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* The title line keeps the Edit control a fixed small gap after the rendered task title instead of
+   at the far edge of the cell. The label shrinks (never grows) so the button stays beside short
+   titles and the title ellipsizes when the row is too narrow for both. */
+.now-tracking-title-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.now-tracking-label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 19px; user-select: text; -webkit-user-select: text; }
+/* The running entry's description: muted, directly under the title, wrapping within the cell.
+   The .hidden class removes it from the layout entirely when there is no description. */
+.now-tracking-desc { min-width: 0; font-size: 15px; color: var(--text-dim); white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Descendant selector deliberately beats the generic .icon-btn sizing */
+.now-tracking-label-row .current-edit-btn { flex: 0 0 auto; width: 26px; height: 26px; font-size: 12px; line-height: 1; padding: 0; }
+/* Keyboard focus indicator for the edit button, matching timer controls */
+.now-tracking-label-row .current-edit-btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .now-tracking-start { grid-area: start; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; color: var(--text-dim); }
 #companion { grid-area: companion; justify-self: end; }
 .now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }
@@ -260,6 +335,14 @@ input::placeholder { color: var(--text-dim); }
 .now-tracking-actions .timer-play-refresh-icon { display: block; flex: none; shape-rendering: crispEdges; }
 .now-tracking-actions .timer-stop-square,
 .now-tracking-actions .timer-play { fill: currentColor; }
+
+/* The 38px icon canvas is centred in the 60px button, but the play triangle occupies
+   x 3..15 of it: with the refresh arrows hidden (not tracking) the glyph has to move
+   right by 10px to sit on the button's centre. */
+.now-tracking-actions #stop-start-btn.play-centered .timer-play { transform: translateX(10px); }
+
+.elapsed-counter { color: var(--text-dim); white-space: nowrap; }
+.elapsed-counter::before { content: '·'; margin: 0 6px; }
 .now-tracking-actions .timer-refresh path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: square; stroke-linejoin: miter; }
 .now-tracking-actions .btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .btn-mini-accent { background: var(--accent-pink); }
@@ -287,9 +370,15 @@ input::placeholder { color: var(--text-dim); }
   border: 0;
 }
 
-.action-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+/* Parked: .action-bar held the retired "Log group" button and the Deleted control.
+   The group-log button became redundant once every Summary row gained its own
+   Log/Unlog toggle, and Deleted has moved up into the tab row .tab-bar, so the
+   bar is gone.
+   .action-bar { display: flex; gap: 8px; margin-bottom: 14px; } */
 
-.tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.tab-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+
+.tabs { display: flex; gap: 6px; min-width: 0; }
 .tab-btn {
   font-family: var(--font-display);
   font-size: 10px;
@@ -302,17 +391,12 @@ input::placeholder { color: var(--text-dim); }
 }
 .tab-btn.active { color: var(--accent-pink-text); border-bottom-color: var(--accent-pink); }
 
+.btn-compact { flex: 0 0 auto; width: auto; padding: 4px 6px; font-size: 9px; white-space: nowrap; }
+
 .rows { display: flex; flex-direction: column; }
-.row {
-  display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
-  padding: 10px 8px;
-  border-bottom: 2px dashed var(--panel-row-alt);
-}
-.row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 .row-main { flex: 1; min-width: 160px; }
 .row-title { font-size: 19px; }
 .row-sub { font-size: 15px; color: var(--text-dim); overflow-wrap: anywhere; }
-.row-time { font-size: 15px; color: var(--text-dim); min-width: 64px; text-align: right; }
 .badge { font-size: 13px; padding: 2px 6px; border: 1px solid var(--border-dark); white-space: nowrap; }
 .badge-unlogged { color: var(--callout); border-color: var(--callout); }
 .badge-logged { color: var(--logged); border-color: var(--logged); }
@@ -328,28 +412,78 @@ input::placeholder { color: var(--text-dim); }
   font-size: 13px;
 }
 .icon-btn.play { background: var(--accent-mint); color: var(--border-dark); }
-.icon-btn.stop { background: var(--accent-pink); color: var(--border-dark); }
 
-.summary-head, .summary-row {
+/* Summary table. ONE grid owns the five column tracks; the header and every row inherit them
+   through subgrid (Chromium 117+, i.e. current WebView2). Sized as separate grids the tracks
+   drifted: the header's word widths clamp its minmax(min-content, ...) tracks differently from a
+   row's numbers, and each row's `auto` action track widened that row alone, so the Count header
+   and the Count values did not share a centre. The horizontal inset lives on this wrapper
+   because padding on a subgrid item shrinks its content box without shrinking the tracks it
+   inherits. */
+#summary-table {
   display: grid;
-  grid-template-columns: minmax(0,1.8fr) minmax(0,0.7fr) minmax(0,1.1fr) minmax(0,0.8fr);
+  grid-template-columns: minmax(0,1.8fr) minmax(min-content,0.7fr) minmax(min-content,1.1fr) minmax(min-content,0.8fr) auto;
   gap: 6px;
-  align-items: center;
+  padding: 0 8px;
 }
+#summary-rows {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+}
+#summary-rows .empty-state { grid-column: 1 / -1; }
 .summary-head {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+  align-items: center;
   font-family: var(--font-display);
   font-size: 9px;
   color: var(--text-dim);
-  padding: 0 8px 8px;
+  padding: 0 0 8px;
 }
-.summary-row { padding: 8px; border-bottom: 2px dashed var(--panel-row-alt); font-size: 17px; }
+.summary-row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  gap: inherit;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 2px dashed var(--panel-row-alt);
+  font-size: 17px;
+}
+/* Copyable task name in a Summary row (rendered by app.js). Task names are the only selectable
+   text in the window: the rest is covered by the app-wide `user-select: none` above. */
+.summary-task { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; -webkit-user-select: text; }
 .summary-row .callout { color: var(--callout); }
+.summary-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+.summary-actions .icon-btn {
+  width: auto; min-width: 26px; height: 26px;
+  padding: 0 5px;
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.summary-actions .summary-log-btn.log { background: var(--accent-mint); color: var(--border-dark); }
+.summary-actions .summary-log-btn.unlog { background: var(--panel-row); color: var(--text-main); }
+.summary-actions .icon-btn:disabled { opacity: 0.6; cursor: default; }
+.summary-actions .icon-btn:focus-visible { outline: 2px solid var(--accent-pink); outline-offset: 1px; }
+/* wrap buttons to their own line so the four data columns keep their width */
+@media (max-width: 359px) { .summary-row .summary-actions { grid-column: 1 / -1; } }
 .summary-totals {
-  margin-top: 12px;
   display: flex; justify-content: space-between;
   font-size: 17px;
-  border-top: 2px solid var(--panel-row-alt);
-  padding-top: 10px;
+  border-bottom: 2px solid var(--panel-row-alt);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+/* Summary guidance sits between the totals and the table; give it the same 8px rhythm under the
+   separator and above the table (.log-hint uses the same 0 4px 8px), not .hint-text's top padding. */
+#tab-summary > .hint-text {
+  padding: 0 4px 8px;
 }
 
 .empty-state { color: var(--text-dim); font-size: 17px; padding: 16px 4px; }
@@ -519,6 +653,20 @@ body[data-theme="cyber"] .theme-btn {
   margin-top: 0.75rem;
   padding: 0.45rem 1rem;
 }
+.save-location-restore {
+  margin-top: 0.5rem;
+  padding: 0.45rem 1rem;
+  border: 2px solid var(--border-dark);
+}
+.save-location-restore:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.save-location-open {
+  margin-top: 0.5rem;
+  padding: 0.45rem 1rem;
+  border: 2px solid var(--border-dark);
+}
 
 .save-location-confirmation {
   position: fixed;
@@ -557,35 +705,120 @@ body[data-theme="cyber"] .theme-btn {
   outline-offset: 2px;
 }
 
-/* Log entry row */
+/* Log entry rows: one column template for the whole list, so every row's columns line up.
+   The rows use subgrid (Chromium 117+, i.e. any current WebView2) to inherit it.
+   Each entry is a single grid row; the description preview lives inside the task cell. */
+#entry-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto auto; column-gap: 4px; }
+#entry-rows .empty-state { grid-column: 1 / -1; }
+/* Log entry row — one row only; desc is a flex child inside the task cell */
 .log-entry-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: nowrap;
-  gap: 0.25rem 1rem;
-  padding: 0.3rem 0;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: auto;
+  grid-column: 1 / -1;
+  align-items: center;
+  padding: 6px 0;
   border-bottom: 2px dashed var(--panel-row-alt);
 }
-.log-entry-content {
+.log-entry-task {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+.log-entry-id {
+  flex: none;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+/* Task name is the priority: never grows, only shrinks when it alone overflows. Selectable text
+   (unlike the ID, timestamps, duration, badge and description beside it). */
+.log-entry-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* Desc preview takes only the space left after the title; shrinks to nothing when there is no room */
+.log-entry-desc {
   flex: 1 1 0;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.log-entry-time {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.log-entry-duration {
+  grid-column: 3;
+  grid-row: 1;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.log-entry-status {
+  grid-column: 4;
+  grid-row: 1;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 1rem;
-  overflow-wrap: anywhere;
-}
-.log-entry-title {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.log-entry-sub {
-  min-width: 0;
-  overflow-wrap: anywhere;
+  align-items: center;
+  justify-content: center;
 }
 .log-entry-actions {
+  grid-column: 5;
+  grid-row: 1;
   display: flex;
-  flex-shrink: 0;
-  margin-left: auto;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 4px;
+}
+.log-entry-status .badge {
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.log-entry-actions .icon-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+button.badge {
+  font-family: var(--font-body);
+  background: transparent;
+  cursor: pointer;
+}
+/* Hint line above the entry list; font and colour come from the shared .hint-text class */
+.log-hint {
+  padding: 0 4px 8px;
+}
+/* Narrow screens: tighten meta cells so the single row still fits at ~300 px */
+@media (max-width: 340px) {
+  #entry-rows {
+    column-gap: 3px;
+  }
+  .log-entry-time,
+  .log-entry-duration {
+    font-size: 11px;
+  }
+  .log-entry-status .badge {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+  .log-entry-actions .icon-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
 }
