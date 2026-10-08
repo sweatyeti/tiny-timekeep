@@ -31,6 +31,11 @@ class SaveLocationTests(unittest.TestCase):
     def _stored_preference(self):
         return PreferencesStore(self.prefs_path).get_all()["entrySaveLocation"]
 
+    def _resolved(self, path):
+        # Windows 8.3 short aliases (e.g. RUNNER~1) are canonicalized by
+        # Path.resolve(); get_preferences() exposes the resolved long path.
+        return str(Path(path).resolve())
+
     def _default_path_in(self, localappdata, override=""):
         with patch.dict(os.environ, {
             "LOCALAPPDATA": localappdata,
@@ -168,7 +173,7 @@ class SaveLocationTests(unittest.TestCase):
         api = fake_webview.create_window.call_args.kwargs["js_api"]
         self.assertEqual(api.prefs.get_all()["theme"], "cute")
         self.assertIsNone(api.prefs.get_all()["entrySaveLocation"])
-        self.assertEqual(api.get_preferences()["entrySaveLocation"], self.default)
+        self.assertEqual(api.get_preferences()["entrySaveLocation"], self._resolved(self.default))
         self.assertEqual(previous_preferences.read_bytes(), original_bytes)
 
         api.set_preference("theme", "dune")
@@ -306,7 +311,7 @@ class SaveLocationTests(unittest.TestCase):
 
     def test_preference_defaults_to_current_location_and_persists(self):
         self.assertIsNone(DEFAULT_PREFERENCES["entrySaveLocation"])
-        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], os.path.abspath(self.source))
+        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], self._resolved(self.source))
         result = self.api.set_preference("entrySaveLocation", self.target, False)
         self.assertTrue(result["ok"], result)
         reopened = PreferencesStore(self.prefs_path)
@@ -332,7 +337,7 @@ class SaveLocationTests(unittest.TestCase):
         result = self.api.set_preference("entrySaveLocation", "  ", False)
         self.assertFalse(result["ok"])
         self.assertEqual(str(self.api.core._store.directory), os.path.abspath(self.source))
-        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], os.path.abspath(self.source))
+        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], self._resolved(self.source))
         locked = main.Api(storage_path=self.source,
                           preferences_path=os.path.join(self.tmp, "locked.json"),
                           location_locked=True)
@@ -399,7 +404,7 @@ class SaveLocationTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertTrue(original.exists())
         self.assertEqual(str(self.api.core._store.directory), os.path.abspath(self.source))
-        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], os.path.abspath(self.source))
+        self.assertEqual(self.api.get_preferences()["entrySaveLocation"], self._resolved(self.source))
 
         with self.subTest("a failed restore keeps the custom location and the custom preference"):
             self.api.set_preference("entrySaveLocation", self.target, False)

@@ -436,7 +436,7 @@ class TestChromeAndTheming(unittest.TestCase):
 
 def _run_node_session_list(script, *args, tz=None):
     cmd = ["node", "-e", script] + [str(a) for a in args]
-    kwargs = {"capture_output": True, "text": True, "timeout": 30}
+    kwargs = {"capture_output": True, "text": True, "encoding": "utf-8", "timeout": 30}
     if tz is not None:
         kwargs["env"] = {**os.environ, "TZ": tz}
     proc = subprocess.run(cmd, **kwargs)
