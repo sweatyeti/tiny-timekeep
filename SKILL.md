@@ -1,9 +1,9 @@
 ---
-name: keeper-of-time-app
-description: How Keeper of Time works — a pixel-art Windows widget for time tracking, its three-layer architecture (spec / contract / UI), and the conventions to follow when extending it.
+name: tinytimekeep-app
+description: How tinyTimeKeep works — a pixel-art Windows widget for time tracking, its three-layer architecture (spec / contract / UI), and the conventions to follow when extending it.
 ---
 
-# Keeper of Time
+# tinyTimeKeep
 
 A small, always-visible Windows desktop widget for time tracking: start/stop
 tasks, see what's currently running, review and edit a log of entries, and
@@ -12,7 +12,7 @@ summarize time per task. Built as a pixel-art, anime-cutesy floating window
 
 ## What this is, in one paragraph
 
-Keeper of Time is a pywebview desktop app: a Python process hosts a small local
+tinyTimeKeep is a pywebview desktop app: a Python process hosts a small local
 web UI (HTML/CSS/JS) in a native, chromeless window. The UI never touches
 storage or business rules directly — it only calls a fixed set of methods on
 a Python object (`pywebview.api`), defined once in a contract document, and
@@ -112,17 +112,11 @@ major versions. Core has zero non-stdlib dependencies (`json`, `uuid`,
 `dataclasses`, `pathlib`, timezone-aware `datetime`).
 
 **Storage:**
-- Sessions: `%LOCALAPPDATA%\tinyTimekeep\sessions` is the default for all installations,
-  including upgrades. Existing `%LOCALAPPDATA%\KeeperOfTime\sessions` files remain in place;
-  they are not moved or copied automatically. A saved custom location or
-  `KEEPER_OF_TIME_DATA_DIR` can override the default; the core accepts an explicit
+- Sessions: `%LOCALAPPDATA%\tinyTimeKeep\sessions` is the default for all installations.
+- Preferences: `%LOCALAPPDATA%\tinyTimeKeep\preferences.json` stores UI settings separately from session data; writes are atomic (temp file + `os.replace`). The theme defaults to `cute`, and invalid stored values safely fall back to `cute`.
+- Data and settings from previous locations are not imported or migrated automatically. A saved custom location or
+  `TINYTIMEKEEP_DATA_DIR` can override the default; the core accepts an explicit
   `TimeTrackerCore.__init__(storage_path, clock=None)` path.
-- UI preferences: `%LOCALAPPDATA%\KeeperOfTime\preferences.json` — a
-  sibling file, deliberately *not* inside the sessions folder, since it's
-  app/UI settings, not session data. Atomic writes (temp file + `os.replace`),
-  same pattern as the core uses for session files. `theme` defaults to `cute`;
-  the compact bottom picker can select `cute` or `cyber`, and invalid stored
-  values safely fall back to `cute`.
 
 **Frontend:** vanilla HTML/CSS/JS, no build step, no framework. Fonts:
 'Press Start 2P' (headers, banner, buttons) and 'VT323' (body/list text),
@@ -143,7 +137,7 @@ core/UI pairing fails loudly instead of silently disagreeing.
 ## File layout
 
 ```
-keeper-of-time/
+tiny-timekeep/
 ├── main.py              # pywebview host + Api (window chrome, prefs, core passthrough)
 ├── preferences.py        # small standalone UI-settings store (JSON, atomic writes)
 ├── timetracker_core/     # the real core (place here — flat import, `from timetracker_core import ...`)

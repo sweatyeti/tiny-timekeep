@@ -1,6 +1,6 @@
-# tinyTimekeep
+# tinyTimeKeep
 
-tinyTimekeep is a small Windows desktop app for tracking time in sessions. Start a
+tinyTimeKeep is a small Windows desktop app for tracking time in sessions. Start a
 session, switch between tasks as you work, then review your entries and totals.
 
 ## Screenshots
@@ -20,12 +20,12 @@ The active tracking screen in all six supported themes:
 
 ## Download and run
 
-1. Open the [tinyTimekeep releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
+1. Open the [tinyTimeKeep releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
 2. Open the newest release and download the executable shown under its **Assets**
    section. Releases currently contain pre-release builds; there is no stable v1.0
    release yet.
-   Releases through `v1.0-beta3` use `KeeperOfTime.exe`.
-   Future releases built from the updated packaging will use `tinyTimekeep.exe`.
+   Previously published prereleases retain their original executable filenames.
+   Future releases built from the updated packaging will use `tinyTimeKeep.exe`.
 3. Run the downloaded file. There is no installer.
 
 The published app is for Windows and requires the Microsoft Edge WebView2 Runtime,
@@ -49,12 +49,15 @@ needed for the fonts to appear as intended.
 
 ## Session files and save location
 
-By default, all installations—including upgrades—save new sessions on this PC in:
+By default, every installation saves session files on this PC in:
 
-`%LOCALAPPDATA%\tinyTimekeep\sessions`
+`%LOCALAPPDATA%\tinyTimeKeep\sessions`
 
-If you already have session files in `%LOCALAPPDATA%\KeeperOfTime\sessions`,
-they remain there. The app does not move or copy them automatically.
+Preferences—including the selected theme and any custom save location—are stored in:
+
+`%LOCALAPPDATA%\tinyTimeKeep\preferences.json`
+
+Existing data and settings are not imported or migrated automatically.
 
 On most Windows PCs, `%LOCALAPPDATA%` points to a folder under your Windows user
 account, typically `C:\Users\<your-name>\AppData\Local`.

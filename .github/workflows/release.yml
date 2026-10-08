@@ -52,23 +52,23 @@ jobs:
         run: python -m unittest discover -s tests
 
       - name: Build with PyInstaller
-        run: python -m PyInstaller packaging/keeper-of-time.spec --noconfirm
+        run: python -m PyInstaller packaging/tinyTimeKeep.spec --noconfirm
 
       - name: Verify executable exists
         run: |
           $ErrorActionPreference = "Stop"
-          if (-not (Test-Path "dist/tinyTimekeep.exe")) {
-            Write-Error "dist/tinyTimekeep.exe not found after build"
+          if (-not (Test-Path "dist/tinyTimeKeep.exe")) {
+            Write-Error "dist/tinyTimeKeep.exe not found after build"
             exit 1
           }
-          Write-Host "dist/tinyTimekeep.exe confirmed"
+          Write-Host "dist/tinyTimeKeep.exe confirmed"
 
       - name: Upload release asset
         if: github.event_name == 'push' && github.ref_type == 'tag'
         uses: actions/upload-artifact@v4
         with:
-          name: tinyTimekeep-exe
-          path: dist/tinyTimekeep.exe
+          name: tinyTimeKeep-exe
+          path: dist/tinyTimeKeep.exe
           if-no-files-found: error
 
   publish-release:
@@ -81,7 +81,7 @@ jobs:
       - name: Download release asset
         uses: actions/download-artifact@v4
         with:
-          name: tinyTimekeep-exe
+          name: tinyTimeKeep-exe
           path: dist
 
       - name: Create GitHub Release
@@ -90,7 +90,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $tagName = $env:GITHUB_REF_NAME
-          $args = @("release", "create", $tagName, "dist/tinyTimekeep.exe", "--repo", $env:GITHUB_REPOSITORY, "--generate-notes", "--verify-tag")
+          $args = @("release", "create", $tagName, "dist/tinyTimeKeep.exe", "--repo", $env:GITHUB_REPOSITORY, "--generate-notes", "--verify-tag")
           if ($tagName -match '-') {
             $args += "--prerelease"
           }

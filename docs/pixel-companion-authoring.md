@@ -1,4 +1,4 @@
-# Keeper of Time Pixel Companion: New Avatar Specification
+# tinyTimeKeep Pixel Companion: New Avatar Specification
 
 Use this guide to create a **new** theme-specific avatar. It defines the frame constraint, integration points, behavior, and verification. Artwork and its theme assignment still need approval; this guide does not change tracking behavior or the Python API.
 

@@ -1,4 +1,4 @@
-# Build the Windows app: one self-contained tinyTimekeep.exe in dist/.
+# Build the Windows app: one self-contained tinyTimeKeep.exe in dist/.
 # Run from the project root in PowerShell:  .\packaging\build.ps1
 param(
     [switch]$RecreateVenv  # delete an existing .venv and build a fresh one
@@ -49,12 +49,13 @@ Write-Host "Running the app-specific test suite..."
 & .venv\Scripts\python -m unittest discover -s tests
 if ($LASTEXITCODE -ne 0) { throw "app tests failed - not packaging a broken build." }
 
-& .venv\Scripts\python -m PyInstaller packaging\keeper-of-time.spec --noconfirm
+& .venv\Scripts\python -m PyInstaller packaging\tinyTimeKeep.spec --noconfirm
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed - not packaging a broken build." }
-if (-not (Test-Path "dist\tinyTimekeep.exe")) { throw "dist\tinyTimekeep.exe was not produced." }
+if (-not (Test-Path "dist\tinyTimeKeep.exe")) { throw "dist\tinyTimeKeep.exe was not produced." }
 
 Write-Host ""
-Write-Host "Built: dist\tinyTimekeep.exe"
-Write-Host "Sessions default for all installations: $env:LOCALAPPDATA\tinyTimekeep\sessions"
-Write-Host "Existing KeeperOfTime\sessions files are left in place; they are not moved automatically."
+Write-Host "Built: dist\tinyTimeKeep.exe"
+Write-Host "Sessions: $env:LOCALAPPDATA\tinyTimeKeep\sessions"
+Write-Host "Preferences: $env:LOCALAPPDATA\tinyTimeKeep\preferences.json"
+Write-Host "Existing data is not imported or migrated automatically."
 Write-Host "Target machine needs the WebView2 runtime (present by default on Win10/11)."

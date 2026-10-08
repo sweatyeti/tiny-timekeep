@@ -1,4 +1,4 @@
-/* Keeper of Time — frontend.
+/* tinyTimeKeep — frontend.
  * Talks only to `pywebview.api`, i.e. only to the methods listed in
  * specs/core-logic-contract.md. Never assumes anything about how the core is
  * implemented on the other side of that call.
@@ -417,7 +417,7 @@ function renderSaveLocation(prefs) {
   if (!button) return;
   button.disabled = prefs.entrySaveLocationLocked === true;
   button.title = button.disabled
-    ? 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR or --sessions-dir'
+    ? 'Entry save location is controlled by TINYTIMEKEEP_DATA_DIR or --sessions-dir'
     : 'Change entry save location';
   button.setAttribute('aria-label', button.title);
 }
@@ -479,7 +479,7 @@ function applySaveLocationControls(prefs) {
     const locked = prefs.entrySaveLocationLocked === true;
     restoreBtn.disabled = locked || prefs.entrySaveLocationIsDefault === true;
     if (locked) {
-      restoreBtn.title = 'Entry save location is controlled by KEEPER_OF_TIME_DATA_DIR or --sessions-dir';
+      restoreBtn.title = 'Entry save location is controlled by TINYTIMEKEEP_DATA_DIR or --sessions-dir';
       restoreBtn.setAttribute('aria-label', restoreBtn.title);
     } else if (prefs.entrySaveLocationIsDefault === true) {
       restoreBtn.title = 'Already using the default location';
@@ -519,7 +519,7 @@ function wireSaveLocation() {
     openFolder.textContent = 'Open folder';
     const hint = document.createElement('p');
     hint.textContent = locked
-      ? 'The folder is fixed for this run (KEEPER_OF_TIME_DATA_DIR or --sessions-dir).'
+      ? 'The folder is fixed for this run (TINYTIMEKEEP_DATA_DIR or --sessions-dir).'
       : 'Choose whether to move existing session files when you change folders.';
     body.append(path, choose, restore, openFolder, hint);
     openOverlay('SAVE LOCATION', body.innerHTML);

@@ -17,6 +17,6 @@ App test-suite scope (2026-09-27): removed five files containing 73 byte-identic
 canonical core tests from this app repository. The core package and its source-repository tests
 were left unchanged; app discovery now runs only focused app, UI, and boundary checks.
 
-Naming: the app is **Keeper of Time**. The package (`timetracker_core`) and the class
+Naming: the app is **tinyTimeKeep**. The package (`timetracker_core`) and the class
 (`TimeTrackerCore`) keep their names on purpose - they are an import path and a contract-fixed
 interface, not the app's name. See specs/core-logic-contract.md section 1.

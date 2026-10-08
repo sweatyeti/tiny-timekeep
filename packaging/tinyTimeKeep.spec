@@ -1,5 +1,5 @@
 # PyInstaller spec - one-file Windows build.
-#   python -m PyInstaller packaging/keeper-of-time.spec --noconfirm
+#   python -m PyInstaller packaging/tinyTimeKeep.spec --noconfirm
 # Run from the project root so the paths below resolve.
 
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 ROOT = Path(SPECPATH).resolve().parent  # project root (SPECPATH is packaging/)
-ICON = ROOT / "assets" / "keeper-of-time.ico"
+ICON = ROOT / "assets" / "tinyTimeKeep.ico"
 
 # pywebview ships JS/CSS assets and resolves its platform backend at runtime. Its own PyInstaller
 # hook normally covers this, but collecting explicitly is what makes the Windows backend
@@ -38,7 +38,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="tinyTimekeep",
+    name="tinyTimeKeep",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

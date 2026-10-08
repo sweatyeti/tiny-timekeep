@@ -1,5 +1,5 @@
 """
-Keeper of Time — pywebview host.
+tinyTimeKeep — pywebview host.
 
 Wires the web UI (web/) to the real TimeTrackerCore (timetracker_core package), and exposes the
 app-level surface the UI also needs: window chrome (frameless drag/resize) and UI preferences.
@@ -18,7 +18,7 @@ implementation now.
 
 Run:    python main.py
 Check:  python main.py --check      (no window, no pywebview — verifies the core wiring)
-Build:  packaging/build.ps1         (Windows, produces dist/tinyTimekeep.exe)
+Build:  packaging/build.ps1         (Windows, produces dist/tinyTimeKeep.exe)
 """
 import argparse
 import json
@@ -40,12 +40,11 @@ if BASE_DIR not in sys.path:
 from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
 
-# The app/process identifier and preferences folder stay stable; session files use their own
-# folder name so the default can change without changing either identifier.
-APP_NAME = "KeeperOfTime"
-WINDOW_TITLE = "tinyTimekeep"
-SESSIONS_DIR_NAME = "tinyTimekeep"
-DATA_DIR_ENV = "KEEPER_OF_TIME_DATA_DIR"
+# Use the app's current name consistently for sessions and preferences.
+APP_NAME = "tinyTimeKeep"
+WINDOW_TITLE = "tinyTimeKeep"
+SESSIONS_DIR_NAME = APP_NAME
+DATA_DIR_ENV = "TINYTIMEKEEP_DATA_DIR"
 
 # Keep in lockstep with specs/core-logic-contract.md's frontmatter `version:`. This
 # is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
@@ -57,7 +56,7 @@ EXPECTED_CONTRACT_VERSION = "v1.5"
 # once this is launched via a shortcut/startup entry rather than a terminal
 # already cd'd into this folder.
 INDEX_HTML = os.path.join(BASE_DIR, "web", "index.html")
-APP_ICON = os.path.join(BASE_DIR, "assets", "keeper-of-time.ico")
+APP_ICON = os.path.join(BASE_DIR, "assets", "tinyTimeKeep.ico")
 
 
 def _user_data_base():
@@ -79,8 +78,7 @@ def _default_storage_path():
     override = os.environ.get(DATA_DIR_ENV)
     if override:
         return os.path.expanduser(override)
-    # Do not auto-detect the old KeeperOfTime folder: all installations use the new default.
-    # Any legacy session files remain untouched unless the user explicitly selects that folder.
+    # Do not discover, read, copy, or migrate data from previous storage locations.
     path = os.path.join(_user_data_base(), SESSIONS_DIR_NAME, "sessions")
     os.makedirs(path, exist_ok=True)
     return path
@@ -446,7 +444,7 @@ def run_checks():
     print(f"{WINDOW_TITLE}: contract {CONTRACT_VERSION} (expected {EXPECTED_CONTRACT_VERSION})")
     check_contract_version()
 
-    workdir = tempfile.mkdtemp(prefix="keeper-of-time-check-")
+    workdir = tempfile.mkdtemp(prefix="tinyTimeKeep-check-")
     try:
         clock = _FixedClock(datetime(2026, 9, 23, 9, 0, 0, tzinfo=timezone.utc))
         core = TimeTrackerCore(workdir, clock=clock)
