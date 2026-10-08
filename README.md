@@ -22,10 +22,7 @@ The active tracking screen in all six supported themes:
 
 1. Open the [tinyTimeKeep releases page](https://github.com/sweatyeti/tiny-timekeep/releases).
 2. Open the newest release and download the executable shown under its **Assets**
-   section. Releases currently contain pre-release builds; there is no stable v1.0
-   release yet.
-   Previously published prereleases retain their original executable filenames.
-   Future releases built from the updated packaging will use `tinyTimeKeep.exe`.
+   section. As of the full v1.0 release, the name is `tinyTimeKeep.exe`.
 3. Run the downloaded file. There is no installer.
 
 The published app is for Windows and requires the Microsoft Edge WebView2 Runtime,
@@ -56,8 +53,6 @@ By default, every installation saves session files on this PC in:
 Preferences—including the selected theme and any custom save location—are stored in:
 
 `%LOCALAPPDATA%\tinyTimeKeep\preferences.json`
-
-Existing data and settings are not imported or migrated automatically.
 
 On most Windows PCs, `%LOCALAPPDATA%` points to a folder under your Windows user
 account, typically `C:\Users\<your-name>\AppData\Local`.
