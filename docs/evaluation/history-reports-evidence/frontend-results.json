@@ -1,0 +1,936 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "label": "Open at start/resume",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Task search / Logged / Unlogged",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Today / This week local presets",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Custom overnight / DST whole entries",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Invalid reversed dates",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "CSV cancel / save and actual readback",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "CSV invalid",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "CSV unavailable",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "CSV write_failure",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Grouped summary selectable fallback",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "after": {
+        "state": {
+          "session": null,
+          "currentEntry": null,
+          "entries": [],
+          "summary": [],
+          "totals": {
+            "unloggedMinutes": 0,
+            "totalMinutes": 0
+          }
+        },
+        "document": null,
+        "hashes": {
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "label": "Existing start/stop/current+completed edit/group Log+Unlog/delete+restore/summary start",
+      "passed": true
+    },
+    {
+      "label": "Open/filter/export/copy while timer runs",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": {
+            "id": "0fa0edc2-01cb-47bd-aae4-b9864e1ec79a",
+            "name": "UI acceptance",
+            "startedAt": "2026-10-10T12:00:00+00:00"
+          },
+          "currentEntry": {
+            "id": 3,
+            "task": "UI work",
+            "startTime": "2026-10-10T12:02:02+00:00"
+          },
+          "entries": [
+            {
+              "id": 3,
+              "task": "UI work",
+              "description": "",
+              "startTime": "2026-10-10T12:02:02+00:00",
+              "endTime": null,
+              "isComplete": false,
+              "loggedStatus": "N/A"
+            },
+            {
+              "id": 2,
+              "task": "UI work",
+              "description": "Real UI edit",
+              "startTime": "2026-10-10T12:01:01+00:00",
+              "endTime": "2026-10-10T12:02:02+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            },
+            {
+              "id": 1,
+              "task": "UI first",
+              "description": "Completed metadata edit",
+              "startTime": "2026-10-10T12:00:00+00:00",
+              "endTime": "2026-10-10T12:01:01+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            }
+          ],
+          "summary": [
+            {
+              "task": "UI first",
+              "count": 1,
+              "unloggedMinutes": 2,
+              "totalMinutes": 2,
+              "callout": true
+            },
+            {
+              "task": "UI work",
+              "count": 1,
+              "unloggedMinutes": 2,
+              "totalMinutes": 2,
+              "callout": true
+            }
+          ],
+          "totals": {
+            "unloggedMinutes": 4,
+            "totalMinutes": 4
+          }
+        },
+        "document": {
+          "schemaVersion": 2,
+          "sessionId": "0fa0edc2-01cb-47bd-aae4-b9864e1ec79a",
+          "name": "UI acceptance",
+          "startedAt": "2026-10-10T12:00:00+00:00",
+          "endedAt": null,
+          "entries": [
+            {
+              "id": 1,
+              "startTime": "2026-10-10T12:00:00+00:00",
+              "endTime": "2026-10-10T12:01:01+00:00",
+              "task": "UI first",
+              "description": "Completed metadata edit",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 2,
+              "startTime": "2026-10-10T12:01:01+00:00",
+              "endTime": "2026-10-10T12:02:02+00:00",
+              "task": "UI work",
+              "description": "Real UI edit",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 3,
+              "startTime": "2026-10-10T12:02:02+00:00",
+              "endTime": null,
+              "task": "UI work",
+              "description": "",
+              "logged": false,
+              "isComplete": false,
+              "isDeleted": false
+            }
+          ]
+        },
+        "hashes": {
+          "UI-acceptance.json": "8e5f918664308b4eeabcb9d4066c8aabdc045d9c0af76632fcdc88e80ff505d9",
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "cb862e06c962703314894c3a2435f309a298517f91d355012cd318b3cc086e09"
+      },
+      "after": {
+        "state": {
+          "session": {
+            "id": "0fa0edc2-01cb-47bd-aae4-b9864e1ec79a",
+            "name": "UI acceptance",
+            "startedAt": "2026-10-10T12:00:00+00:00"
+          },
+          "currentEntry": {
+            "id": 3,
+            "task": "UI work",
+            "startTime": "2026-10-10T12:02:02+00:00"
+          },
+          "entries": [
+            {
+              "id": 3,
+              "task": "UI work",
+              "description": "",
+              "startTime": "2026-10-10T12:02:02+00:00",
+              "endTime": null,
+              "isComplete": false,
+              "loggedStatus": "N/A"
+            },
+            {
+              "id": 2,
+              "task": "UI work",
+              "description": "Real UI edit",
+              "startTime": "2026-10-10T12:01:01+00:00",
+              "endTime": "2026-10-10T12:02:02+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            },
+            {
+              "id": 1,
+              "task": "UI first",
+              "description": "Completed metadata edit",
+              "startTime": "2026-10-10T12:00:00+00:00",
+              "endTime": "2026-10-10T12:01:01+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            }
+          ],
+          "summary": [
+            {
+              "task": "UI first",
+              "count": 1,
+              "unloggedMinutes": 2,
+              "totalMinutes": 2,
+              "callout": true
+            },
+            {
+              "task": "UI work",
+              "count": 1,
+              "unloggedMinutes": 2,
+              "totalMinutes": 2,
+              "callout": true
+            }
+          ],
+          "totals": {
+            "unloggedMinutes": 4,
+            "totalMinutes": 4
+          }
+        },
+        "document": {
+          "schemaVersion": 2,
+          "sessionId": "0fa0edc2-01cb-47bd-aae4-b9864e1ec79a",
+          "name": "UI acceptance",
+          "startedAt": "2026-10-10T12:00:00+00:00",
+          "endedAt": null,
+          "entries": [
+            {
+              "id": 1,
+              "startTime": "2026-10-10T12:00:00+00:00",
+              "endTime": "2026-10-10T12:01:01+00:00",
+              "task": "UI first",
+              "description": "Completed metadata edit",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 2,
+              "startTime": "2026-10-10T12:01:01+00:00",
+              "endTime": "2026-10-10T12:02:02+00:00",
+              "task": "UI work",
+              "description": "Real UI edit",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 3,
+              "startTime": "2026-10-10T12:02:02+00:00",
+              "endTime": null,
+              "task": "UI work",
+              "description": "",
+              "logged": false,
+              "isComplete": false,
+              "isDeleted": false
+            }
+          ]
+        },
+        "hashes": {
+          "UI-acceptance.json": "8e5f918664308b4eeabcb9d4066c8aabdc045d9c0af76632fcdc88e80ff505d9",
+          "a.json": "f9f51fffce89b8324d05f4a5033e26d34508e3785f05e05eb4e10a20997aa9d8",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "cb862e06c962703314894c3a2435f309a298517f91d355012cd318b3cc086e09"
+      }
+    },
+    {
+      "label": "Report after real Resume control",
+      "passed": true,
+      "before": {
+        "state": {
+          "session": {
+            "id": "a",
+            "name": "Earlier café 雪",
+            "startedAt": "2026-10-09T09:00:00+00:00"
+          },
+          "currentEntry": null,
+          "entries": [
+            {
+              "id": 4,
+              "task": "Missing time",
+              "description": "",
+              "startTime": null,
+              "endTime": "2026-10-10T09:30:00+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            },
+            {
+              "id": 2,
+              "task": "unnamed",
+              "description": "",
+              "startTime": "2026-10-10T09:10:00+00:00",
+              "endTime": "2026-10-10T09:11:00+00:00",
+              "isComplete": true,
+              "loggedStatus": "N/A"
+            },
+            {
+              "id": 1,
+              "task": "Case Alpha",
+              "description": "café 雪, \"quoted\"\nline",
+              "startTime": "2026-10-10T09:00:00+00:00",
+              "endTime": "2026-10-10T09:00:01+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            }
+          ],
+          "summary": [
+            {
+              "task": "Case Alpha",
+              "count": 1,
+              "unloggedMinutes": 1,
+              "totalMinutes": 1,
+              "callout": true
+            },
+            {
+              "task": "unnamed",
+              "count": 1,
+              "unloggedMinutes": 1,
+              "totalMinutes": 1,
+              "callout": false
+            }
+          ],
+          "totals": {
+            "unloggedMinutes": 1,
+            "totalMinutes": 1
+          }
+        },
+        "document": {
+          "schemaVersion": 2,
+          "sessionId": "a",
+          "name": "Earlier café 雪",
+          "startedAt": "2026-10-09T09:00:00+00:00",
+          "endedAt": null,
+          "entries": [
+            {
+              "id": 1,
+              "startTime": "2026-10-10T09:00:00+00:00",
+              "endTime": "2026-10-10T09:00:01+00:00",
+              "task": "Case Alpha",
+              "description": "café 雪, \"quoted\"\nline",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 2,
+              "startTime": "2026-10-10T09:10:00+00:00",
+              "endTime": "2026-10-10T09:11:00+00:00",
+              "task": "unnamed",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 3,
+              "startTime": "2026-10-10T09:20:00+00:00",
+              "endTime": "2026-10-10T09:22:00+00:00",
+              "task": "Deleted",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": true
+            },
+            {
+              "id": 4,
+              "startTime": null,
+              "endTime": "2026-10-10T09:30:00+00:00",
+              "task": "Missing time",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            }
+          ]
+        },
+        "hashes": {
+          "UI-acceptance.json": "554b7e3b5b715b0f3a48a0f109c429fb8901c3dfa5d4103264f76fbf0d4130a3",
+          "a.json": "0551e661770e05e7dce5170c431a204e7f6b32f81dbdc0e1cf54d7bdef1ebacd",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "cb862e06c962703314894c3a2435f309a298517f91d355012cd318b3cc086e09"
+      },
+      "after": {
+        "state": {
+          "session": {
+            "id": "a",
+            "name": "Earlier café 雪",
+            "startedAt": "2026-10-09T09:00:00+00:00"
+          },
+          "currentEntry": null,
+          "entries": [
+            {
+              "id": 4,
+              "task": "Missing time",
+              "description": "",
+              "startTime": null,
+              "endTime": "2026-10-10T09:30:00+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            },
+            {
+              "id": 2,
+              "task": "unnamed",
+              "description": "",
+              "startTime": "2026-10-10T09:10:00+00:00",
+              "endTime": "2026-10-10T09:11:00+00:00",
+              "isComplete": true,
+              "loggedStatus": "N/A"
+            },
+            {
+              "id": 1,
+              "task": "Case Alpha",
+              "description": "café 雪, \"quoted\"\nline",
+              "startTime": "2026-10-10T09:00:00+00:00",
+              "endTime": "2026-10-10T09:00:01+00:00",
+              "isComplete": true,
+              "loggedStatus": "Unlogged"
+            }
+          ],
+          "summary": [
+            {
+              "task": "Case Alpha",
+              "count": 1,
+              "unloggedMinutes": 1,
+              "totalMinutes": 1,
+              "callout": true
+            },
+            {
+              "task": "unnamed",
+              "count": 1,
+              "unloggedMinutes": 1,
+              "totalMinutes": 1,
+              "callout": false
+            }
+          ],
+          "totals": {
+            "unloggedMinutes": 1,
+            "totalMinutes": 1
+          }
+        },
+        "document": {
+          "schemaVersion": 2,
+          "sessionId": "a",
+          "name": "Earlier café 雪",
+          "startedAt": "2026-10-09T09:00:00+00:00",
+          "endedAt": null,
+          "entries": [
+            {
+              "id": 1,
+              "startTime": "2026-10-10T09:00:00+00:00",
+              "endTime": "2026-10-10T09:00:01+00:00",
+              "task": "Case Alpha",
+              "description": "café 雪, \"quoted\"\nline",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 2,
+              "startTime": "2026-10-10T09:10:00+00:00",
+              "endTime": "2026-10-10T09:11:00+00:00",
+              "task": "unnamed",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            },
+            {
+              "id": 3,
+              "startTime": "2026-10-10T09:20:00+00:00",
+              "endTime": "2026-10-10T09:22:00+00:00",
+              "task": "Deleted",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": true
+            },
+            {
+              "id": 4,
+              "startTime": null,
+              "endTime": "2026-10-10T09:30:00+00:00",
+              "task": "Missing time",
+              "description": "",
+              "logged": false,
+              "isComplete": true,
+              "isDeleted": false
+            }
+          ]
+        },
+        "hashes": {
+          "UI-acceptance.json": "554b7e3b5b715b0f3a48a0f109c429fb8901c3dfa5d4103264f76fbf0d4130a3",
+          "a.json": "0551e661770e05e7dce5170c431a204e7f6b32f81dbdc0e1cf54d7bdef1ebacd",
+          "b.json": "1bb2fe18c2f94a26db173cb1d9855872907b50f2324de1434078fecc36942b83",
+          "broken.json": "2552accdc51ed6314a26648eb5f47e5570a026e4392f7917cf05ca797800a80e",
+          "future.json": "67c1ce4e2d11b909eca948a891d4147044e3897254bb2ed656f08cbe309124c0",
+          "text.json": "ecd8db8c0e945b199249b049cc3ecc048b939da65f776bb42477f388a76dcb25"
+        },
+        "preferencesHash": "cb862e06c962703314894c3a2435f309a298517f91d355012cd318b3cc086e09"
+      }
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/60.5 Safari/605.1.15",
+  "timezone": "America/New_York",
+  "boundaryLimits": "Native Save/atomic-failure injection and clipboard-unavailable boundary only; real Python Api/core and frontend."
+}

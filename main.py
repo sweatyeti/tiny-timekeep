@@ -39,6 +39,7 @@ if BASE_DIR not in sys.path:
 
 from preferences import PreferencesStore  # noqa: E402
 from timetracker_core import TimeTrackerCore, CONTRACT_VERSION  # noqa: E402
+from history_export import save_csv_report  # noqa: E402
 
 # Use the app's current name consistently for sessions and preferences.
 APP_NAME = "tinyTimeKeep"
@@ -50,7 +51,7 @@ DATA_DIR_ENV = "TINYTIMEKEEP_DATA_DIR"
 # is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
 # if timetracker_core ships a contract change this UI hasn't been updated
 # for, fail loudly here rather than disagree silently at runtime.
-EXPECTED_CONTRACT_VERSION = "v1.5"
+EXPECTED_CONTRACT_VERSION = "v1.6-history-reports"
 
 # Resolved relative to this file, not the current working directory — matters
 # once this is launched via a shortcut/startup entry rather than a terminal
@@ -380,6 +381,13 @@ class Api:
     def list_sessions(self):
         return self.core.list_sessions()
 
+    def get_history(self, start_time=None, end_time=None, task_query='', logged_filter='all'):
+        return self.core.get_history(start_time, end_time, task_query, logged_filter)
+
+    def save_history_csv(self, start_time=None, end_time=None, task_query='', logged_filter='all'):
+        return save_csv_report(self.core, self._window, self.prefs.path,
+                               start_time, end_time, task_query, logged_filter)
+
     def start_session(self, name=None, first_task=None):
         # The core's own generator names an unnamed session from its UTC clock; that name is
         # persisted, names the document file, and is shown to the user, so the wrapper supplies
@@ -494,6 +502,31 @@ def run_checks():
             print(f"FAIL: list_deleted_entries row shape wrong: {json.dumps(deleted)}",
                   file=sys.stderr)
             return 1
+
+        # Experimental query/export gate: real completed rows, CSV readback, no mutation.
+        import csv
+        import io
+        snapshot = {p.name: p.read_bytes() for p in Path(workdir).glob('*.json')}
+        snapshot_state = core.get_state()
+        query = core.get_history()
+        exported = core.export_history_csv()
+        expected_report_totals = {'count': 2, 'totalMinutes': 45,
+                                  'unloggedMinutes': 0, 'unnamedMinutes': 15}
+        if not query.get('ok') or not exported.get('ok'):
+            print(f"FAIL: history/export envelope: {query!r}, {exported!r}", file=sys.stderr)
+            return 1
+        rows = query['report']['rows']
+        csv_rows = list(csv.DictReader(io.StringIO(exported['csv'], newline='')))
+        if (query['report']['totals'] != expected_report_totals
+                or sorted(r['entryId'] for r in rows) != [1, 3]
+                or len({(r['sourceFile'], r['sessionId'], r['entryId']) for r in rows}) != 2
+                or exported['report'] != query['report']
+                or [r['roundedMinutes (minutes)'] for r in csv_rows] != ['45', '15']
+                or core.get_state() != snapshot_state
+                or {p.name: p.read_bytes() for p in Path(workdir).glob('*.json')} != snapshot):
+            print(f"FAIL: report/CSV fixture or read-only invariant: {query!r}", file=sys.stderr)
+            return 1
+        print('history: 2 rows, named 45 min, unlogged 0 min, unnamed 15 min; read-only CSV OK')
 
         if not os.path.exists(INDEX_HTML):
             print(f"note: no UI yet at {INDEX_HTML}")

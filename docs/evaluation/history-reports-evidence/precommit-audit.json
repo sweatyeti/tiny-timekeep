@@ -1,0 +1,290 @@
+{
+  "appHead": "afb6d5f9a153de5e7f5cf6c93afcc4788e604ff6",
+  "coreHead": "2918af124d845c7ac79b2f13e70abc6c5746469f",
+  "lanes": {
+    "app": {
+      "commits": [],
+      "changedFiles": [
+        "M\tCORE-VERSION",
+        "M\tmain.py",
+        "M\tspecs/core-logic-contract.md",
+        "M\tspecs/functional-spec.md",
+        "M\ttests/test_boundary.py",
+        "M\ttests/test_ui_conformance.py",
+        "M\ttimetracker_core/__init__.py",
+        "M\ttimetracker_core/core.py",
+        "M\ttimetracker_core/storage.py",
+        "M\tweb/app.js",
+        "M\tweb/index.html",
+        "?\tdocs/evaluation/history-reports.md",
+        "?\thistory_export.py",
+        "?\ttests/test_history_api.py",
+        "?\ttimetracker_core/history.py",
+        "?\ttimetracker_core/history_csv.py",
+        "?\ttools/history_audit.py",
+        "?\ttools/history_browser_relay.py",
+        "?\ttools/history_environment.py",
+        "?\ttools/history_fresh_readback.py",
+        "?\ttools/history_frontend_probe.js",
+        "?\ttools/history_webkit_acceptance.py",
+        "?\tweb/history.css",
+        "?\tweb/history.js"
+      ],
+      "status": "## eval/ttk-history-reports\n M CORE-VERSION\n M main.py\n M specs/core-logic-contract.md\n M specs/functional-spec.md\n M tests/test_boundary.py\n M tests/test_ui_conformance.py\n M timetracker_core/__init__.py\n M timetracker_core/core.py\n M timetracker_core/storage.py\n M web/app.js\n M web/index.html\n?? docs/evaluation/\n?? history_export.py\n?? tests/test_history_api.py\n?? timetracker_core/history.py\n?? timetracker_core/history_csv.py\n?? tools/\n?? web/history.css\n?? web/history.js",
+      "diffSecretScan": "pass",
+      "historicalSecretScan": "pass",
+      "sourceSecretScan": "pass",
+      "ancestry": "pass"
+    },
+    "core": {
+      "commits": [
+        "2918af124d845c7ac79b2f13e70abc6c5746469f 6289b3a91284d5e2412a0740c6d40c713d8496a2"
+      ],
+      "changedFiles": [
+        "M\tspecs/core-logic-contract.md",
+        "M\tspecs/functional-spec.md",
+        "M\ttests/test_checklist_part2.py",
+        "M\ttests/test_contract_v11.py",
+        "M\ttests/test_contract_v12.py",
+        "M\ttests/test_contract_v14.py",
+        "M\ttests/test_contract_v15.py",
+        "A\ttests/test_history_reports.py",
+        "A\ttests/test_history_safety.py",
+        "M\ttimetracker_core/__init__.py",
+        "M\ttimetracker_core/core.py",
+        "A\ttimetracker_core/history.py",
+        "A\ttimetracker_core/history_csv.py",
+        "M\ttimetracker_core/storage.py"
+      ],
+      "status": "## eval/ttk-history-reports",
+      "diffSecretScan": "pass",
+      "historicalSecretScan": "pass",
+      "sourceSecretScan": "pass",
+      "ancestry": "pass"
+    }
+  },
+  "vendorHashes": {
+    "__init__.py": "14d05b759763827fca0b556597a246e340a926a060d6d7080c4317eb19e93d55",
+    "history_csv.py": "7bde0f605554b5d58d044a316bc41c454c59d93241e692776ae693efafea32ec",
+    "history.py": "98ee6fc0fc08e1a26a8d190a31b00cc9652a1e0593884c4288f451f55c7bab45",
+    "model.py": "b2e1c78aac65fe92282230b1750854f9f72459b233a332d18ae113b906080723",
+    "core.py": "9c0f5f2ae59f1b53e9775dc3f792cdd2d22385e29dc597778bd43976b8dbee90",
+    "storage.py": "fc7518dfdad94ea437519b81ff954719d38217507014c84869f372f6e34c0f79"
+  },
+  "remoteRefs": {
+    "refs/heads/dev": "afb6d5f9a153de5e7f5cf6c93afcc4788e604ff6",
+    "refs/heads/main": "356ebf455f000255206420deedd45afb7a40f5ae"
+  },
+  "originalCheckouts": {
+    "app": {
+      "head": "afb6d5f9a153de5e7f5cf6c93afcc4788e604ff6",
+      "status": "?? .worktrees/"
+    },
+    "core": {
+      "head": "6289b3a91284d5e2412a0740c6d40c713d8496a2",
+      "status": ""
+    }
+  },
+  "browser": {
+    "engine": "WebKitGTK 2.52.6",
+    "driverPython": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+    "checks": [
+      "Open at start/resume",
+      "Task search / Logged / Unlogged",
+      "Today / This week local presets",
+      "Custom overnight / DST whole entries",
+      "Invalid reversed dates",
+      "CSV cancel / save and actual readback",
+      "CSV invalid",
+      "CSV unavailable",
+      "CSV write_failure",
+      "Grouped summary selectable fallback",
+      "Existing start/stop/current+completed edit/group Log+Unlog/delete+restore/summary start",
+      "Open/filter/export/copy while timer runs",
+      "Report after real Resume control"
+    ],
+    "checkCount": 13,
+    "layoutCount": 12,
+    "readonlyCalls": 38,
+    "callCounts": {
+      "get_preferences": 1,
+      "get_state": 3,
+      "list_deleted_entries": 16,
+      "list_sessions": 2,
+      "get_history": 31,
+      "save_history_csv": 7,
+      "start_session": 1,
+      "stop_and_start_entry": 2,
+      "edit_entry": 3,
+      "stop_tracking": 1,
+      "log_task_group": 1,
+      "unlog_task_group": 1,
+      "set_preference": 14,
+      "delete_entry": 1,
+      "restore_entry": 1,
+      "stop_and_exit": 1,
+      "exit_app": 1,
+      "resume_session": 1
+    },
+    "layouts": [
+      {
+        "theme": "cute",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "cyber",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "poolside",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "evergreen",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "citrus-pop",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "dune",
+        "width": 300,
+        "height": 420,
+        "bodyClientWidth": 240,
+        "bodyScrollWidth": 240,
+        "scrollHeight": 4117,
+        "clientHeight": 326,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "cute",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "cyber",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "poolside",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "evergreen",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "citrus-pop",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      },
+      {
+        "theme": "dune",
+        "width": 380,
+        "height": 680,
+        "bodyClientWidth": 320,
+        "bodyScrollWidth": 320,
+        "scrollHeight": 3251,
+        "clientHeight": 586,
+        "loadedFonts": {
+          "body": true,
+          "display": true
+        }
+      }
+    ],
+    "limitations": "Linux real-browser/real Python Api only. Native Save boundary substituted; no Windows/WebView2/native executable verification."
+  },
+  "ok": true
+}

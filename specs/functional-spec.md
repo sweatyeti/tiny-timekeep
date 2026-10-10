@@ -4,8 +4,8 @@ folder: technical
 tags: [time-tracking, functional-spec, desktop-app, python]
 status: current
 created: 2026-09-22
-updated: 2026-09-22
-version: v2.0
+updated: 2026-10-10
+version: v2.0-history-reports
 ---
 # Time tracking application — functional specification
 
@@ -272,6 +272,40 @@ There is no confirmation for this action, and no undo.
 - **Storage.** One document per session in a dedicated folder beside the app's data. Write through a temporary file and swap it into place; flush shortly after any change and once on exit. Keep the schema version in the document so a future format can be recognised.
 - **Architecture.** Keeping the rules of §3 in one place — separate from the interface — mirrors how the behaviour is described here and is the best defence against two screens disagreeing about what "unlogged" means.
 - **Interface.** Any toolkit will do. What matters is that the summary and totals are correct, that the active/inactive state is unmistakable at a glance, that unlogged work is called out, and that a running entry is distinguishable.
+
+## 10. Experimental cross-session History/Reports
+
+Additive on eval/ttk-history-reports only; no time editing or task catalogue.
+Read completed, non-deleted entries from the currently selected sessions folder without
+resuming/switching sessions, stopping tracking, marking Logged, repairing files or writing data.
+Snapshot the active session under the core lock, replacing only its own disk source once.
+Keep source filename, session identifier and entry identifier together; identical session IDs
+in different source files remain separate and produce a duplicate-source warning.
+
+Date ranges filter each whole entry's START timestamp: inclusive start, exclusive end.
+The UI translates local calendar dates to that day's local midnight and the next local
+midnight after the inclusive end date. Calendar arithmetic must not assume a 24-hour day.
+Overnight entries are not clipped. Round up each complete duration before summing.
+Legacy offset-less stored timestamps retain the existing loader's UTC interpretation;
+request bounds must have an explicit offset. Missing/unusable/reversed entry timestamps
+produce warnings and no invented duration. Unreadable/newer-schema files remain untouched.
+Do not follow linked files into another folder or scan old/recursive/unrelated directories.
+
+Offer Today, This week (Monday through today), all dates and custom inclusive date inputs,
+case-insensitive task substring search, and All/Logged/Unlogged. Unnamed rows appear in All
+but never qualify for Logged/Unlogged, named groups or named totals. Show unnamed minutes
+separately. Display source/session/entry identity, original offset timestamps, descriptions,
+Logged status and rounded minutes. Explain excluded running/deleted rows visibly.
+
+Save the fresh filtered detail snapshot as UTF-8 CSV (BOM for Excel), with standard quoting
+for commas, quotes, Unicode and multiline cells. Prefix potentially formula-leading user
+strings (=, +, -, @, tab or CR, including whitespace-obscured formulas) with an apostrophe.
+Native Save-dialog cancel writes nothing. Reject non-CSV targets, session-folder targets,
+linked targets and invalid paths; failure leaves sessions untouched. Copy the core-generated
+named grouped summary via a supported browser clipboard API; visibly provide selectable
+manual-copy text when clipboard access is unavailable. Report/export never changes Logged.
+
+Changelog: v2.0-history-reports adds only the read-only reporting/export behavior above.
 
 ### Acceptance checklist
 

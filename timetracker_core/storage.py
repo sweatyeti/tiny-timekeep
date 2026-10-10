@@ -95,14 +95,29 @@ class SessionStore:
                 return candidate
             counter += 1
 
-    def load_all(self) -> list[LoadedDocument]:
+    def load_all(self, *, local_only: bool = False) -> list[LoadedDocument]:
         results: list[LoadedDocument] = []
+        if local_only:
+            if not self._directory.is_dir():
+                raise OSError(f"history directory is missing or not a directory: {self._directory}")
         try:
             files = sorted(self._directory.glob("*.json"), key=lambda p: p.name)
         except OSError:
+            if local_only:
+                raise
             return results
         for path in files:
             if path.name.startswith(".tmp-"):
+                continue
+            if local_only and (path.is_symlink() or not path.is_file()):
+                results.append(
+                    LoadedDocument(
+                        file_name=path.name,
+                        session=None,
+                        error="linked or non-regular document was not read",
+                        session_id=None,
+                    )
+                )
                 continue
             file_name = path.name
             try:

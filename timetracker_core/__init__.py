@@ -1,6 +1,6 @@
 """Stdlib-only core of the time-tracking application."""
 
-CONTRACT_VERSION = "v1.5"
+CONTRACT_VERSION = "v1.6-history-reports"
 
 from .model import (
     UNNAMED_TASK, SCHEMA_VERSION, Entry, Session, format_timestamp, is_unnamed,

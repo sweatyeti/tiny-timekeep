@@ -1,22 +1,19 @@
-Vendored core: keeper-of-time-core  (the `timetracker_core` package)
-  source repo : keeper-of-time-core (branch dev)
-  core commit : 6289b3a  ("feat(core): contract v1.5 - unlog_task_group, the inverse of log_task_group")
-  contract    : v1.5  (specs/core-logic-contract.md, specs/functional-spec.md)
-  tests       : 85 canonical tests stay in keeper-of-time-core and are not copied here;
-                this app repo has 50 app-specific tests in tests/ and runs them with
-                py -3.14 -m unittest discover -s tests  (pinned interpreter: Python 3.14.7)
+Vendored core: keeper-of-time-core (the timetracker_core package)
+  source repo : keeper-of-time-core (local branch eval/ttk-history-reports; no remote)
+  core commit : 2918af124d845c7ac79b2f13e70abc6c5746469f
+  contract    : v1.6-history-reports (additive queries/export; session schema remains 2)
+  tests       : 102 canonical tests remain in the canonical repo, not copied here;
+                this app runs its 81 app-specific tests on Python 3.14.7:
+                python3.14 -m unittest discover -s tests
 
-Layout: the core package sits at the repo ROOT (`timetracker_core/`), not under `src/`. Both
-repos use that flat layout, so this copy stays byte-identical to its source.
+Layout: both repositories hold timetracker_core/ at the root. This package is
+byte-for-byte canonical source, not an independently maintained app copy. Change
+the canonical branch first, commit it, re-vendor verbatim and update this receipt
+and main.py's EXPECTED_CONTRACT_VERSION together.
 
-The core is a verbatim copy. Do not edit it here: change it in the core repo, then re-copy
-(or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to match. If this note and
-the code disagree, the code wins - check the constant.
+The app is tinyTimeKeep. Package/class identifiers timetracker_core/TimeTrackerCore
+remain contract-fixed. The experiment has no task catalogue, time-correction API,
+migration, PR or release. Return to dev and its matching core to leave the experiment.
 
-App test-suite scope (2026-09-27): removed five files containing 73 byte-identical copies of the
-canonical core tests from this app repository. The core package and its source-repository tests
-were left unchanged; app discovery now runs only focused app, UI, and boundary checks.
-
-Naming: the app is **tinyTimeKeep**. The package (`timetracker_core`) and the class
-(`TimeTrackerCore`) keep their names on purpose - they are an import path and a contract-fixed
-interface, not the app's name. See specs/core-logic-contract.md section 1.
+Historical scope note: canonical core tests were removed from the app test suite
+on 2026-09-27; the 50-test count in older notes is superseded, not a test limit.

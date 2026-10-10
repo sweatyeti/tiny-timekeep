@@ -24,6 +24,7 @@ function init() {
   wireStartScreen();
   wireActiveScreen();
   wireOverlay();
+  wireHistory();
   wireEnterToSubmit();
   wireThemePicker();
   wireSaveLocation();
@@ -569,6 +570,7 @@ function wireOverlay() {
 }
 
 function openOverlay(title, bodyHtml) {
+  document.getElementById('overlay').classList.remove('history-overlay');
   document.getElementById('overlay-title').textContent = title;
   document.getElementById('overlay-body').innerHTML = bodyHtml;
   document.getElementById('overlay').classList.remove('hidden');
@@ -842,8 +844,10 @@ function restoreTaskNameSelection(saved) {
 function handleResult(r) {
   if (!r) return;
   if (r.ok) {
-    state = r.state;
-    render();
+    if (r.state) {
+      state = r.state;
+      render();
+    }
   } else {
     // Contract error envelope: {ok:false, error, message}. Surface the message plainly.
     openOverlay('Couldn\u2019t do that', `<div class="empty-state">${escapeHtml(r.message || r.error)}</div>`);

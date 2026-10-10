@@ -1,0 +1,2156 @@
+{
+  "ok": true,
+  "driverPython": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "engine": "WebKitGTK 2.52.6",
+  "layouts": [
+    {
+      "theme": "cute",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(58, 43, 82)",
+        "text": "rgb(242, 233, 218)"
+      }
+    },
+    {
+      "theme": "cyber",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(13, 27, 42)",
+        "text": "rgb(232, 232, 255)"
+      }
+    },
+    {
+      "theme": "poolside",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(245, 252, 255)",
+        "text": "rgb(18, 58, 74)"
+      }
+    },
+    {
+      "theme": "evergreen",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(24, 57, 47)",
+        "text": "rgb(242, 235, 221)"
+      }
+    },
+    {
+      "theme": "citrus-pop",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(255, 255, 248)",
+        "text": "rgb(38, 39, 29)"
+      }
+    },
+    {
+      "theme": "dune",
+      "width": 300,
+      "height": 420,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 260,
+        "height": 379.984375,
+        "top": 20,
+        "right": 280,
+        "bottom": 399.984375,
+        "left": 20
+      },
+      "documentWidth": 300,
+      "bodyClientWidth": 240,
+      "bodyScrollWidth": 240,
+      "scrollHeight": 4117,
+      "clientHeight": 326,
+      "lastRowBottom": 397,
+      "bodyBottom": 396.984375,
+      "lastRowScrollTop": 3615,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 215,
+            "width": 216,
+            "height": 37,
+            "top": 215,
+            "right": 251,
+            "bottom": 252,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 35,
+            "y": 217,
+            "width": 216,
+            "height": 33,
+            "top": 217,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 212,
+            "width": 216,
+            "height": 43,
+            "top": 212,
+            "right": 251,
+            "bottom": 255,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 35,
+            "y": 216,
+            "width": 216,
+            "height": 34,
+            "top": 216,
+            "right": 251,
+            "bottom": 250,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 35,
+            "y": 218,
+            "width": 216,
+            "height": 30,
+            "top": 218,
+            "right": 251,
+            "bottom": 248,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 281,
+            "width": 216,
+            "height": 100,
+            "top": 281,
+            "right": 251,
+            "bottom": 381,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 239,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 267,
+            "bottom": 61,
+            "left": 239
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(51, 34, 26)",
+        "text": "rgb(245, 231, 207)"
+      }
+    },
+    {
+      "theme": "cute",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(58, 43, 82)",
+        "text": "rgb(242, 233, 218)"
+      }
+    },
+    {
+      "theme": "cyber",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(13, 27, 42)",
+        "text": "rgb(232, 232, 255)"
+      }
+    },
+    {
+      "theme": "poolside",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(245, 252, 255)",
+        "text": "rgb(18, 58, 74)"
+      }
+    },
+    {
+      "theme": "evergreen",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(24, 57, 47)",
+        "text": "rgb(242, 235, 221)"
+      }
+    },
+    {
+      "theme": "citrus-pop",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(255, 255, 248)",
+        "text": "rgb(38, 39, 29)"
+      }
+    },
+    {
+      "theme": "dune",
+      "width": 380,
+      "height": 680,
+      "panel": {
+        "x": 20,
+        "y": 20,
+        "width": 340,
+        "height": 640,
+        "top": 20,
+        "right": 360,
+        "bottom": 660,
+        "left": 20
+      },
+      "documentWidth": 380,
+      "bodyClientWidth": 320,
+      "bodyScrollWidth": 320,
+      "scrollHeight": 3251,
+      "clientHeight": 586,
+      "lastRowBottom": 657,
+      "bodyBottom": 657,
+      "lastRowScrollTop": 2509,
+      "controls": [
+        {
+          "id": "history-preset",
+          "rect": {
+            "x": 35,
+            "y": 197,
+            "width": 145,
+            "height": 43,
+            "top": 197,
+            "right": 180,
+            "bottom": 240,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-from",
+          "rect": {
+            "x": 186,
+            "y": 197,
+            "width": 145,
+            "height": 37,
+            "top": 197,
+            "right": 331,
+            "bottom": 234,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-to",
+          "rect": {
+            "x": 35,
+            "y": 266,
+            "width": 145,
+            "height": 37,
+            "top": 266,
+            "right": 180,
+            "bottom": 303,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-task",
+          "rect": {
+            "x": 186,
+            "y": 266,
+            "width": 145,
+            "height": 33,
+            "top": 266,
+            "right": 331,
+            "bottom": 299,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-status",
+          "rect": {
+            "x": 35,
+            "y": 329,
+            "width": 145,
+            "height": 43,
+            "top": 329,
+            "right": 180,
+            "bottom": 372,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-apply",
+          "rect": {
+            "x": 186,
+            "y": 309,
+            "width": 145,
+            "height": 63,
+            "top": 309,
+            "right": 331,
+            "bottom": 372,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-save",
+          "rect": {
+            "x": 35,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 180,
+            "bottom": 379,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy",
+          "rect": {
+            "x": 186,
+            "y": 349,
+            "width": 145,
+            "height": 30,
+            "top": 349,
+            "right": 331,
+            "bottom": 379,
+            "left": 186
+          },
+          "hit": true
+        },
+        {
+          "id": "history-copy-text",
+          "rect": {
+            "x": 35,
+            "y": 541,
+            "width": 296,
+            "height": 100,
+            "top": 541,
+            "right": 331,
+            "bottom": 641,
+            "left": 35
+          },
+          "hit": true
+        },
+        {
+          "id": "overlay-close",
+          "rect": {
+            "x": 319,
+            "y": 33,
+            "width": 28,
+            "height": 28,
+            "top": 33,
+            "right": 347,
+            "bottom": 61,
+            "left": 319
+          },
+          "hit": true
+        }
+      ],
+      "fonts": {
+        "body": "VT323, monospace",
+        "display": "\"Press Start 2P\", monospace"
+      },
+      "loadedFonts": {
+        "body": true,
+        "display": true
+      },
+      "colors": {
+        "panel": "rgb(51, 34, 26)",
+        "text": "rgb(245, 231, 207)"
+      }
+    }
+  ],
+  "limits": "Linux real-browser/real Python Api only. Native Save boundary substituted; no Windows/WebView2/native executable verification.",
+  "health": {
+    "ok": true,
+    "contract": "v1.6-history-reports",
+    "dataRoot": "/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-h4xah0c4"
+  },
+  "acceptance": {
+    "ok": true,
+    "checks": [
+      "Open at start/resume",
+      "Task search / Logged / Unlogged",
+      "Today / This week local presets",
+      "Custom overnight / DST whole entries",
+      "Invalid reversed dates",
+      "CSV cancel / save and actual readback",
+      "CSV invalid",
+      "CSV unavailable",
+      "CSV write_failure",
+      "Grouped summary selectable fallback",
+      "Existing start/stop/current+completed edit/group Log+Unlog/delete+restore/summary start",
+      "Open/filter/export/copy while timer runs",
+      "Report after real Resume control"
+    ]
+  }
+}

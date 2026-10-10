@@ -1,0 +1,146 @@
+/* history.css — theme-scoped tokens for the History / Reports overlay.
+   No base-style changes; no new colours, fonts, radii, or shadows.
+   All controls must remain scroll-reachable at 300×420 and 380×680
+   across the six existing themes. */
+
+/* Entry buttons */
+.history-open {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* Overlay layering: sits above theme-picker (z-index 25) */
+.history-overlay {
+  z-index: 40;
+}
+
+.history-overlay .overlay-panel {
+  max-width: 340px;
+  max-height: calc(100vh - 40px);
+  min-width: 0;
+}
+
+/* Heading / title inside the history panel */
+.history-overlay #overlay-title {
+  min-width: 0;
+  font-size: 10px;
+  display: block;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+
+/* Body container */
+.history-overlay #overlay-body {
+  min-width: 0;
+  overflow-x: hidden;
+}
+.history-overlay #history-report {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+/* ── #history-report form fields ─────────────────────────────────── */
+#history-report label {
+  display: block;
+  font-family: var(--font-body);
+  color: var(--text-dim);
+}
+
+#history-report input,
+#history-report input[type="date"],
+#history-report input[type="search"],
+#history-report select,
+#history-report textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--panel-row);
+  color: var(--text-main);
+  border: 2px solid var(--border-dark);
+  font-family: var(--font-body);
+  font-size: 17px;
+  padding: 6px;
+}
+
+#history-report input[type="date"] {
+  display: inline;
+  min-width: 0;
+}
+
+/* ── Buttons inside the history panel ────────────────────────────── */
+#history-report .btn,
+.history-overlay .btn {
+  font-size: 10px;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  background: var(--panel-row);
+  color: var(--text-main);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#history-report .btn-primary,
+.history-overlay .btn-primary {
+  background: var(--accent-pink);
+  color: var(--text-main);
+}
+
+/* ── Filter grid ─────────────────────────────────────────────────── */
+.history-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 340px) {
+  .history-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Action row ──────────────────────────────────────────────────── */
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.history-actions .btn {
+  flex: 1 1 100px;
+  width: auto;
+}
+
+/* ── Report rows ─────────────────────────────────────────────────── */
+.history-row {
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 2px dashed var(--panel-row-alt);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+/* ── Text areas ──────────────────────────────────────────────────── */
+#history-report textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* All readonly report text is selectable */
+#history-report [readonly],
+#history-report .history-row,
+#history-report .history-text {
+  user-select: text;
+}
+
+/* ── Status / warnings ───────────────────────────────────────────── */
+#history-report .history-status,
+#history-report .history-warning {
+  color: var(--text-dim);
+}
+
+#history-report .history-callout {
+  color: var(--text-dim);
+}

@@ -1,0 +1,9 @@
+tinyTimeKeep: contract v1.6-history-reports (expected v1.6-history-reports)
+session keys: ['id', 'name', 'startedAt']
+currentEntry: {"id": 4, "task": "planning", "startTime": "2026-09-23T10:30:00+00:00"}
+summary: [{"task": "weeding", "count": 2, "unloggedMinutes": 30, "totalMinutes": 75, "callout": true}, {"task": "unnamed", "count": 1, "unloggedMinutes": 15, "totalMinutes": 15, "callout": false}]
+totals: {"unloggedMinutes": 30, "totalMinutes": 75}
+history: 2 rows, named 45 min, unlogged 0 min, unnamed 15 min; read-only CSV OK
+ui: /home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/web/index.html present
+sessions dir would be: /home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-history-check-location
+OK

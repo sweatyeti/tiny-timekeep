@@ -1,0 +1,68 @@
+test_atomic_replace_failure_preserves_existing_target_and_cleans_temp (test_history_api.HistoryApi.test_atomic_replace_failure_preserves_existing_target_and_cleans_temp) ... ok
+test_cancel_writes_nothing_and_timer_continues (test_history_api.HistoryApi.test_cancel_writes_nothing_and_timer_continues) ... ok
+test_fdopen_failure_closes_descriptor_and_cleans_temp (test_history_api.HistoryApi.test_fdopen_failure_closes_descriptor_and_cleans_temp) ... FAIL
+test_invalid_paths_no_writes (test_history_api.HistoryApi.test_invalid_paths_no_writes) ... ok
+test_linked_paths_and_preferences_are_rejected (test_history_api.HistoryApi.test_linked_paths_and_preferences_are_rejected) ... ok
+test_query_real_api_and_fresh_process_readback (test_history_api.HistoryApi.test_query_real_api_and_fresh_process_readback) ... ok
+test_save_csv_utf8_quoting_formula_and_filtered_snapshot (test_history_api.HistoryApi.test_save_csv_utf8_quoting_formula_and_filtered_snapshot) ... ok
+test_selected_folder_change_with_and_without_move (test_history_api.HistoryApi.test_selected_folder_change_with_and_without_move) ...
+  test_selected_folder_change_with_and_without_move (test_history_api.HistoryApi.test_selected_folder_change_with_and_without_move) (move=False) ... ERROR
+  test_selected_folder_change_with_and_without_move (test_history_api.HistoryApi.test_selected_folder_change_with_and_without_move) (move=True) ... ERROR
+test_unavailable_dialog_and_invalid_filters (test_history_api.HistoryApi.test_unavailable_dialog_and_invalid_filters) ... ok
+test_history_api_suite_is_discoverable (test_history_api.HistoryTestDiscoveryCanary.test_history_api_suite_is_discoverable) ... ok
+
+======================================================================
+ERROR: test_selected_folder_change_with_and_without_move (test_history_api.HistoryApi.test_selected_folder_change_with_and_without_move) (move=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/tests/test_history_api.py", line 193, in test_selected_folder_change_with_and_without_move
+    self.assertTrue(self.api.set_entry_save_location(str(target), move)['ok'])
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/main.py", line 237, in set_entry_save_location
+    return self._apply_save_location(target, move_existing, persist_default=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/main.py", line 291, in _apply_save_location
+    self.prefs.set("entrySaveLocation", stored)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/preferences.py", line 79, in set
+    self._save()
+    ~~~~~~~~~~^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/preferences.py", line 84, in _save
+    tmp = self.path + ".tmp"
+          ~~~~~~~~~~^~~~~~~~
+TypeError: unsupported operand type(s) for +: 'PosixPath' and 'str'
+
+======================================================================
+ERROR: test_selected_folder_change_with_and_without_move (test_history_api.HistoryApi.test_selected_folder_change_with_and_without_move) (move=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/tests/test_history_api.py", line 193, in test_selected_folder_change_with_and_without_move
+    self.assertTrue(self.api.set_entry_save_location(str(target), move)['ok'])
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/main.py", line 237, in set_entry_save_location
+    return self._apply_save_location(target, move_existing, persist_default=False)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/main.py", line 291, in _apply_save_location
+    self.prefs.set("entrySaveLocation", stored)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/preferences.py", line 79, in set
+    self._save()
+    ~~~~~~~~~~^^
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/preferences.py", line 84, in _save
+    tmp = self.path + ".tmp"
+          ~~~~~~~~~~^~~~~~~~
+TypeError: unsupported operand type(s) for +: 'PosixPath' and 'str'
+
+======================================================================
+FAIL: test_fdopen_failure_closes_descriptor_and_cleans_temp (test_history_api.HistoryApi.test_fdopen_failure_closes_descriptor_and_cleans_temp)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/app/tests/test_history_api.py", line 185, in test_fdopen_failure_closes_descriptor_and_cleans_temp
+    self.fail('export leaked its temporary file descriptor after fdopen failure')
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: export leaked its temporary file descriptor after fdopen failure
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.147s
+
+FAILED (failures=1, errors=2)

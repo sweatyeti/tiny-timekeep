@@ -1,0 +1,21 @@
+test_active_snapshot_once_even_if_disk_missing_unreadable_or_stale (test_history_safety.HistorySafety.test_active_snapshot_once_even_if_disk_missing_unreadable_or_stale) ... ok
+test_csv_formula_prefix_matrix_all_user_string_columns_and_input_unchanged (test_history_safety.HistorySafety.test_csv_formula_prefix_matrix_all_user_string_columns_and_input_unchanged) ... ok
+test_filter_error_type_matrix_no_mutation (test_history_safety.HistorySafety.test_filter_error_type_matrix_no_mutation) ... ok
+test_inactive_duplicate_sessions_keep_identity_and_warn (test_history_safety.HistorySafety.test_inactive_duplicate_sessions_keep_identity_and_warn) ... FAIL
+test_independent_rounding_offsets_and_legacy_naive_time (test_history_safety.HistorySafety.test_independent_rounding_offsets_and_legacy_naive_time) ... ok
+test_selected_folder_only_and_no_recursive_or_linked_documents (test_history_safety.HistorySafety.test_selected_folder_only_and_no_recursive_or_linked_documents) ... ok
+test_warning_matrix_is_read_only_in_query_and_csv (test_history_safety.HistorySafety.test_warning_matrix_is_read_only_in_query_and_csv) ... ok
+
+======================================================================
+FAIL: test_inactive_duplicate_sessions_keep_identity_and_warn (test_history_safety.HistorySafety.test_inactive_duplicate_sessions_keep_identity_and_warn)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/core/tests/test_history_safety.py", line 63, in test_inactive_duplicate_sessions_keep_identity_and_warn
+    self.assertTrue(any('duplicate' in w['reason'] for w in result['warnings']), result['warnings'])
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : []
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.017s
+
+FAILED (failures=1)

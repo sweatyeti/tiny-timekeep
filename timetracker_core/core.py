@@ -16,6 +16,7 @@ from .model import (
     tasks_match,
 )
 from .storage import SessionStore
+from .history import get_history as query_history, render_history_csv
 
 
 class TimeTrackerCore:
@@ -147,6 +148,24 @@ class TimeTrackerCore:
     def get_state(self) -> dict:
         with self._lock:
             return self._build_view_model()
+
+    def get_history(self, start_time=None, end_time=None, task_query='', logged_filter='all') -> dict:
+        try:
+            with self._lock:
+                return query_history(self._store, self._session, start_time, end_time, task_query, logged_filter)
+        except Exception as exc:
+            return {'ok': False, 'error': 'internal_error', 'message': str(exc)}
+
+    def export_history_csv(self, start_time=None, end_time=None, task_query='', logged_filter='all') -> dict:
+        try:
+            with self._lock:
+                result = self.get_history(start_time, end_time, task_query, logged_filter)
+                if not result['ok']:
+                    return result
+                text = render_history_csv(result['report']['rows'])
+                return {'ok': True, 'report': result['report'], 'csv': text}
+        except Exception as exc:
+            return {'ok': False, 'error': 'internal_error', 'message': str(exc)}
 
     def list_sessions(self) -> list[dict]:
         with self._lock:

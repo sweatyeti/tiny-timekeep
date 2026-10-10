@@ -3,8 +3,8 @@ type: spec
 folder: technical
 tags: [time-tracking, functional-spec, contract, python, versioning, implementation-notes]
 status: frozen
-version: v1.5
-supersedes: core-logic-contract_v1.4
+version: v1.6-history-reports
+supersedes: core-logic-contract_v1.5
 created: 2026-09-23
 updated: 2026-10-08
 frozen: 2026-09-23
@@ -154,6 +154,43 @@ Spec §7.6. Stops current entry, sets session end time, flushes to disk, marks t
 
 ---
 
+### 3.13 Experimental History/Reports (v1.6-history-reports)
+
+`get_history(start_time=None, end_time=None, task_query='', logged_filter='all')`
+is a read-only enveloped query, independent of whether a session is open. Empty/None bounds
+are unbounded; otherwise strictly aware ISO strings, start < end, inclusive/exclusive.
+Task query must be a string; status is exactly all/logged/unlogged. Invalid inputs return
+`{ok:false,error:'invalid_history_filter',message}`; unexpected failures use internal_error.
+Success is `{ok:true,report}` with NO state field and no current-view-model changes.
+
+report contains rows, summary, totals, warnings, filters and summaryText.
+rows: `{sourceFile,sessionId,sessionName,entryId,task,description,startTime,endTime,
+loggedStatus,roundedMinutes}`. Stable identity includes sourceFile, sessionId and entryId.
+Rows retain original offsets; entry-start selection and exclusions follow functional §10.
+summary: NAMED groups only `{task,count,totalMinutes,unloggedMinutes}`, lower-case grouping
+as in existing core, deterministic start-time order. totals: `{count,totalMinutes,
+unloggedMinutes,unnamedMinutes}`; count counts all matched detail, both named minute totals
+exclude unnamed. warnings: `{sourceFile,sessionId,entryId,reason}` (IDs may be null).
+filters: `{startTime,endTime,taskQuery,loggedFilter}`. summaryText labels named totals and
+minutes; it is plain text for copying, not a mutation command.
+
+`export_history_csv(same arguments)` returns `{ok:true,report,csv}` or the same errors.
+The pure stdlib renderer uses exactly this report snapshot's rows with these headers:
+sourceFile,sessionId,sessionName,entryId,task,description,startTime,endTime,loggedStatus,
+roundedMinutes (minutes). All user-controlled string cells get spreadsheet-formula protection.
+
+App-only `Api.save_history_csv(same arguments)` snapshots through export_history_csv,
+offers pywebview FileDialog.SAVE (CSV files (*.csv)), atomically writes UTF-8 with BOM at
+the chosen bounded safe CSV path, and returns `{ok:true,path,report}` (no state).
+Cancel returns `{ok:true,cancelled:true}` without a file; errors use export_unavailable,
+invalid_export_path or export_failed. No direct path argument is exposed to the frontend.
+`Api.get_history` passes arguments through. The UI's handleResult must not replace tracking
+state on an enveloped success that lacks state. Browser Clipboard.writeText is best-effort;
+read-only selectable summary text is the labeled manual-copy fallback.
+
+Changelog: v1.6-history-reports adds only these queries and host export; data schema remains 2.
+This branch's app and canonical core declare the exact experimental contract string.
+
 ## 4. Persistence, off to the side of the contract
 
 The UI never talks to storage directly — `list_sessions`/`resume_session`/every command's implicit save are the only touchpoints. Internals (atomic temp-file writes, defensive loading/repair, schema version) are exactly as functional-spec §4 describes and are entirely the core's business. The one thing worth flagging back to the UI layer: `session_unreadable` errors (3.3) should carry a message worth displaying as-is, since the spec requires the user be told the reason, not just "failed."
@@ -188,7 +225,7 @@ Already specified in functional-spec §4 (`schemaVersion` field per session docu
 
 ### 6.3 This contract's own version
 
-Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
+Tracked in this document's frontmatter (`version: v1.6-history-reports`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
 
 **v1.1 changes from v1.0** (resolved from the first build's ambiguities): `session.isActive` semantics clarified (open, not "currently tracking"); `session: null` documented as a valid `get_state()` result; `list_sessions` gained `isUnreadable`/`reason`; added the shared `no_active_session` and `internal_error` codes (§1.1); corrupt-id entries on load now refuse the whole session (`session_unreadable`) instead of being silently dropped.
 
@@ -200,7 +237,7 @@ Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the i
 
 **v1.5 changes from v1.4:** added `unlog_task_group` (3.9b), the inverse of `log_task_group` (3.9), with its own `nothing_to_unlog` error code — a UI need (the Summary view offers a per-task group toggle, so the un-log direction has to be one atomic command rather than an entry-by-entry loop). No existing command, field or error code changed meaning.
 
-**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.5"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
+**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.6-history-reports"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
 
 ---
 

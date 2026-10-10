@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="history.css">
 <link rel="stylesheet" href="companions/companion.css">
 <!-- Parked: companions/cat.css is the retired Cute cat artwork, kept in the repository for reference and no longer loaded.
      companions/cozy-cat.css now paints the Cute theme. -->
@@ -48,6 +49,8 @@
         <input id="new-session-task" placeholder="First task (optional)">
       </div>
       <button id="start-session-btn" class="btn btn-primary">Start new session</button>
+
+      <button id="history-start-btn" class="btn btn-mini history-open">History / Reports</button>
 
       <h2 class="mt">Resume a session</h2>
       <div id="session-list" class="session-list"></div>
@@ -93,6 +96,7 @@
         </div>
       </div>
 
+      <button id="history-active-btn" class="btn btn-mini history-open">History / Reports</button>
       <!-- Parked: The redundant "Log group" button used to live here. Every Summary row now carries
            its own per-task Log/Unlog toggle, so a separate group-log control was redundant. Its
            markup, click binding, and popup handler are parked (see style.css and app.js). -->
@@ -169,5 +173,6 @@
   <script src="companions/muaddib-mouse.js"></script>
   <script src="companions/registry.js"></script>
   <script src="app.js"></script>
+  <script src="history.js"></script>
 </body>
 </html>

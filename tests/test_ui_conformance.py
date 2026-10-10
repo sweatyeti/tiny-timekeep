@@ -30,6 +30,7 @@ import main as app_main  # noqa: E402
 
 WEB = os.path.join(ROOT, "web")
 APP_JS = os.path.join(WEB, "app.js")
+HISTORY_JS = os.path.join(WEB, "history.js")
 INDEX_HTML = os.path.join(WEB, "index.html")
 
 # Methods on Api that are NOT part of the core contract: window chrome and UI preferences.
@@ -39,6 +40,7 @@ APP_LEVEL_METHODS = {
     "get_preferences", "set_preference", "choose_entry_save_location",
     "set_entry_save_location", "restore_default_save_location",
     "open_entry_save_location",
+    "save_history_csv",
 }
 
 # Fields the frontend reads, by payload. Every one must be present in a live payload.
@@ -100,6 +102,8 @@ class TestFrontendCallsExist(unittest.TestCase):
     def test_every_api_call_in_app_js_exists_on_api(self):
         # Parked handlers must not feed phantom calls into the extractor.
         called = set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _strip_js_comments(_read(APP_JS))))
+        assert os.path.isfile(HISTORY_JS), f"history.js not found at {HISTORY_JS} — canary scan is vacuous without it"
+        called |= set(re.findall(r"api\(\)\.([A-Za-z_][A-Za-z0-9_]*)", _strip_js_comments(_read(HISTORY_JS))))
         assert called, "no api() calls found in app.js — the extractor or the frontend changed"
         missing = sorted(m for m in called if not hasattr(app_main.Api, m))
         assert missing == [], f"app.js calls methods Api does not have: {missing}"
@@ -108,6 +112,9 @@ class TestFrontendCallsExist(unittest.TestCase):
         # Live Summary group toggle still uses these
         assert "log_task_group" in called, "log_task_group call missing from app.js"
         assert "unlog_task_group" in called, "unlog_task_group call missing from app.js"
+        # History canaries
+        assert "get_history" in called, "get_history call missing from history.js"
+        assert "save_history_csv" in called, "save_history_csv call missing from history.js"
 
     def test_api_surface_is_the_contract_plus_the_app_level_methods(self):
         public = {name for name in dir(app_main.Api) if not name.startswith("_")}
@@ -125,7 +132,8 @@ class TestFrontendCallsExist(unittest.TestCase):
                      "stop_and_start_entry", "edit_entry", "delete_entry", "restore_entry",
                      "list_loggable_task_groups", "log_task_group", "unlog_task_group",
                      "list_deleted_entries",
-                     "stop_tracking", "stop_and_exit"):
+                     "stop_tracking", "stop_and_exit",
+                     "get_history"):
             assert hasattr(app_main.TimeTrackerCore, name), f"core is missing {name}"
 
 
