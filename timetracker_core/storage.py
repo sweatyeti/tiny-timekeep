@@ -100,12 +100,20 @@ class SessionStore:
         if local_only:
             if not self._directory.is_dir():
                 raise OSError(f"history directory is missing or not a directory: {self._directory}")
-        try:
-            files = sorted(self._directory.glob("*.json"), key=lambda p: p.name)
-        except OSError:
-            if local_only:
-                raise
-            return results
+            # os.scandir directly: pathlib.glob suppresses late-iteration
+            # OSError; we need open/late faults to propagate.
+            with os.scandir(self._directory) as it:
+                paths = [
+                    Path(self._directory, entry.name)
+                    for entry in it
+                    if Path(entry.name).match("*.json")
+                ]
+            files = sorted(paths, key=lambda p: p.name)
+        else:
+            try:
+                files = sorted(self._directory.glob("*.json"), key=lambda p: p.name)
+            except OSError:
+                return results
         for path in files:
             if path.name.startswith(".tmp-"):
                 continue

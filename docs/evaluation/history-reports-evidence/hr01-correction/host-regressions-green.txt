@@ -1,0 +1,7 @@
+test_late_eio_fault (test_history_directory_errors.TestSaveHistoryCsvErrors.test_late_eio_fault) ... ok
+test_open_eacces_fault (test_history_directory_errors.TestSaveHistoryCsvErrors.test_open_eacces_fault) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.023s
+
+OK

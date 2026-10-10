@@ -1,0 +1,29 @@
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+libEGL warning: failed to open /dev/dri/renderD128: Permission denied
+
+libEGL warning: failed to open /dev/dri/renderD128: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+Real Api relay health: {"ok": true, "contract": "v1.6-history-reports", "dataRoot": "/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-90ckajiy"}
+libEGL warning: failed to open /dev/dri/renderD128: Permission denied
+
+libEGL warning: failed to open /dev/dri/renderD128: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+Frontend acceptance: {"ok": true, "checks": ["Open at start/resume", "Task search / Logged / Unlogged", "Today / This week local presets", "Custom overnight / DST whole entries", "Invalid reversed dates", "CSV cancel / save and actual readback", "CSV invalid", "CSV unavailable", "CSV write_failure", "closed/open/get_history", "closed/open/save_history_csv", "closed/late/get_history", "closed/late/save_history_csv", "Grouped summary selectable fallback", "Existing start/stop/current+completed edit/group Log+Unlog/delete+restore/summary start", "Open/filter/export/copy while timer runs", "running/open/get_history", "running/open/save_history_csv", "running/late/get_history", "running/late/save_history_csv", "Report after real Resume control"]}
+Layout: {"theme": "cute", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "cyber", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "poolside", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "evergreen", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "citrus-pop", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "dune", "width": 300, "height": 420, "bodyClientWidth": 240, "bodyScrollWidth": 240, "scrollHeight": 4117, "clientHeight": 326}
+Layout: {"theme": "cute", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Layout: {"theme": "cyber", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Layout: {"theme": "poolside", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Layout: {"theme": "evergreen", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Layout: {"theme": "citrus-pop", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Layout: {"theme": "dune", "width": 380, "height": 680, "bodyClientWidth": 320, "bodyScrollWidth": 320, "scrollHeight": 3251, "clientHeight": 586}
+Evidence: /home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/evidence/hr01-correction-v1.4/browser-qwen3

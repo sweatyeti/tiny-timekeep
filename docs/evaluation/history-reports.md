@@ -57,11 +57,19 @@ CSV exports are separate files and are not deleted by switching branches.
 
 ## Verification status and limits
 
-Implementation and implementer verification passed on Linux: 81 app tests, 102 canonical
-core tests, branch-aware `main.py --check`, real WebKitGTK-to-Python-Api frontend acceptance,
-and 12 six-theme/size measurements. See [the reproducible verification receipt](history-reports-verification.md)
-and its literal logs, per-call hashes, geometry and real rendered PNGs. This is ready for
-fresh same-card review, not a completed independent approval.
+HR-01 correction: whole-directory enumeration failures, including failures while advancing
+an iterator, now return the existing explicit `internal_error` through History, core CSV
+and host Save. No partial/empty-success CSV is written and the Save dialog is not opened.
+Per-file warnings and legacy session scanning are unchanged. The canonical core is pinned
+in CORE-VERSION to `3e80cd76e31c793a537404534f247b7a8d704d74`.
+
+Correction implementer verification passed on Linux: 83 app tests, 105 canonical core
+tests, branch-aware `main.py --check`, 21 real WebKitGTK-to-Python-Api flows (including eight
+visible directory-fault errors), and 12 six-theme/size measurements. The previous published
+candidate `3d6386264c63e8c09a6f09f0d473f553daa0469b` was independently NOT APPROVED for HR-01;
+that receipt is preserved, not relabeled. See [the reproducible verification receipt](history-reports-verification.md)
+and its old and new literal logs, hashes, geometry and rendered PNGs. The corrected candidate
+requires fresh same-card review at its new published SHA; implementer checks are not approval.
 
 Native Windows WebView2, the Windows Save dialog and a packaged executable are not verified
 by a browser/Python relay. No VM, plugin installation, native packaging or release is part

@@ -1,0 +1,129 @@
+{
+  "all_calls": 119,
+  "readonly_calls": 64,
+  "all_readonly_invariants": true,
+  "fault_calls": 8,
+  "fault_cases": [
+    {
+      "method": "get_history",
+      "mode": "open",
+      "attempted": true,
+      "yielded": [],
+      "closed": false,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 13] Permission denied: '/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-90ckajiy/sessions'"
+      }
+    },
+    {
+      "method": "save_history_csv",
+      "mode": "open",
+      "attempted": true,
+      "yielded": [],
+      "closed": false,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 13] Permission denied: '/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-90ckajiy/sessions'"
+      }
+    },
+    {
+      "method": "get_history",
+      "mode": "late",
+      "attempted": true,
+      "yielded": [
+        "broken.json"
+      ],
+      "closed": true,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 5] I/O error"
+      }
+    },
+    {
+      "method": "save_history_csv",
+      "mode": "late",
+      "attempted": true,
+      "yielded": [
+        "broken.json"
+      ],
+      "closed": true,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 5] I/O error"
+      }
+    },
+    {
+      "method": "get_history",
+      "mode": "open",
+      "attempted": true,
+      "yielded": [],
+      "closed": false,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 13] Permission denied: '/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-90ckajiy/sessions'"
+      }
+    },
+    {
+      "method": "save_history_csv",
+      "mode": "open",
+      "attempted": true,
+      "yielded": [],
+      "closed": false,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 13] Permission denied: '/home/hermes/.hermes/profiles/engineer/cache/scratch/ttk-real-api-relay-90ckajiy/sessions'"
+      }
+    },
+    {
+      "method": "get_history",
+      "mode": "late",
+      "attempted": true,
+      "yielded": [
+        "UI-acceptance.json"
+      ],
+      "closed": true,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 5] I/O error"
+      }
+    },
+    {
+      "method": "save_history_csv",
+      "mode": "late",
+      "attempted": true,
+      "yielded": [
+        "UI-acceptance.json"
+      ],
+      "closed": true,
+      "exports_unchanged": true,
+      "before_after_unchanged": true,
+      "result": {
+        "ok": false,
+        "error": "internal_error",
+        "message": "[Errno 5] I/O error"
+      }
+    }
+  ],
+  "all_fault_assertions": true
+}

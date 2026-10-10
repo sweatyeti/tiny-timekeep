@@ -1,5 +1,101 @@
 # History / Reports verification receipt
 
+## HR-01 correction v1.4 — implementer receipt, NOT independent approval
+
+This new section supersedes only the current candidate/status/counts of the historical
+receipt below. The previous published app `3d6386264c63e8c09a6f09f0d473f553daa0469b`
+was independently NOT APPROVED for HR-01; that review and its original probe/JSON are
+preserved verbatim in the task workspace. No old failure is relabeled as approval.
+
+The canonical correction was committed FIRST at
+`3e80cd76e31c793a537404534f247b7a8d704d74`, then all six package source files were
+vendored byte-for-byte and CORE-VERSION updated. Contract remains `v1.6-history-reports`,
+schema 2; no new API or migration. Only local-only history enumeration changes:
+`os.scandir` materializes matching paths inside a context manager before reading any file.
+Open EACCES and late iterator EIO propagate to the existing `internal_error` envelope.
+Pure basename `Path.match('*.json')` retains platform casing, hidden names and nonrecursive
+selection. Per-file warnings, temp exclusion, symlink/nonregular containment, locks,
+active snapshot, legacy glob/list/resume/allocation/save behavior are retained.
+
+Qwen3.8 supplied ALL accepted implementation/test/harness changes, under the temporary
+one-card Qwen-first exception. Accepted attempts: core regressions 3, host regressions 2,
+production enumeration fix 1, frontend error coverage 3. Nine actual requests in four
+stable named tasks; no task had three consecutive failures, so NO cloud fallback was
+used. Rejected/truncated artifacts were never applied. The correction evidence includes
+`attempt-ledger.json`; original prompts/answers/responses remain task-owned for audit.
+Default owns cleanup of the temporary operative policy exception after completion/stop;
+the worker did not edit policy or permanent backend configuration.
+
+### Actual RED then GREEN and full checks (Python 3.14.7)
+
+From each worktree:
+
+    python3.14 -B -m unittest discover -s tests -p test_history_directory_errors.py -v
+
+Core RED: `Ran 3 tests in 0.026s / FAILED (failures=8)` — all eight fault subtests
+reached the intended assertion `True is not false: ok=True rows=0 warnings=[] baseline=1`
+or `rows=1 baseline=2`. The normal/legacy parity test passed. Core GREEN:
+`Ran 3 tests in 0.025s / OK`.
+
+Host RED: `Ran 2 tests in 0.033s / FAILED (failures=8)` — real Save reached its native
+dialog despite the scan fault (`save dialog called despite fault`). Host GREEN:
+`Ran 2 tests in 0.023s / OK`. Green assertions prove no dialog or temporary CSV allocation,
+no new target, unchanged pre-existing target bytes, no leaked temp/descriptor allocation,
+unchanged authoritative state/document/full fixture hashes, and exact restored report.
+Fault matrices cover no open session and a running timer; late faults yield real JSON
+DirEntries before EIO and require closed iterators. Only OS/native dialog boundaries injected.
+
+    python3.14 -B -m unittest discover -s tests -v
+
+Full canonical result: `Ran 105 tests in 0.394s / OK`.
+Full app result: `Ran 83 tests in 0.993s / OK`.
+All previous 102/81 tests retained. Two pre-existing canonical unclosed-file
+ResourceWarnings remain. A byte-identical copy of the original independent reviewer
+probe, run at the same directory depth in NEW task evidence, passes all 3 tests:
+`Ran 3 tests in 0.015s / OK`; original probe SHA256
+`51c4a289b1f5f1e76d59c7ddcd94811420d3e453f4b64747d34dea467efa8cc0`.
+
+    TINYTIMEKEEP_DATA_DIR=<isolated-task-folder> LOCALAPPDATA=<isolated-task-folder> \
+      PYTHONDONTWRITEBYTECODE=1 python3.14 -B main.py --check
+
+Exit 0: `history: 2 rows, named 45 min, unlogged 0 min, unnamed 15 min; read-only CSV OK`.
+All three JS `node --check` commands and Python compileall pass. Python compilation cache
+was directed to managed scratch, not original checkouts. Full pinned-base diff/source/
+historical secret scan, ancestry/no-merge inventory, vendor hashes and original/protected
+ref checks pass through `tools/history_audit.py --candidate` (then committed/published mode).
+No strict Pyright gate is configured; the tool reported dynamic relay-attribute/list
+inference/redeclaration diagnostics for the task-only harness, not runtime failures.
+
+### Real rendered frontend and file/state evidence
+
+From app, with NEW task evidence:
+
+    TZ=America/New_York PYTHONDONTWRITEBYTECODE=1 xvfb-run -a /usr/bin/python3 -B \
+      tools/history_webkit_acceptance.py --evidence-dir <absolute-new-evidence-dir>
+
+Exit 0: 21 flow checks, retaining all 13 previous flows plus eight directory-fault controls;
+12 six-theme/viewport cases. 64 real report/save calls (53 get_history, 11 save_history_csv)
+have equal before/after authoritative state, active document, session hashes and preferences.
+Eight real History Apply/Save controls expose visible `internal_error` in closed/running
+states for opening/late scan errors. All attempted canaries true; late calls record actual
+JSON names and closed=true. Export file hash inventories remain identical, and successful
+reports restore exactly after removing only the syscall fault. No mocked payloads or DOM.
+
+Layout measurements remain 240/240 body client/scroll width, 4117/326 scroll/visible height
+at 300x420; 320/320 and 3251/586 at 380x680. All six themes have ten controls and final row
+reachable, no horizontal overflow. Real images and JSONL/call/CSV evidence are under
+`history-reports-evidence/hr01-correction/`. The native-save, syscall-failure and clipboard-
+unavailable boundaries are substituted; Linux WebKitGTK 2.52.6 uses system driver Python
+3.14.4 with real Python 3.14.7 Api/core. DRI permission warnings are retained, not repaired.
+Windows 11/WebView2/native Save/native clipboard/packaged EXE and aesthetics remain UNTESTED.
+
+Only a normal fast-forward of `eval/ttk-history-reports` is authorized after these gates.
+The exact new app SHA and eval/dev/main readback are in the task's final handoff/published
+audit (a committed receipt cannot contain its own hash). Independent review must run afresh
+at that exact SHA before this card is approved. Siblings and all-three verifier stay paused.
+
+## Historical initial implementation receipt (unchanged below)
+
 Scope: task t_74fc6bd5, branch `eval/ttk-history-reports`, proposal 2 ONLY.
 This is the explicitly authorized one-card cloud-codegen experiment. No profile,
 policy, inference settings, sibling lanes, protected branches, VM or release changed.

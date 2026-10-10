@@ -1,0 +1,137 @@
+test_active_follows_tracking (test_checklist_part1.TestActiveInactive.test_active_follows_tracking) ... ok
+test_session_is_null_after_stop_and_exit (test_checklist_part1.TestActiveInactive.test_session_is_null_after_stop_and_exit) ... ok
+test_callout_named_all_logged_false (test_checklist_part1.TestCalloutRules.test_callout_named_all_logged_false) ... ok
+test_callout_named_one_second_unlogged_true (test_checklist_part1.TestCalloutRules.test_callout_named_one_second_unlogged_true) ... ok
+test_callout_unnamed_always_false (test_checklist_part1.TestCalloutRules.test_callout_unnamed_always_false) ... ok
+test_golden_scenario (test_checklist_part1.TestGoldenFixture.test_golden_scenario) ... ok
+test_start_with_empty_strings_behaves_same (test_checklist_part1.TestNewSession.test_start_with_empty_strings_behaves_same) ... ok
+test_start_with_none_generates_name_and_unnamed_entry (test_checklist_part1.TestNewSession.test_start_with_none_generates_name_and_unnamed_entry) ... ok
+test_two_sessions_same_second_no_collision (test_checklist_part1.TestNewSession.test_two_sessions_same_second_no_collision) ... ok
+test_resume_and_ordering (test_checklist_part1.TestResumeSessions.test_resume_and_ordering) ... ok
+test_case_insensitive_grouping_and_rounding (test_checklist_part1.TestSummaryGrouping.test_case_insensitive_grouping_and_rounding) ... ok
+test_delete_completed_entry_ok (test_checklist_part2.TestChecklistA.test_delete_completed_entry_ok) ... ok
+test_delete_running_entry_rejected (test_checklist_part2.TestChecklistA.test_delete_running_entry_rejected) ... ok
+test_deleted_entry_not_editable (test_checklist_part2.TestChecklistA.test_deleted_entry_not_editable) ... ok
+test_empty_description_clears_to_empty_string (test_checklist_part2.TestChecklistA.test_empty_description_clears_to_empty_string) ... ok
+test_empty_task_string_clears_to_unnamed (test_checklist_part2.TestChecklistA.test_empty_task_string_clears_to_unnamed) ... ok
+test_failure_envelope_state_unchanged_on_disk (test_checklist_part2.TestChecklistA.test_failure_envelope_state_unchanged_on_disk) ... ok
+test_logged_true_on_completed_unnamed_rejected (test_checklist_part2.TestChecklistA.test_logged_true_on_completed_unnamed_rejected) ... ok
+test_logged_true_on_running_entry_rejected (test_checklist_part2.TestChecklistA.test_logged_true_on_running_entry_rejected) ... ok
+test_partial_update_none_fields_unchanged (test_checklist_part2.TestChecklistA.test_partial_update_none_fields_unchanged) ... ok
+test_unknown_id_entry_not_found (test_checklist_part2.TestChecklistA.test_unknown_id_entry_not_found) ... ok
+test_whitespace_trimmed (test_checklist_part2.TestChecklistA.test_whitespace_trimmed) ... ok
+test_log_task_group_case_insensitive (test_checklist_part2.TestChecklistB.test_log_task_group_case_insensitive) ... ok
+test_log_task_group_nothing_to_log (test_checklist_part2.TestChecklistB.test_log_task_group_nothing_to_log) ... ok
+test_log_task_group_with_running_entry (test_checklist_part2.TestChecklistB.test_log_task_group_with_running_entry) ... ok
+test_loggable_groups_order_and_counts (test_checklist_part2.TestChecklistB.test_loggable_groups_order_and_counts) ... ok
+test_delete_disappears_everywhere (test_checklist_part2.TestChecklistC.test_delete_disappears_everywhere) ... ok
+test_deleted_entry_survives_restart (test_checklist_part2.TestChecklistC.test_deleted_entry_survives_restart) ... ok
+test_list_deleted_entries_oldest_first (test_checklist_part2.TestChecklistC.test_list_deleted_entries_oldest_first) ... ok
+test_restore_entry_reappears (test_checklist_part2.TestChecklistC.test_restore_entry_reappears) ... ok
+test_closed_session_in_list_and_resume (test_checklist_part2.TestChecklistD.test_closed_session_in_list_and_resume) ... ok
+test_stop_and_exit_idempotent (test_checklist_part2.TestChecklistD.test_stop_and_exit_idempotent) ... ok
+test_stop_and_exit_with_running_entry (test_checklist_part2.TestChecklistD.test_stop_and_exit_with_running_entry) ... ok
+test_duplicate_ids_collapse_last_wins (test_checklist_part2.TestChecklistE.test_duplicate_ids_collapse_last_wins) ... ok
+test_entry_missing_task_and_description (test_checklist_part2.TestChecklistE.test_entry_missing_task_and_description) ... ok
+test_entry_with_unusable_id_refuses_session (test_checklist_part2.TestChecklistE.test_entry_with_unusable_id_refuses_session) ... ok
+test_invalid_json_unreadable (test_checklist_part2.TestChecklistE.test_invalid_json_unreadable) ... ok
+test_missing_name_gets_placeholder (test_checklist_part2.TestChecklistE.test_missing_name_gets_placeholder) ... ok
+test_missing_or_empty_entries (test_checklist_part2.TestChecklistE.test_missing_or_empty_entries) ... ok
+test_newer_schema_version_refused (test_checklist_part2.TestChecklistE.test_newer_schema_version_refused) ... ok
+test_non_object_entry_refuses_session (test_checklist_part2.TestChecklistE.test_non_object_entry_refuses_session) ... ok
+test_older_schema_version_accepted (test_checklist_part2.TestChecklistE.test_older_schema_version_accepted) ... ok
+test_eight_threads_no_corruption (test_checklist_part2.TestConcurrency.test_eight_threads_no_corruption) ... ok
+test_atomicity_continuity_no_tmp (test_checklist_part2.TestContractGuarantees.test_atomicity_continuity_no_tmp) ... ok
+test_contract_version_and_unnamed_task (test_checklist_part2.TestContractGuarantees.test_contract_version_and_unnamed_task) ... ok
+test_no_exception_crosses_boundary (test_checklist_part2.TestContractGuarantees.test_no_exception_crosses_boundary) ... ok
+test_no_none_in_state_from_null_args (test_checklist_part2.TestContractGuarantees.test_no_none_in_state_from_null_args) ... ok
+test_timestamp_format_on_disk (test_checklist_part2.TestContractGuarantees.test_timestamp_format_on_disk) ... ok
+test_unwritable_storage_path_internal_error (test_checklist_part2.TestContractGuarantees.test_unwritable_storage_path_internal_error) ... ok
+test_each_command_is_persisted (test_contract_v11.TestCommandsSaveImmediately.test_each_command_is_persisted) ... ok
+test_contract_version_is_v12 (test_contract_v11.TestContractConstant.test_contract_version_is_v12) ... ok
+test_unnamed_placeholder_is_never_none (test_contract_v11.TestContractConstant.test_unnamed_placeholder_is_never_none) ... ok
+test_deleted_entry_leaves_the_entry_view_only (test_contract_v11.TestEntryViewCompleteness.test_deleted_entry_leaves_the_entry_view_only) ... ok
+test_entry_fields_and_running_entry (test_contract_v11.TestEntryViewCompleteness.test_entry_fields_and_running_entry) ... ok
+test_empty_state_before_any_session (test_contract_v11.TestNoSessionState.test_empty_state_before_any_session) ... ok
+test_no_active_session_after_stop_and_exit (test_contract_v11.TestNoSessionState.test_no_active_session_after_stop_and_exit) ... ok
+test_reserved_code_no_active_session_without_any_session (test_contract_v11.TestNoSessionState.test_reserved_code_no_active_session_without_any_session) ... ok
+test_stop_tracking_keeps_session_open_and_resumable (test_contract_v11.TestNoSessionState.test_stop_tracking_keeps_session_open_and_resumable) ... ok
+test_contract_version (test_contract_v12.TestContractVersion.test_contract_version) ... ok
+test_no_isActive_key_in_view_model (test_contract_v12.TestNoIsActiveAnywhere.test_no_isActive_key_in_view_model) ... ok
+test_session_object_exact_keys (test_contract_v12.TestSessionKeySet.test_session_object_exact_keys) ... ok
+test_stop_and_exit_null_session_shape (test_contract_v12.TestStopAndExitNullShape.test_stop_and_exit_null_session_shape) ... ok
+test_full_flow (test_contract_v12.TestStopAndExitPersistenceAndResume.test_full_flow) ... ok
+test_description_comes_through (test_contract_v14.TestDeletedEntryShape.test_description_comes_through)
+B: the deleted entry's description is what the user typed. ... ok
+test_description_is_not_normalised_into_the_task (test_contract_v14.TestDeletedEntryShape.test_description_is_not_normalised_into_the_task)
+D: description stays its own field; task is unchanged by the addition. ... ok
+test_key_set_is_exactly_the_contract_set (test_contract_v14.TestDeletedEntryShape.test_key_set_is_exactly_the_contract_set)
+A: rows carry exactly id, task, startTime, endTime, description. ... ok
+test_missing_description_is_empty_string_not_null (test_contract_v14.TestDeletedEntryShape.test_missing_description_is_empty_string_not_null)
+C: an entry with no description reports '', matching the entries list. ... ok
+test_description_survives_a_restart (test_contract_v14.TestExistingBehaviourUnchanged.test_description_survives_a_restart)
+H: the field is read from the stored document, not held in memory. ... ok
+test_empty_when_no_session_open (test_contract_v14.TestExistingBehaviourUnchanged.test_empty_when_no_session_open)
+E: no session open still answers []. ... ok
+test_order_stays_oldest_first (test_contract_v14.TestExistingBehaviourUnchanged.test_order_stays_oldest_first)
+F: v1.3 ordering is untouched by the new field. ... ok
+test_restore_still_works_and_description_survives (test_contract_v14.TestExistingBehaviourUnchanged.test_restore_still_works_and_description_survives)
+G: restoring clears the flag and the entry returns to the entries list intact. ... ok
+test_stored_document_keeps_the_description (test_contract_v14.TestExistingBehaviourUnchanged.test_stored_document_keeps_the_description)
+I: the on-disk entry for the deleted row carries the description. ... /home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/core/tests/test_contract_v14.py:137: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/hermes/.hermes/profiles/engineer/cache/scratch/tmp9e0md_0g/Garden-work.json' mode='r' encoding='utf-8'>
+  document = json.loads(open(os.path.join(self._tmpdir, files[0]), encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_contract_version_is_v1_5 (test_contract_v14.TestVersion.test_contract_version_is_v1_5) ... ok
+test_deleted_entries_are_untouched (test_contract_v15.TestUnlogTaskGroup.test_deleted_entries_are_untouched)
+Pins that deleted entries are never modified by unlog_task_group. ... /home/hermes/.hermes/kanban/workspaces/ttk-evaluation-20261010/history-reports/core/tests/test_contract_v15.py:157: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/hermes/.hermes/profiles/engineer/cache/scratch/tmp8jo5s52j/Garden-work.json' mode='r' encoding='utf-8'>
+  data = json.loads(open(path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_log_then_unlog_round_trip_restores_the_original_state (test_contract_v15.TestUnlogTaskGroup.test_log_then_unlog_round_trip_restores_the_original_state)
+Pins that log-then-unlog restores the exact summary row and totals. ... ok
+test_matching_is_case_insensitive (test_contract_v15.TestUnlogTaskGroup.test_matching_is_case_insensitive)
+Pins that unlog_task_group matches task names case-insensitively. ... ok
+test_no_active_session_is_reported (test_contract_v15.TestUnlogTaskGroup.test_no_active_session_is_reported)
+Pins that unlog_task_group reports no_active_session when no session is open. ... ok
+test_nothing_to_unlog_for_the_unnamed_group (test_contract_v15.TestUnlogTaskGroup.test_nothing_to_unlog_for_the_unnamed_group)
+Pins that unlog_task_group rejects placeholder task names as nothing_to_unlog. ... ok
+test_nothing_to_unlog_when_nothing_is_logged (test_contract_v15.TestUnlogTaskGroup.test_nothing_to_unlog_when_nothing_is_logged)
+Pins that unlog_task_group reports nothing_to_unlog when no logged entries exist. ... ok
+test_only_the_named_group_changes (test_contract_v15.TestUnlogTaskGroup.test_only_the_named_group_changes)
+Pins that unlog_task_group only affects the named group, not other groups. ... ok
+test_running_entry_is_untouched (test_contract_v15.TestUnlogTaskGroup.test_running_entry_is_untouched)
+Pins that running entries (loggedStatus N/A) are never modified by unlog_task_group. ... ok
+test_unlogged_state_persists_across_a_restart (test_contract_v15.TestUnlogTaskGroup.test_unlogged_state_persists_across_a_restart)
+Pins that the unlogged state survives a stop_and_exit / resume_session cycle. ... ok
+test_unlogging_leaves_task_and_description_alone (test_contract_v15.TestUnlogTaskGroup.test_unlogging_leaves_task_and_description_alone)
+Pins that unlog_task_group does not alter task or description fields. ... ok
+test_unlogs_every_completed_entry_of_the_group (test_contract_v15.TestUnlogTaskGroup.test_unlogs_every_completed_entry_of_the_group)
+Pins that unlog_task_group reverts every completed logged entry in the group. ... ok
+test_contract_version_is_v1_5 (test_contract_v15.TestVersion.test_contract_version_is_v1_5)
+Pins that the core reports contract version v1.5. ... ok
+test_late_fault_matrix (test_history_directory_errors.HDErrors.test_late_fault_matrix) ... ok
+test_normal_selection_and_legacy (test_history_directory_errors.HDErrors.test_normal_selection_and_legacy) ... ok
+test_open_fault_matrix (test_history_directory_errors.HDErrors.test_open_fault_matrix) ... ok
+test_active_session_query (test_history_reports.TestHistoryReports.test_active_session_query) ... ok
+test_all_rows_and_totals (test_history_reports.TestHistoryReports.test_all_rows_and_totals) ... ok
+test_csv_roundtrip (test_history_reports.TestHistoryReports.test_csv_roundtrip) ... ok
+test_dst_ranges (test_history_reports.TestHistoryReports.test_dst_ranges) ... ok
+test_fresh_core_no_resume (test_history_reports.TestHistoryReports.test_fresh_core_no_resume) ... ok
+test_invalid_filters_both_methods (test_history_reports.TestHistoryReports.test_invalid_filters_both_methods) ... ok
+test_no_mutation_and_warnings (test_history_reports.TestHistoryReports.test_no_mutation_and_warnings) ... ok
+test_summary_alpha_and_filters (test_history_reports.TestHistoryReports.test_summary_alpha_and_filters) ... ok
+test_time_bounds_whole_start (test_history_reports.TestHistoryReports.test_time_bounds_whole_start) ... ok
+test_valid_positive_range_zero (test_history_reports.TestHistoryReports.test_valid_positive_range_zero) ... ok
+test_active_snapshot_once_even_if_disk_missing_unreadable_or_stale (test_history_safety.HistorySafety.test_active_snapshot_once_even_if_disk_missing_unreadable_or_stale) ... ok
+test_csv_formula_prefix_matrix_all_user_string_columns_and_input_unchanged (test_history_safety.HistorySafety.test_csv_formula_prefix_matrix_all_user_string_columns_and_input_unchanged) ... ok
+test_filter_error_type_matrix_no_mutation (test_history_safety.HistorySafety.test_filter_error_type_matrix_no_mutation) ... ok
+test_inactive_duplicate_sessions_keep_identity_and_warn (test_history_safety.HistorySafety.test_inactive_duplicate_sessions_keep_identity_and_warn) ... ok
+test_independent_rounding_offsets_and_legacy_naive_time (test_history_safety.HistorySafety.test_independent_rounding_offsets_and_legacy_naive_time) ... ok
+test_selected_folder_only_and_no_recursive_or_linked_documents (test_history_safety.HistorySafety.test_selected_folder_only_and_no_recursive_or_linked_documents) ... ok
+test_warning_matrix_is_read_only_in_query_and_csv (test_history_safety.HistorySafety.test_warning_matrix_is_read_only_in_query_and_csv) ... ok
+
+----------------------------------------------------------------------
+Ran 105 tests in 0.394s
+
+OK

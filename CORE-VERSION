@@ -1,9 +1,9 @@
 Vendored core: keeper-of-time-core (the timetracker_core package)
   source repo : keeper-of-time-core (local branch eval/ttk-history-reports; no remote)
-  core commit : 2918af124d845c7ac79b2f13e70abc6c5746469f
+  core commit : 3e80cd76e31c793a537404534f247b7a8d704d74
   contract    : v1.6-history-reports (additive queries/export; session schema remains 2)
-  tests       : 102 canonical tests remain in the canonical repo, not copied here;
-                this app runs its 81 app-specific tests on Python 3.14.7:
+  tests       : 105 canonical tests remain in the canonical repo, not copied here;
+                this app runs its 83 app-specific tests on Python 3.14.7:
                 python3.14 -m unittest discover -s tests
 
 Layout: both repositories hold timetracker_core/ at the root. This package is

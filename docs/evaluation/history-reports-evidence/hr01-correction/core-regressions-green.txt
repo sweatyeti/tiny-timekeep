@@ -1,0 +1,8 @@
+test_late_fault_matrix (test_history_directory_errors.HDErrors.test_late_fault_matrix) ... ok
+test_normal_selection_and_legacy (test_history_directory_errors.HDErrors.test_normal_selection_and_legacy) ... ok
+test_open_fault_matrix (test_history_directory_errors.HDErrors.test_open_fault_matrix) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.025s
+
+OK

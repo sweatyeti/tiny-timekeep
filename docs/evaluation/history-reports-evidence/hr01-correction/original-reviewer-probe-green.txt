@@ -1,0 +1,9 @@
+Independent failure-probe discovered tests: 3
+test_core_csv_reports_directory_read_failure (__main__.DirectoryReadFailure.test_core_csv_reports_directory_read_failure) ... ok
+test_get_history_reports_directory_read_failure (__main__.DirectoryReadFailure.test_get_history_reports_directory_read_failure) ... ok
+test_host_save_reports_directory_read_failure (__main__.DirectoryReadFailure.test_host_save_reports_directory_read_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.015s
+
+OK

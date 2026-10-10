@@ -6,6 +6,7 @@ state, canonical document and pre/post file hashes. Never point it at user data.
 """
 import argparse
 import csv
+import errno
 import hashlib
 import io
 import json
@@ -108,6 +109,7 @@ class Relay:
         self.window = DialogBoundary(self.root)
         self.api.set_window(self.window)
         sys.modules['webview'] = SimpleNamespace(FileDialog=SimpleNamespace(SAVE='SAVE'))
+        self.scan_fault = None
 
     def snapshot(self):
         hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
@@ -117,22 +119,95 @@ class Relay:
                     document=self.api.core._session.to_document() if self.api.core._session else None,
                     hashes=hashes, preferencesHash=hashlib.sha256(self.preferences.read_bytes()).hexdigest())
 
+    def _exports_hashes(self):
+        d = self.root / 'exports'
+        return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(d.iterdir()) if p.is_file()}
+
     def call(self, method, args):
         before = self.snapshot()
-        if method == 'save_history_csv' and self.window.mode == 'write_failure':
+        exports_before = self._exports_hashes()
+        scan_fault_info = None
+        if self.scan_fault and method in ('get_history', 'save_history_csv'):
+            mode = self.scan_fault
+            target = self.api.core._store.directory
+            real_scandir = os.scandir
+            yielded_names = []
+            attempted = False
+            closed = False
+            _late_ref = [None]
+            if mode == 'open':
+                def _fake(path, *a, **kw):
+                    nonlocal attempted
+                    if Path(os.fspath(path)) == target:
+                        attempted = True
+                        raise PermissionError(errno.EACCES, 'Permission denied', str(path))
+                    return real_scandir(path, *a, **kw)
+            else:
+                class _Late:
+                    def __init__(self, it):
+                        self._it = it
+                        self._saw_json = False
+                        self.closed = False
+                    def __enter__(self): return self
+                    def __exit__(self, *exc):
+                        self._it.close()
+                        self.closed = True
+                        return False
+                    def __iter__(self): return self
+                    def __next__(self):
+                        if self._saw_json:
+                            raise OSError(errno.EIO, 'I/O error')
+                        e = next(self._it)
+                        if e.name.endswith('.json'):
+                            self._saw_json = True
+                            yielded_names.append(e.name)
+                        return e
+                    def close(self):
+                        self._it.close()
+                        self.closed = True
+                def _fake(path, *a, **kw):
+                    nonlocal attempted
+                    if Path(os.fspath(path)) == target:
+                        attempted = True
+                        _late_ref[0] = _Late(real_scandir(path, *a, **kw))
+                        return _late_ref[0]
+                    return real_scandir(path, *a, **kw)
+            with patch.object(os, 'scandir', _fake):
+                result = getattr(self.api, method)(*args)
+            if mode == 'late':
+                closed = _late_ref[0].closed if _late_ref[0] else False
+            scan_fault_info = dict(mode=mode, attempted=attempted, yielded=yielded_names,
+                                   closed=closed, exportsBefore=exports_before)
+        elif method == 'save_history_csv' and self.window.mode == 'write_failure':
             with patch.object(history_export.os, 'replace', side_effect=OSError('injected atomic write failure')):
                 result = getattr(self.api, method)(*args)
         else:
             result = getattr(self.api, method)(*args)
         after = self.snapshot()
+        exports_after = self._exports_hashes()
         readonly = method in ('get_history', 'save_history_csv')
         passed = not readonly or before == after
         item = dict(method=method, args=args, result=result, before=before, after=after,
                     readOnly=readonly, invariantPassed=passed)
+        if scan_fault_info:
+            scan_fault_info['exportsAfter'] = exports_after
+            item['scanFault'] = scan_fault_info
         with self.log.open('a', encoding='utf-8') as handle:
             handle.write(json.dumps(item, ensure_ascii=False) + '\n')
         if not passed:
             raise AssertionError('Report/export mutated state/document/hash: ' + method)
+        if scan_fault_info:
+            sf = item['scanFault']
+            assert sf['attempted'], 'scanFault not attempted'
+            if sf['mode'] == 'late':
+                assert sf['yielded'], 'late yielded no .json'
+                assert sf['closed'], 'late not closed'
+            assert result.get('ok') is False, 'fault result must not be ok'
+            assert result.get('error') == 'internal_error', 'fault error code'
+            assert result.get('message'), 'fault message nonempty'
+            for k in ('report', 'csv', 'path', 'state'):
+                assert k not in result, 'fault result has ' + k
+            assert sf['exportsBefore'] == sf['exportsAfter'], 'exports changed during fault'
         return result
 
     def details(self):
@@ -233,6 +308,12 @@ class Handler(BaseHTTPRequestHandler):
                     if mode not in ('cancel', 'save', 'invalid', 'unavailable', 'write_failure'):
                         raise ValueError('bad dialog mode')
                     self.server.relay.window.mode = mode
+                    self.send(dict(ok=True))
+                elif path == '/__test__/scan-fault':
+                    mode = body['mode']
+                    if mode not in ('none', 'open', 'late'):
+                        raise ValueError('bad scan-fault mode')
+                    self.server.relay.scan_fault = None if mode == 'none' else mode
                     self.send(dict(ok=True))
                 elif path == '/__test__/advance':
                     seconds = body['seconds']

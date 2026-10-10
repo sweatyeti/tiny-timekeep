@@ -62,6 +62,42 @@ window.runHistoryAcceptance = async function () {
       if(descriptor) Object.defineProperty(navigator,'clipboard',descriptor); else delete navigator.clipboard;
     }
   }
+  async function directoryFaults(openBtn, phase) {
+    click('overlay-close');
+    const baseline = await open(openBtn);
+    assert(baseline.rows.length > 0, 'Baseline must have rows');
+    for (const mode of ['open', 'late']) {
+      for (const action of ['get_history', 'save_history_csv']) {
+        click('overlay-close');
+        const r = await open(openBtn);
+        assert(r.rows.length > 0, 'Ready before fault');
+        const before = await snapshot();
+        try {
+          await post('scan-fault', {mode});
+          const n = count(action);
+          if (action === 'get_history') click('history-apply');
+          else click('history-save');
+          await wait(() => count(action) > n && $('overlay-title').textContent === 'Couldn\u2019t do that');
+          const res = last(action).result;
+          assert(res.ok === false, 'Fault result must not be ok');
+          assert(res.error === 'internal_error', 'Fault error code');
+          assert(res.message && res.message.length > 0, 'Fault message nonempty');
+          assert(!res.report && !res.csv && !res.path && !res.state, 'No data in fault result');
+          assert($('overlay-body').textContent.includes(res.message) || $('overlay-body').textContent.includes('internal_error'), 'Visible error');
+          const after = await snapshot();
+          equal(invariant(after), invariant(before), phase + '/' + mode + '/' + action + ' invariant');
+          equal(after.csv, before.csv, phase + '/' + mode + '/' + action + ' csv unchanged');
+          equal(after.exportFiles, before.exportFiles, phase + '/' + mode + '/' + action + ' exports unchanged');
+          outcomes.push({label: phase + '/' + mode + '/' + action, passed: true, before: invariant(before), after: invariant(after)});
+        } finally {
+          await post('scan-fault', {mode: 'none'});
+        }
+        click('overlay-close');
+        const restored = await open(openBtn);
+        equal(restored, baseline, phase + '/' + mode + '/' + action + ' restored report');
+      }
+    }
+  }
   try {
     await wait(()=>typeof state !== 'undefined' && state !== null && !$('screen-start').classList.contains('hidden'));
     await readonly('Open at start/resume', async()=>{
@@ -123,6 +159,7 @@ window.runHistoryAcceptance = async function () {
       equal((await snapshot()).csv,before.csv,'Failed export target unchanged');
       click('overlay-close'); await open('history-start-btn');
     });
+    await directoryFaults('history-start-btn','closed');
     await readonly('Grouped summary selectable fallback',copyFallback);
     click('overlay-close');
     input('new-session-name','UI acceptance'); input('new-session-task','UI first'); click('start-session-btn');
@@ -153,6 +190,7 @@ window.runHistoryAcceptance = async function () {
       equal($('current-label').textContent,label,'Running label unchanged');
       equal(JSON.stringify(state.currentEntry),current,'Running entry identity/start unchanged');
     });
+    await directoryFaults('history-active-btn','running');
     click('overlay-close'); click('close-btn');
     await wait(()=>state.session===null && !$('screen-start').classList.contains('hidden'));
     await wait(()=>[...document.querySelectorAll('.session-item')].some(el=>el.textContent.includes('Earlier café 雪')));
