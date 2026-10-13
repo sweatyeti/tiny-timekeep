@@ -70,6 +70,7 @@ function render() {
   refreshDeletedCount();
 
   if (noSession) {
+    renderCurrentTaskTotals(); // Clear hidden state when the session closes.
     renderSessionList();
   } else {
     renderCurrent();
@@ -158,6 +159,7 @@ function renderCurrent() {
     banner.className = 'status-banner inactive';
   }
   renderCurrentDescription(descEl);
+  renderCurrentTaskTotals();
   updateElapsedCounter();
 }
 
@@ -173,6 +175,27 @@ function renderCurrentDescription(descEl) {
   descEl.classList.toggle('hidden', description === '');
 }
 
+// Reuse the current session's authoritative Summary row: completed, non-deleted
+// entries only, already rounded per entry. Never add the live clock or scan files.
+function renderCurrentTaskTotals() {
+  const totals = document.getElementById('current-task-totals');
+  const unlogged = document.getElementById('current-task-unlogged');
+  const total = document.getElementById('current-task-total');
+  const current = state.session && state.currentEntry;
+  const summary = Array.isArray(state.summary) ? state.summary : [];
+  const group = current && summary.find((g) => g.task.toLowerCase() === current.task.toLowerCase());
+  const visible = Boolean(group && group.count > 0);
+  const format = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  unlogged.textContent = visible ? `(${format(group.unloggedMinutes)} unlogged)` : '';
+  total.textContent = visible ? `Total task time: ${format(group.totalMinutes)}` : '';
+  totals.title = visible
+    ? 'Total time of completed entries (not including the currently-running one) ' +
+      `for this task in this session: ${format(group.totalMinutes)}, unlogged time: ${format(group.unloggedMinutes)}`
+    : '';
+  totals.setAttribute('aria-label', totals.title);
+  totals.classList.toggle('hidden', !visible);
+}
+
 let _elapsedTimerId = null;
 
 function updateElapsedCounter() {
@@ -183,7 +206,7 @@ function updateElapsedCounter() {
     counter.classList.add('hidden');
   } else {
     const mins = Math.max(0, Math.floor((Date.now() - Date.parse(state.currentEntry.startTime)) / 60000));
-    const text = mins + ' min';
+    const text = `(${mins} min ago)`;
     counter.textContent = text;
     counter.title = text;
     counter.classList.remove('hidden');
