@@ -705,6 +705,20 @@ body[data-theme="cyber"] .theme-btn {
   outline-offset: 2px;
 }
 
+/* Explicit interval controls reuse theme tokens and the existing scrolling overlay. */
+.log-tools { display: flex; flex-wrap: wrap; margin-bottom: 4px; }
+.time-correction-btn {
+  background: transparent; border: 0; padding: 0; cursor: pointer;
+  font-family: var(--font-body); text-decoration: underline dotted;
+}
+.time-correction-btn:hover { color: var(--accent-mint); }
+.time-correction-btn:focus-visible { outline: 2px solid var(--accent-mint); outline-offset: 2px; }
+.interval-task { overflow-wrap: anywhere; margin-bottom: 10px; }
+.interval-help { color: var(--text-dim); font-size: 15px; margin: 8px 0; overflow-wrap: anywhere; }
+.interval-error { color: var(--callout); font-size: 17px; margin: 10px 0; overflow-wrap: anywhere; }
+.interval-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#interval-start, #interval-end { min-width: 0; font-size: 16px; }
+
 /* Log entry rows: one column template for the whole list, so every row's columns line up.
    The rows use subgrid (Chromium 117+, i.e. any current WebView2) to inherit it.
    Each entry is a single grid row; the description preview lives inside the task cell. */

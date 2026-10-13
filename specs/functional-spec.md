@@ -4,8 +4,8 @@ folder: technical
 tags: [time-tracking, functional-spec, desktop-app, python]
 status: current
 created: 2026-09-22
-updated: 2026-09-22
-version: v2.0
+updated: 2026-10-12
+version: v2.1-time-correction
 ---
 # Time tracking application — functional specification
 
@@ -196,7 +196,7 @@ Entries are shown **newest first**. A running entry is distinguishable at a glan
 The user can, at any point in a session:
 
 - **stop the current entry and start a new one** (the normal rhythm — as one task finishes, the next begins), or start a new entry when nothing is running;
-- **edit an entry** (§7.2);
+- **edit an entry** (§7.2), correct completed times or add missed work (§7.7);
 - **log a whole task group** (§7.3);
 - **view deleted entries** and restore one (§7.4);
 - **stop tracking**, leaving the session ready to continue (§7.5);
@@ -221,6 +221,7 @@ Everything the user recorded about an entry can be changed:
 
 - its **task name** — may be cleared, in which case the entry becomes `unnamed`;
 - its **description** — may be cleared;
+- its **start and end times** — completed entries only, using the correction action (§7.7);
 - whether it is **logged** — offered only where that has meaning, i.e. for completed entries with a named task;
 - the entry itself can be **deleted** — offered only for completed entries.
 
@@ -250,6 +251,32 @@ Stops the current entry and stays in the session, leaving the session ready to c
 Ends the session: stops the current entry, records the session's end time, and saves. The final state is written before the app closes.
 
 There is no confirmation for this action, and no undo.
+
+---
+
+### 7.7 Add missed work and correct recorded times
+
+- Add a **completed**, initially unlogged interval to the currently open session, with a task
+  and optional description. Blank task means `unnamed`; existing trimming and rounding rules apply.
+- Correct both start and end of a **completed, non-deleted** entry together. Its id, task,
+  description, completion and deletion flags stay unchanged. Running entries must be stopped first.
+- Inputs are whole-second ISO timestamps with an explicit UTC offset (or `Z`). Reject invalid
+  dates, absent offsets, fractions, end <= start, and end times later than the core's current clock.
+  Compare absolute instants, including across midnight and changes of UTC offset.
+- New or changed intervals must not overlap any other visible interval in that session. Ranges
+  are half-open `[start, end)`, so touching endpoints are legal. Running entries occupy time from
+  their start onward. Deleted entries are ignored. Unknown or inverted bounds in another visible
+  entry prevent safe validation: report the offending entry instead of guessing or repairing it.
+- Earlier work may precede the session's creation time; adding it does not change session metadata.
+  Entries in other sessions are outside this operation's scope. Existing legacy overlaps are not
+  auto-repaired; deletion/restore and ordinary metadata edits retain their existing semantics.
+- Any actual timestamp change clears `logged`, even if the duration stays the same. The UI explains
+  that externally logged records may need updating. Re-submitting the same instants (including an
+  equivalent offset spelling) is a no-op: no save, no Logged reset, no legacy-overlap validation.
+- Validate and save atomically. Invalid input, storage failure, and cancellation leave both stored
+  bytes and the active snapshot unchanged. Success never stops/switches the running entry.
+- Bind each dialog to its session id; a stale dialog must not write into another session with a
+  reused entry id. All validation and persistence occur within the core's command lock.
 
 ---
 
@@ -287,3 +314,8 @@ There is no confirmation for this action, and no undo.
 - [ ] Stop and exit records the session's end time and saves before closing.
 - [ ] Loading repairs missing fields and duplicate ids consistently, and refuses unsupported versions with a reason.
 - [ ] Saves are atomic and continuous; the user never saves manually.
+- [ ] Manual intervals and time corrections satisfy §7.7, including disk-failure rollback and stale-session rejection.
+
+## Changelog
+
+- **v2.1-time-correction:** add missed completed intervals and correct completed timestamps (§7.7). Schema version 2 and existing tracking behavior are unchanged. Previous document: `functional-spec_v2.0.md`.

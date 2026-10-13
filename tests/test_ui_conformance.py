@@ -124,7 +124,7 @@ class TestFrontendCallsExist(unittest.TestCase):
         for name in ("get_state", "list_sessions", "start_session", "resume_session",
                      "stop_and_start_entry", "edit_entry", "delete_entry", "restore_entry",
                      "list_loggable_task_groups", "log_task_group", "unlog_task_group",
-                     "list_deleted_entries",
+                     "list_deleted_entries", "add_completed_entry", "correct_entry_time",
                      "stop_tracking", "stop_and_exit"):
             assert hasattr(app_main.TimeTrackerCore, name), f"core is missing {name}"
 

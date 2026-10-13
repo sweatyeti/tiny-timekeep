@@ -1,5 +1,7 @@
 """Time-tracking core module."""
 
+from copy import deepcopy
+
 import threading
 import uuid
 from pathlib import Path
@@ -16,6 +18,9 @@ from .model import (
     tasks_match,
 )
 from .storage import SessionStore
+from .intervals import (
+    IntervalError, parse_interval_timestamp, same_recorded_instant, validate_interval,
+)
 
 
 class TimeTrackerCore:
@@ -378,6 +383,61 @@ class TimeTrackerCore:
                 self._store.save(self._session)
 
                 return {"ok": True, "state": self._build_view_model()}
+            except Exception as exc:
+                return {"ok": False, "error": "internal_error", "message": str(exc)}
+
+    def _require_interval_session(self, expected_session_id):
+        if not self._is_session_open():
+            raise IntervalError("no_active_session", "No session is open. Start or resume a session first.")
+        if not isinstance(expected_session_id, str) or expected_session_id != self._session.session_id:
+            raise IntervalError("session_changed", "The session changed while this dialog was open. Nothing was saved.")
+
+    def add_completed_entry(self, task, description, start_time, end_time, expected_session_id) -> dict:
+        with self._lock:
+            try:
+                self._require_interval_session(expected_session_id)
+                start = parse_interval_timestamp(start_time)
+                end = parse_interval_timestamp(end_time)
+                validate_interval(self._session, start, end, self._clock())
+                # Save a separate candidate: failures must not leak into get_state() or a later save.
+                candidate = deepcopy(self._session)
+                candidate.entries.append(Entry(
+                    id=candidate.next_entry_id(), start_time=start, end_time=end,
+                    task=normalize_task(task), description=normalize_description(description),
+                    logged=False, is_complete=True, is_deleted=False,
+                ))
+                self._store.save(candidate)
+                self._session = candidate
+                return {"ok": True, "state": self._build_view_model()}
+            except IntervalError as exc:
+                return {"ok": False, "error": exc.code, "message": str(exc)}
+            except Exception as exc:
+                return {"ok": False, "error": "internal_error", "message": str(exc)}
+
+    def correct_entry_time(self, entry_id, start_time, end_time, expected_session_id) -> dict:
+        with self._lock:
+            try:
+                self._require_interval_session(expected_session_id)
+                entry = self._session.find_entry(entry_id) if type(entry_id) is int else None
+                if entry is None:
+                    raise IntervalError("entry_not_found", "Entry not found.")
+                if not entry.is_complete:
+                    raise IntervalError("entry_not_completed", "This entry is still running; stop it before correcting its time.")
+                start = parse_interval_timestamp(start_time)
+                end = parse_interval_timestamp(end_time)
+                if same_recorded_instant(entry.start_time, start) and same_recorded_instant(entry.end_time, end):
+                    return {"ok": True, "state": self._build_view_model()}
+                validate_interval(self._session, start, end, self._clock(), exclude_id=entry_id)
+                candidate = deepcopy(self._session)
+                changed = candidate.find_entry(entry_id)
+                changed.start_time = start
+                changed.end_time = end
+                changed.logged = False
+                self._store.save(candidate)
+                self._session = candidate
+                return {"ok": True, "state": self._build_view_model()}
+            except IntervalError as exc:
+                return {"ok": False, "error": exc.code, "message": str(exc)}
             except Exception as exc:
                 return {"ok": False, "error": "internal_error", "message": str(exc)}
 

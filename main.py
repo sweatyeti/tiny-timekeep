@@ -50,7 +50,7 @@ DATA_DIR_ENV = "TINYTIMEKEEP_DATA_DIR"
 # is a deliberate build-time tripwire (contract §6.3's compatibility rule) —
 # if timetracker_core ships a contract change this UI hasn't been updated
 # for, fail loudly here rather than disagree silently at runtime.
-EXPECTED_CONTRACT_VERSION = "v1.5"
+EXPECTED_CONTRACT_VERSION = "v1.6-time-correction"
 
 # Resolved relative to this file, not the current working directory — matters
 # once this is launched via a shortcut/startup entry rather than a terminal
@@ -397,6 +397,14 @@ class Api:
     def edit_entry(self, entry_id, task=None, description=None, logged=None):
         return self._after_core_save(self.core.edit_entry(entry_id, task, description, logged))
 
+    def add_completed_entry(self, task, description, start_time, end_time, expected_session_id):
+        return self._after_core_save(self.core.add_completed_entry(
+            task, description, start_time, end_time, expected_session_id))
+
+    def correct_entry_time(self, entry_id, start_time, end_time, expected_session_id):
+        return self._after_core_save(self.core.correct_entry_time(
+            entry_id, start_time, end_time, expected_session_id))
+
     def delete_entry(self, entry_id):
         return self._after_core_save(self.core.delete_entry(entry_id))
 
@@ -483,7 +491,7 @@ def run_checks():
                 print(f"  got      {json.dumps(state[field])}", file=sys.stderr)
                 return 1
         if "isActive" in state["session"]:
-            print("FAIL: 'isActive' is not part of contract v1.5", file=sys.stderr)
+            print(f"FAIL: 'isActive' is not part of contract {EXPECTED_CONTRACT_VERSION}", file=sys.stderr)
             return 1
 
         # v1.4: a deleted row carries the description the restore screen renders.

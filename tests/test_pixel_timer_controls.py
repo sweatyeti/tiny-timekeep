@@ -709,7 +709,7 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
 
         # Verify description is inside task cell, before time cell
         desc_idx = row0.index('<span class="log-entry-desc">')
-        time_idx = row0.index('class="log-entry-time"')
+        time_idx = re.search(r'class="log-entry-time(?: |")', row0).start()
         self.assertLess(desc_idx, time_idx, "Description preview must be inside task cell, before time cell")
 
         # Verify 'No description' is not present
@@ -731,7 +731,10 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
 
         # Verify exactly one occurrence of each cell class
         for cell_class in ['log-entry-task', 'log-entry-time', 'log-entry-duration', 'log-entry-status', 'log-entry-actions']:
-            self.assertEqual(row0.count('class="{}"'.format(cell_class)), 1, "Expected exactly one {} cell".format(cell_class))
+            classes = re.findall(r'class="([^"]+)"', row0)
+            self.assertEqual(sum(cell_class in value.split() for value in classes), 1,
+                             "Expected exactly one {} cell".format(cell_class))
+        self.assertIn('aria-label="Correct time for entry 7"', row0)
 
         # Row 1: id 8, 'planning', empty description, N/A, isComplete false
         row1 = rows[1]["html"]
@@ -744,8 +747,9 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         title_val = row1[title_start:title_end]
         self.assertEqual(title_val, 'planning')
 
-        # No Delete button
+        # No Delete or correction button on a running entry.
         self.assertNotIn('title="Delete entry', row1)
+        self.assertNotIn('time-correction-btn', row1)
 
         # Badge is span with badge-na, no toggle title
         self.assertIn('<span class="badge badge-na">', row1)
@@ -775,7 +779,7 @@ class TestPixelTimerControlJavaScript(unittest.TestCase):
         with open(INDEX_HTML, "r", encoding="utf-8") as f:
             html_content = f.read()
 
-        hint_div = '<div class="log-hint hint-text" id="log-hint">(hover an entry\'s task info to see its full description)</div>'
+        hint_div = '<div class="log-hint hint-text" id="log-hint">Click a completed time range to correct it. Hover task info for the full description.</div>'
         self.assertIn(hint_div, html_content)
 
         tab_log_idx = html_content.index('id="tab-log"')

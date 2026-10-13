@@ -225,7 +225,9 @@ function renderEntries() {
     row.className = 'log-entry-row';
     row.innerHTML = `
       <div class="log-entry-task" title="${cellTitle}" tabindex="0" aria-label="${ariaLabel}"><span class="log-entry-id">#${e.id}</span><span class="log-entry-title">${escapeHtml(e.task)}</span>${descSpan}</div>
-      <div class="log-entry-time">${timeRange}</div>
+      ${e.isComplete
+        ? `<button class="log-entry-time time-correction-btn" type="button" title="Correct time for entry ${e.id}" aria-label="Correct time for entry ${e.id}">${timeRange}</button>`
+        : `<div class="log-entry-time">${timeRange}</div>`}
       <div class="log-entry-duration">${duration}</div>
       <div class="log-entry-status"><${badgeTag} ${badgeAttrs}>${e.loggedStatus}</${badgeTag}></div>
       <div class="log-entry-actions"><button class="icon-btn" title="Edit entry ${e.id}" aria-label="Edit entry ${e.id}">✎</button>${e.isComplete ? `<button class="icon-btn" title="Delete entry ${e.id}" aria-label="Delete entry ${e.id}">🗑</button>` : ''}</div>
@@ -238,6 +240,8 @@ function renderEntries() {
     }
     const [editBtn, delBtn] = row.querySelectorAll('.icon-btn');
     editBtn.onclick = () => openEditEntry(e);
+    const timeBtn = row.querySelector('.time-correction-btn');
+    if (timeBtn) timeBtn.onclick = () => openIntervalEditor(e);
     if (delBtn) delBtn.onclick = async () => handleResult(await api().delete_entry(e.id));
     container.appendChild(row);
   }
@@ -389,6 +393,7 @@ function wireActiveScreen() {
   // Parked: re-adding this binding before the markup is restored would throw on a missing element.
   // document.getElementById('log-group-btn').onclick = openLogGroup;
   document.getElementById('deleted-btn').onclick = openDeletedEntries;
+  document.getElementById('add-missed-time-btn').onclick = () => openIntervalEditor();
 }
 
 function wireThemePicker() {
@@ -566,6 +571,13 @@ function wireSaveLocation() {
 
 function wireOverlay() {
   document.getElementById('overlay-close').onclick = closeOverlay;
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !document.getElementById('overlay').classList.contains('hidden')
+        && !document.getElementById('overlay-close').disabled) {
+      event.preventDefault();
+      closeOverlay();
+    }
+  });
 }
 
 function openOverlay(title, bodyHtml) {
@@ -665,6 +677,76 @@ function openEditEntry(e, title, guard) {
     const r = await api().edit_entry(e.id, task, desc, logged);
     closeOverlay();
     handleResult(r);
+  };
+}
+
+// Completed-time correction is deliberately separate from metadata editing: one
+// atomic command, not two saves disguised as a combined edit. Inputs retain an
+// explicit offset; JS never parses/normalizes the user's edited text before save.
+function localIntervalTimestamp(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const offset = -d.getTimezoneOffset();
+  const sign = offset < 0 ? '-' : '+';
+  const zone = `${sign}${pad(Math.floor(Math.abs(offset) / 60))}:${pad(Math.abs(offset) % 60)}`;
+  return `${String(d.getFullYear()).padStart(4, '0')}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    + `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${zone}`;
+}
+
+function openIntervalEditor(entry = null) {
+  if (!state || !state.session || (entry && !entry.isComplete)) return;
+  const sessionId = state.session.id;
+  const start = entry ? localIntervalTimestamp(entry.startTime) : '';
+  const end = localIntervalTimestamp(entry ? entry.endTime : new Date().toISOString());
+  const taskInfo = entry
+    ? `<div class="interval-task">${escapeHtml(entry.task)}</div>`
+    : `<div class="field-row"><label for="interval-task">Task</label><input id="interval-task" placeholder="Task name (optional)"></div>
+       <div class="field-row"><label for="interval-desc">Description</label><input id="interval-desc" placeholder="Description (optional)"></div>`;
+  openOverlay(entry ? `Correct time #${entry.id}` : 'Add missed time', `
+    ${taskInfo}
+    <div class="field-row"><label for="interval-start">Start (date, time, UTC offset)</label>
+      <input id="interval-start" type="text" spellcheck="false" autocomplete="off" value="${escapeAttr(start)}" placeholder="YYYY-MM-DDTHH:MM:SS-05:00" aria-describedby="interval-help"></div>
+    <div class="field-row"><label for="interval-end">End (date, time, UTC offset)</label>
+      <input id="interval-end" type="text" spellcheck="false" autocomplete="off" value="${escapeAttr(end)}" placeholder="YYYY-MM-DDTHH:MM:SS-05:00" aria-describedby="interval-help"></div>
+    <p class="interval-help" id="interval-help">Include the date, seconds and offset (for example, -05:00; Z means UTC). Prefilled times use this computer's local offset for each date. Keep the correct offset when changing dates across daylight saving time.</p>
+    <p class="interval-help">${entry
+      ? 'Changing either time marks this entry Unlogged again. You may need to update any record logged elsewhere. Saving unchanged times preserves Logged.'
+      : 'Adds completed, Unlogged time to this session. Earlier work is allowed. This will not stop the running timer.'}</p>
+    <div id="interval-error" class="interval-error hidden" role="alert" tabindex="-1"></div>
+    <div class="interval-actions"><button id="interval-save" class="btn btn-primary overlay-submit" type="button">${entry ? 'Save times' : 'Add interval'}</button>
+      <button id="interval-cancel" class="btn btn-mini" type="button">Cancel</button></div>
+  `);
+  const startInput = document.getElementById('interval-start');
+  const endInput = document.getElementById('interval-end');
+  const taskInput = document.getElementById('interval-task');
+  const descInput = document.getElementById('interval-desc');
+  const save = document.getElementById('interval-save');
+  const cancel = document.getElementById('interval-cancel');
+  const close = document.getElementById('overlay-close');
+  const error = document.getElementById('interval-error');
+  (taskInput || startInput).focus();
+  cancel.onclick = closeOverlay;
+  save.onclick = async () => {
+    if (save.disabled) return; // also blocks repeated Enter while the bridge is saving
+    error.classList.add('hidden');
+    if (!state.session || state.session.id !== sessionId) {
+      handleResult({ok: false, error: 'session_changed', message: 'The session changed. Close this dialog and reopen it in the intended session.'}, error);
+      return;
+    }
+    save.disabled = cancel.disabled = close.disabled = true;
+    try {
+      const r = entry
+        ? await api().correct_entry_time(entry.id, startInput.value, endInput.value, sessionId)
+        : await api().add_completed_entry(taskInput.value, descInput.value, startInput.value, endInput.value, sessionId);
+      if (r.ok) closeOverlay();
+      handleResult(r, error); // failed validation keeps the user's inputs for correction
+    } catch (err) {
+      handleResult({ok: false, error: 'bridge_error', message: 'Could not save the interval. Check the Log before retrying; your inputs are still here.'}, error);
+    } finally {
+      save.disabled = cancel.disabled = close.disabled = false;
+    }
   };
 }
 
@@ -839,14 +921,21 @@ function restoreTaskNameSelection(saved) {
 
 // ---------- helpers ----------
 
-function handleResult(r) {
+function handleResult(r, errorTarget = null) {
   if (!r) return;
   if (r.ok) {
     state = r.state;
     render();
   } else {
     // Contract error envelope: {ok:false, error, message}. Surface the message plainly.
-    openOverlay('Couldn\u2019t do that', `<div class="empty-state">${escapeHtml(r.message || r.error)}</div>`);
+    if (errorTarget) {
+      errorTarget.textContent = r.message || r.error;
+      errorTarget.dataset.errorCode = r.error || '';
+      errorTarget.classList.remove('hidden');
+      errorTarget.focus();
+    } else {
+      openOverlay('Couldn\u2019t do that', `<div class="empty-state">${escapeHtml(r.message || r.error)}</div>`);
+    }
   }
 }
 

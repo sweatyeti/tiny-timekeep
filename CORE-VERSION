@@ -1,16 +1,17 @@
 Vendored core: keeper-of-time-core  (the `timetracker_core` package)
-  source repo : keeper-of-time-core (branch dev)
-  core commit : 6289b3a  ("feat(core): contract v1.5 - unlog_task_group, the inverse of log_task_group")
-  contract    : v1.5  (specs/core-logic-contract.md, specs/functional-spec.md)
-  tests       : 85 canonical tests stay in keeper-of-time-core and are not copied here;
-                this app repo has 50 app-specific tests in tests/ and runs them with
+  source repo : keeper-of-time-core (branch feat/time-correction-missed-intervals)
+  core commit : d8fb391c6b5b45af4572589d2f5d477b3dedc16c
+  contract    : v1.6-time-correction (specs/core-logic-contract.md)
+  tests       : 113 canonical tests verified in keeper-of-time-core; not copied here.
+                App-specific tests stay in this repo's tests/; run discovery rather than
+                relying on a historical count:
                 py -3.14 -m unittest discover -s tests  (pinned interpreter: Python 3.14.7)
 
 Layout: the core package sits at the repo ROOT (`timetracker_core/`), not under `src/`. Both
 repos use that flat layout, so this copy stays byte-identical to its source.
 
 The core is a verbatim copy. Do not edit it here: change it in the core repo, then re-copy
-(or `git subtree pull`) and bump main.py's CONTRACT_VERSION_EXPECTED to match. If this note and
+(or `git subtree pull`) and bump main.py's EXPECTED_CONTRACT_VERSION to match. If this note and
 the code disagree, the code wins - check the constant.
 
 App test-suite scope (2026-09-27): removed five files containing 73 byte-identical copies of the

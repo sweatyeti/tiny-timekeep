@@ -44,6 +44,25 @@ needed for the fonts to appear as intended.
    task. In Summary, **Log** and **Unlog** mark all completed entries for a task, and
    the play button starts tracking that task.
 
+## Correct time or add missed work (feature branch)
+
+- In **Log**, choose **Add missed time** to add a completed interval to the open session.
+  Enter a task, optional description, and explicit start/end timestamps.
+- Click an underlined **completed time range** in Log to correct its start and end.
+  The pencil remains the task/description/Logged editor. Stop a running entry before
+  correcting its time.
+- Times include a date, seconds, and UTC offset, for example `2026-10-12T09:00:00-05:00`.
+  `Z` means UTC. Prefilled times use the computer's local offset for each timestamp;
+  when changing dates across daylight saving time, check the offset too.
+- End must be after start and not in the future. Intervals cannot overlap another visible
+  entry in the same session; touching endpoints are allowed. Earlier work can predate
+  the session. Deleted entries and other sessions are outside the overlap check.
+- Changing a recorded time marks that entry **Unlogged** again, even if its duration
+  stays the same; update any external time record as needed. Saving unchanged times
+  preserves Logged. New intervals start Unlogged.
+- Cancel or Escape changes nothing. Validation errors keep your inputs so you can fix them.
+  Adding/correcting time does not stop your running timer. Existing session files need no migration.
+
 ## Session files and save location
 
 By default, every installation saves session files on this PC in:

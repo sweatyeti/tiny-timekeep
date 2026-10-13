@@ -3,17 +3,17 @@ type: spec
 folder: technical
 tags: [time-tracking, functional-spec, contract, python, versioning, implementation-notes]
 status: frozen
-version: v1.5
-supersedes: core-logic-contract_v1.4
+version: v1.6-time-correction
+supersedes: core-logic-contract_v1.5
 created: 2026-09-23
-updated: 2026-10-08
-frozen: 2026-09-23
+updated: 2026-10-12
+frozen: 2026-10-12
 ---
 # Core logic contract — tinyTimeKeep
 
 **Purpose.** Defines the exact boundary between the Python core (sessions, entries, rules, storage) and the UI (pywebview frontend). Whoever builds the core only has to satisfy this document — no UI knowledge required. The UI is being built separately against a mock of this same contract, so the two sides can be swapped together with no other changes.
 
-Behavioral source of truth is the original functional spec (`time-tracking-app-functional-spec.md`). This document maps that spec onto concrete function signatures and data shapes; where the two disagree, the functional spec wins.
+Behavioral source of truth is the original functional spec (`functional-spec.md`). This document maps that spec onto concrete function signatures and data shapes; where the two disagree, the functional spec wins.
 
 ---
 
@@ -42,7 +42,7 @@ There is no push channel — pywebview calls are request/response only. The UI i
 
 ### 1.1 Reserved error codes (apply across commands, not listed per-command below)
 
-- **`no_active_session`** — returned by any command that requires an open session (`stop_and_start_entry`, `edit_entry`, `delete_entry`, `restore_entry`, `log_task_group`, `unlog_task_group`) when called with none open. Kept distinct from e.g. `entry_not_found` on purpose — "there's no session" and "that id doesn't exist in this session" are different problems and need different messages. Commands that make sense as no-ops with no session open (`stop_tracking`, `stop_and_exit`) instead return `ok: true` with the empty state — see §2.
+- **`no_active_session`** — returned by any command that requires an open session (`stop_and_start_entry`, `edit_entry`, `delete_entry`, `restore_entry`, `log_task_group`, `unlog_task_group`, `add_completed_entry`, `correct_entry_time`) when called with none open. Kept distinct from e.g. `entry_not_found` on purpose — "there's no session" and "that id doesn't exist in this session" are different problems and need different messages. Commands that make sense as no-ops with no session open (`stop_tracking`, `stop_and_exit`) instead return `ok: true` with the empty state — see §2.
 - **`internal_error`** — catch-all for unexpected failures (bad storage path, I/O errors, anything not in a command's documented error list). Per §7's "no exception crosses the boundary" rule, every command must return this rather than raise.
 
 ---
@@ -154,6 +154,48 @@ Spec §7.6. Stops current entry, sets session end time, flushes to disk, marks t
 
 ---
 
+### 3.13 `add_completed_entry(task, description, start_time, end_time, expected_session_id) -> Envelope`
+
+Functional spec §7.7. Append one completed, unlogged, non-deleted entry to the open session,
+using the next id (including deleted entries when allocating it). Task/description use existing
+normalization. Start/end are **strings** in `YYYY-MM-DDTHH:MM:SSZ` or
+`YYYY-MM-DDTHH:MM:SS±HH:MM` format. No fractional seconds or inferred timezone. Store accepted
+instants in UTC at seconds precision. Earlier-than-session-start work is allowed; session metadata
+and running entries are untouched. One successful call performs one atomic save.
+
+### 3.14 `correct_entry_time(entry_id, start_time, end_time, expected_session_id) -> Envelope`
+
+Functional spec §7.7. Change both timestamps on a completed, visible entry, preserving all other
+fields **except** clearing `logged` when either instant changes. Input format is as in §3.13.
+`entry_id` must be an integer, not a boolean or string. An equivalent pair of instants at the
+stored/public seconds precision returns success without saving or clearing Logged, even when
+legacy data already overlaps. This command is separate from metadata editing: do not chain two
+writes and present them as an atomic combined edit.
+
+**Shared safeguards and errors for 3.13–3.14:**
+
+- `expected_session_id` is the id captured when the dialog opened, required even for adding an
+  entry. Compare it under the core lock. `no_active_session` when none is open; `session_changed`
+  for a missing/incorrect id, including when another session reused the entry id.
+- `entry_not_found` for an invalid, absent or deleted id; `entry_not_completed` for a running
+  correction target. Check identity/completion before parsing submitted times.
+- `invalid_timestamp` for missing/invalid/naive timestamps or unsupported precision/format.
+- `invalid_interval` for end <= start; `future_interval` for end > injected current clock.
+- `interval_overlap` if `[start,end)` overlaps another non-deleted interval in **this session**.
+  Exclude the correction target. Adjacency is valid; running intervals have no upper bound, and
+  **all** running entries participate, not just the highest-id one. Zero-length legacy intervals
+  are empty ranges, not occupied time. Offsets are compared as absolute instants.
+- `invalid_existing_interval` if another visible entry has missing/inverted bounds, so safety
+  cannot be established. Do not silently repair it. The correction target may repair its own bounds.
+- `internal_error` for storage/unexpected failures. Validation or save failure leaves disk bytes,
+  entry ids, Logged flags and the active snapshot unchanged. Stage changes separately and publish
+  state only after persistence succeeds. Use the existing command lock for validation through save.
+
+Queries, the view-model shape, metadata editor, schema version 2, loader, and restore behavior are
+unchanged. Existing saved entries work without migration; no automatic scan or backfill is needed.
+
+---
+
 ## 4. Persistence, off to the side of the contract
 
 The UI never talks to storage directly — `list_sessions`/`resume_session`/every command's implicit save are the only touchpoints. Internals (atomic temp-file writes, defensive loading/repair, schema version) are exactly as functional-spec §4 describes and are entirely the core's business. The one thing worth flagging back to the UI layer: `session_unreadable` errors (3.3) should carry a message worth displaying as-is, since the spec requires the user be told the reason, not just "failed."
@@ -188,7 +230,7 @@ Already specified in functional-spec §4 (`schemaVersion` field per session docu
 
 ### 6.3 This contract's own version
 
-Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
+Tracked in this document's frontmatter (`version: v1.6-time-correction`). Bump it whenever the interface changes on either side — a new/removed command, a changed signature, a field added to or removed from the view model (§2), a new error code. Whichever layer (UI mock or real core) hasn't caught up to the new version knows immediately why the two disagree, rather than debugging a silent mismatch.
 
 **v1.1 changes from v1.0** (resolved from the first build's ambiguities): `session.isActive` semantics clarified (open, not "currently tracking"); `session: null` documented as a valid `get_state()` result; `list_sessions` gained `isUnreadable`/`reason`; added the shared `no_active_session` and `internal_error` codes (§1.1); corrupt-id entries on load now refuse the whole session (`session_unreadable`) instead of being silently dropped.
 
@@ -200,7 +242,9 @@ Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the i
 
 **v1.5 changes from v1.4:** added `unlog_task_group` (3.9b), the inverse of `log_task_group` (3.9), with its own `nothing_to_unlog` error code — a UI need (the Summary view offers a per-task group toggle, so the un-log direction has to be one atomic command rather than an entry-by-entry loop). No existing command, field or error code changed meaning.
 
-**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.5"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
+**v1.6-time-correction changes from v1.5:** add explicit completed intervals and timestamp correction (§3.13–3.14), including atomic rollback and session identity guards. This is an isolated feature contract, not the separate History/Reports experiment. Previous document: `core-logic-contract_v1.5.md`.
+
+**Compatibility rule:** the UI's mock object and the real core must claim the same contract version before being swapped. In practice: the UI's mock fixture and the core's implementation each declare `CONTRACT_VERSION = "v1.6-time-correction"` as a constant; a mismatch at swap time is a build-time check, not a runtime surprise.
 
 ---
 
@@ -208,7 +252,7 @@ Tracked in this document's frontmatter (`version: v1.5`). Bump it whenever the i
 
 For an agent picking this up with no other context on the project:
 
-- **Read this alongside the functional spec** (`time-tracking-app-functional-spec.md`) — this document only defines the boundary; the functional spec is the actual behavioral source of truth it points back to throughout.
+- **Read this alongside the functional spec** (`functional-spec.md`) — this document only defines the boundary; the functional spec is the actual behavioral source of truth it points back to throughout.
 - **Placeholder task name is `unnamed`, not `none`.** Confirmed explicitly — an earlier reference implementation used `none`, but the written spec and this contract standardize on `unnamed` everywhere the value is stored, compared, or excluded (summary grouping, callout suppression, totals exclusion).
 - **No exception crosses the contract boundary.** Every command method catches internally and returns the `{ok: false, error, message}` envelope from §1 — including for bugs, not just the documented error cases — because an uncaught Python exception thrown across the pywebview JS bridge surfaces as an opaque bridge failure, not a usable error in the UI.
 - **Inject "now," don't call it.** Anything needing the current time (starting/stopping an entry, computing durations) should take its clock from an injectable/mockable source rather than calling `datetime.now()` inline. The round-up-per-entry-then-sum rule (spec §3.5) and duration math need to be exactly reproducible in tests, which isn't possible against the real wall clock.
