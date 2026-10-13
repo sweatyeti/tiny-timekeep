@@ -70,6 +70,7 @@ function render() {
   refreshDeletedCount();
 
   if (noSession) {
+    renderCurrentTaskTotals(); // Clear hidden state when the session closes.
     renderSessionList();
   } else {
     renderCurrent();
@@ -158,6 +159,7 @@ function renderCurrent() {
     banner.className = 'status-banner inactive';
   }
   renderCurrentDescription(descEl);
+  renderCurrentTaskTotals();
   updateElapsedCounter();
 }
 
@@ -171,6 +173,27 @@ function renderCurrentDescription(descEl) {
   const description = record && typeof record.description === 'string' ? record.description.trim() : '';
   descEl.textContent = description;
   descEl.classList.toggle('hidden', description === '');
+}
+
+// Reuse the current session's authoritative Summary row: completed, non-deleted
+// entries only, already rounded per entry. Never add the live clock or scan files.
+function renderCurrentTaskTotals() {
+  const totals = document.getElementById('current-task-totals');
+  const unlogged = document.getElementById('current-task-unlogged');
+  const total = document.getElementById('current-task-total');
+  const current = state.session && state.currentEntry;
+  const summary = Array.isArray(state.summary) ? state.summary : [];
+  const group = current && summary.find((g) => g.task.toLowerCase() === current.task.toLowerCase());
+  const visible = Boolean(group && group.count > 0);
+  const format = (minutes) => `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  unlogged.textContent = visible ? `U ${format(group.unloggedMinutes)}` : '';
+  total.textContent = visible ? `T ${format(group.totalMinutes)}` : '';
+  totals.title = visible
+    ? `U = unlogged time: ${format(group.unloggedMinutes)}; T = total time: ${format(group.totalMinutes)}. ` +
+      'This task in the current session; completed entries only, rounded per entry as in Summary. The running timer is excluded.'
+    : '';
+  totals.setAttribute('aria-label', totals.title);
+  totals.classList.toggle('hidden', !visible);
 }
 
 let _elapsedTimerId = null;

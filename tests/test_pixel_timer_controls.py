@@ -568,7 +568,16 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
         self.assertEqual(
             [node["attrs"].get("id") for node in self.nodes
              if node["ancestors"] and node["ancestors"][-1] is start_line],
-            ["current-start", "elapsed-counter"],
+            ["current-start", "elapsed-counter", "current-task-totals"],
+        )
+        totals = self._by_id("current-task-totals")
+        self.assertIn("hidden", _classes(totals))
+        self.assertEqual(totals["attrs"].get("tabindex"), "0")
+        self.assertEqual(totals["attrs"].get("role"), "group")
+        self.assertEqual(
+            [node["attrs"].get("id") for node in self.nodes
+             if node["ancestors"] and node["ancestors"][-1] is totals],
+            ["current-task-unlogged", "current-task-total"],
         )
 
 
@@ -1027,9 +1036,11 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         if shift is None:
             self.fail("idle play glyph must be translated onto the button centre")
         self.assertGreaterEqual(int(shift.group(1)), 1)
-        # Fix (5): one line of dim text with a separator before it.
+        # The live counter stays distinct; U/T may wrap rather than being clipped.
         self.assertRegex(self._rule(".elapsed-counter"), r"white-space\s*:\s*nowrap")
-        self.assertRegex(self._rule(".elapsed-counter::before"), r"content\s*:\s*'\u00b7'")
+        self.assertRegex(self._rule(".now-tracking-start"), r"flex-wrap\s*:\s*wrap")
+        self.assertRegex(self._rule(".current-task-totals"), r"flex-wrap\s*:\s*wrap")
+        self.assertRegex(self._rule(".current-task-totals:focus-visible"), r"outline\s*:\s*2px")
 
         # Fix (7): the Log list owns ONE column template and every row inherits it through
         # subgrid, which is what makes the columns line up between rows. Each row is a single

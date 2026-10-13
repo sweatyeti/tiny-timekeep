@@ -44,6 +44,21 @@ needed for the fonts to appear as intended.
    task. In Summary, **Log** and **Unlog** mark all completed entries for a task, and
    the play button starts tracking that task.
 
+### Current-task totals
+
+When the running task has completed entries in the current session, its timer area
+also shows **U** (unlogged time) and **T** (total time), for example
+`U 1h 15m` and `T 2h 30m`. Hover over the totals for their full explanation.
+
+These are the same completed-entry totals shown in Summary, rounded per entry.
+They exclude the running timer, deleted entries, and other sessions. Matching task
+names are case-insensitive, just as in Summary. The figures update after edits,
+Log/Unlog, deletion, and restore; they disappear when tracking stops or the task
+has no completed entries. Existing entries work immediately without migration.
+
+The live timer remains separate. At narrow widths, the totals may wrap instead of
+being clipped. Summary itself keeps its existing time format.
+
 ## Session files and save location
 
 By default, every installation saves session files on this PC in:
