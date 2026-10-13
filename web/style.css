@@ -306,7 +306,9 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .now-tracking-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 128px;
-  grid-template-areas: "label companion" "start companion" "actions companion";
+  /* Previously timing shared the narrow left column beside the avatar.
+     Give the two timing lines the card width so they are not squeezed beside it. */
+  grid-template-areas: "label companion" "actions companion" "start start";
   align-items: center;
   column-gap: 8px;
   margin-bottom: 12px;
@@ -327,10 +329,11 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .now-tracking-label-row .current-edit-btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 /* Previously the start/timer row used overflow:hidden and white-space:nowrap.
    Wrap the read-only totals instead: do not clip data at the minimum window width. */
-.now-tracking-start { grid-area: start; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; font-size: 16px; color: var(--text-dim); }
-#current-start { flex-basis: 100%; overflow-wrap: anywhere; }
-.current-task-totals { display: inline-flex; flex-wrap: wrap; gap: 3px 8px; min-width: 0; max-width: 100%; color: var(--text-main); }
-.current-task-totals > span { max-width: 100%; overflow-wrap: anywhere; }
+/* Previously #current-start took a full flex row and totals shared the live-timer row.
+   Keep Started + elapsed together, followed by a separate block for task totals. */
+.now-tracking-start { grid-area: start; min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 3px; font-size: 16px; color: var(--text-dim); }
+#current-start-line { display: block; overflow-wrap: anywhere; }
+.current-task-totals { display: block; min-width: 0; max-width: 100%; overflow-wrap: anywhere; color: var(--text-main); }
 .current-task-totals:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 #companion { grid-area: companion; justify-self: end; }
 .now-tracking-actions { grid-area: actions; display: flex; justify-content: flex-start; align-items: center; gap: 4px; flex-wrap: nowrap; min-width: 0; }
@@ -349,7 +352,7 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 
 .elapsed-counter { color: var(--text-dim); white-space: nowrap; }
 /* Parked: .elapsed-counter::before { content: '·'; margin: 0 6px; }
-   The start timestamp now has its own line; the live timer and U/T wrap below it. */
+   The parenthesized elapsed time now follows Started; task totals have their own line. */
 .now-tracking-actions .timer-refresh path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: square; stroke-linejoin: miter; }
 .now-tracking-actions .btn:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
 .btn-mini-accent { background: var(--accent-pink); }

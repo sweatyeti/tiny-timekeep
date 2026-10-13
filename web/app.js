@@ -185,11 +185,11 @@ function renderCurrentTaskTotals() {
   const summary = Array.isArray(state.summary) ? state.summary : [];
   const group = current && summary.find((g) => g.task.toLowerCase() === current.task.toLowerCase());
   const visible = Boolean(group && group.count > 0);
-  const format = (minutes) => `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-  unlogged.textContent = visible ? `U ${format(group.unloggedMinutes)}` : '';
-  total.textContent = visible ? `T ${format(group.totalMinutes)}` : '';
+  const format = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  unlogged.textContent = visible ? `(${format(group.unloggedMinutes)} unlogged)` : '';
+  total.textContent = visible ? `Total task time: ${format(group.totalMinutes)}` : '';
   totals.title = visible
-    ? `U = unlogged time: ${format(group.unloggedMinutes)}; T = total time: ${format(group.totalMinutes)}. ` +
+    ? `Total task time: ${format(group.totalMinutes)}; Unlogged time: ${format(group.unloggedMinutes)}. ` +
       'This task in the current session; completed entries only, rounded per entry as in Summary. The running timer is excluded.'
     : '';
   totals.setAttribute('aria-label', totals.title);
@@ -206,7 +206,7 @@ function updateElapsedCounter() {
     counter.classList.add('hidden');
   } else {
     const mins = Math.max(0, Math.floor((Date.now() - Date.parse(state.currentEntry.startTime)) / 60000));
-    const text = mins + ' min';
+    const text = `(${mins} min ago)`;
     counter.textContent = text;
     counter.title = text;
     counter.classList.remove('hidden');

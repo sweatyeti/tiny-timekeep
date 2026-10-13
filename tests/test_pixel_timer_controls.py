@@ -568,7 +568,13 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
         self.assertEqual(
             [node["attrs"].get("id") for node in self.nodes
              if node["ancestors"] and node["ancestors"][-1] is start_line],
-            ["current-start", "elapsed-counter", "current-task-totals"],
+            ["current-start-line", "current-task-totals"],
+        )
+        started_line = self._by_id("current-start-line")
+        self.assertEqual(
+            [node["attrs"].get("id") for node in self.nodes
+             if node["ancestors"] and node["ancestors"][-1] is started_line],
+            ["current-start", "elapsed-counter"],
         )
         totals = self._by_id("current-task-totals")
         self.assertIn("hidden", _classes(totals))
@@ -577,7 +583,7 @@ class TestPixelTimerControlMarkup(unittest.TestCase):
         self.assertEqual(
             [node["attrs"].get("id") for node in self.nodes
              if node["ancestors"] and node["ancestors"][-1] is totals],
-            ["current-task-unlogged", "current-task-total"],
+            ["current-task-total", "current-task-unlogged"],
         )
 
 
@@ -937,7 +943,7 @@ class TestPixelTimerControlStyles(unittest.TestCase):
     def test_companion_and_actions_are_fixed_in_three_grid_rows(self):
         self.assertRegex(
             self.css,
-            r'grid-template-areas\s*:\s*"label companion"\s+"start companion"\s+"actions companion"',
+            r'grid-template-areas\s*:\s*"label companion"\s+"actions companion"\s+"start start"',
         )
         self.assertRegex(self.css, r"grid-template-columns\s*:\s*minmax\(0,\s*1fr\)\s+128px")
         self.assertRegex(self.css, r"column-gap\s*:\s*8px")
@@ -1038,8 +1044,9 @@ class TestPixelTimerControlStyles(unittest.TestCase):
         self.assertGreaterEqual(int(shift.group(1)), 1)
         # The live counter stays distinct; U/T may wrap rather than being clipped.
         self.assertRegex(self._rule(".elapsed-counter"), r"white-space\s*:\s*nowrap")
-        self.assertRegex(self._rule(".now-tracking-start"), r"flex-wrap\s*:\s*wrap")
-        self.assertRegex(self._rule(".current-task-totals"), r"flex-wrap\s*:\s*wrap")
+        self.assertRegex(self._rule(".now-tracking-start"), r"flex-direction\s*:\s*column")
+        self.assertRegex(self._rule("#current-start-line"), r"display\s*:\s*block")
+        self.assertRegex(self._rule(".current-task-totals"), r"display\s*:\s*block")
         self.assertRegex(self._rule(".current-task-totals:focus-visible"), r"outline\s*:\s*2px")
 
         # Fix (7): the Log list owns ONE column template and every row inherits it through

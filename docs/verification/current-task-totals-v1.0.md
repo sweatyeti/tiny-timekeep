@@ -1,5 +1,7 @@
 # Current-task totals — scope and verification v1.0
 
+Historical record: display formatting is superseded by [v1.1](current-task-totals-v1.1.md).
+
 ## Confirmed behavior
 
 - Scope: the current session only; match task names case-insensitively as Summary does.

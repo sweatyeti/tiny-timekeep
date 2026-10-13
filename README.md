@@ -46,9 +46,11 @@ needed for the fonts to appear as intended.
 
 ### Current-task totals
 
-When the running task has completed entries in the current session, its timer area
-also shows **U** (unlogged time) and **T** (total time), for example
-`U 1h 15m` and `T 2h 30m`. Hover over the totals for their full explanation.
+The running timer follows the start time, for example `Started 08:15 (123 min ago)`.
+When the task has completed entries in the current session, a separate line below
+shows `Total task time: 02:30 (01:15 unlogged)`. Both totals use `hh:mm`, with
+zero-padded hours and minutes; durations over 24 hours do not wrap back to zero.
+Hover over the totals for their explanation.
 
 These are the same completed-entry totals shown in Summary, rounded per entry.
 They exclude the running timer, deleted entries, and other sessions. Matching task
@@ -56,8 +58,9 @@ names are case-insensitive, just as in Summary. The figures update after edits,
 Log/Unlog, deletion, and restore; they disappear when tracking stops or the task
 has no completed entries. Existing entries work immediately without migration.
 
-The live timer remains separate. At narrow widths, the totals may wrap instead of
-being clipped. Summary itself keeps its existing time format.
+The two timing rows span the tracking card below the task controls and avatar. At
+narrow widths their text may wrap instead of being clipped. Summary itself keeps
+its existing time format.
 
 ## Session files and save location
 

@@ -31,7 +31,8 @@ function element(id) {
   };
 }
 const ctx = {document: {getElementById(id) { return elements[id] ||= element(id); }},
-  Date, console, setInterval, clearInterval};
+  Date: class extends Date { static now() { return Date.parse('2026-10-13T11:03:00Z'); } },
+  console, setInterval, clearInterval};
 ctx.window = {addEventListener() {}, pywebview: {api: new Proxy({}, {
   get() { throw new Error('Display must not call an API'); }
 })}};
@@ -44,6 +45,8 @@ const out = states.map(s => {
   const totals = get('current-task-totals');
   return {hidden: totals.classList.contains('hidden'), title: totals.title,
     aria: totals.attrs['aria-label'] || '',
+    started: get('current-start').textContent, elapsed: get('elapsed-counter').textContent,
+    elapsedHidden: get('elapsed-counter').classList.contains('hidden'),
     unlogged: get('current-task-unlogged').textContent,
     total: get('current-task-total').textContent};
 });
@@ -91,14 +94,37 @@ class CurrentTaskTotalsTests(unittest.TestCase):
 
     def assert_totals(self, row, unlogged, total):
         self.assertFalse(row['hidden'])
-        self.assertEqual(row['unlogged'], 'U ' + unlogged)
-        self.assertEqual(row['total'], 'T ' + total)
-        self.assertIn('U = unlogged time', row['title'])
-        self.assertIn('T = total time', row['title'])
+        self.assertEqual(row['unlogged'], '(' + unlogged + ' unlogged)')
+        self.assertEqual(row['total'], 'Total task time: ' + total)
+        self.assertIn('Unlogged time: ' + unlogged, row['title'])
+        self.assertIn('Total task time: ' + total, row['title'])
         self.assertIn('current session', row['title'])
         self.assertIn('completed entries only', row['title'])
         self.assertIn('running timer is excluded', row['title'])
         self.assertEqual(row['aria'], row['title'])
+
+    def test_running_timer_uses_parenthesized_minutes_ago_and_clears_on_stop(self):
+        # Frozen frontend time is exactly 123 whole minutes after the fixture start.
+        active = self.api.get_state()
+        stopped = self.ok(self.api.stop_tracking())
+        rows = self.render(active, stopped)
+        self.assertTrue(rows[0]['started'].startswith('Started '))
+        self.assertEqual(rows[0]['elapsed'], '(123 min ago)')
+        self.assertFalse(rows[0]['elapsedHidden'])
+        self.assertEqual(rows[1]['started'], '')
+        self.assertEqual(rows[1]['elapsed'], '')
+        self.assertTrue(rows[1]['elapsedHidden'])
+
+    def test_clock_format_pads_hours_and_minutes(self):
+        self.advance(75 * 60)
+        self.ok(self.api.stop_and_start_entry('Work'))
+        self.ok(self.api.edit_entry(1, logged=True))
+        self.advance(75 * 60)
+        self.ok(self.api.stop_and_start_entry('Work'))
+        row = self.render()[0]
+        self.assert_totals(row, '01:15', '02:30')
+        self.assertEqual(row['total'] + ' ' + row['unlogged'],
+                         'Total task time: 02:30 (01:15 unlogged)')
 
     def test_new_task_has_no_totals(self):
         row = self.render()[0]
@@ -110,7 +136,7 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         self.history()
         before = self.api.get_state()
         self.advance(7200)
-        self.assert_totals(self.render()[0], '0h 1m', '0h 3m')
+        self.assert_totals(self.render()[0], '00:01', '00:03')
         self.assertEqual(self.api.get_state(), before)
 
     def test_log_unlog_updates_including_zero_unlogged(self):
@@ -118,8 +144,8 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         logged = self.ok(self.api.log_task_group('Work'))
         unlogged = self.ok(self.api.unlog_task_group('WORK'))
         rows = self.render(logged, unlogged)
-        self.assert_totals(rows[0], '0h 0m', '0h 3m')
-        self.assert_totals(rows[1], '0h 3m', '0h 3m')
+        self.assert_totals(rows[0], '00:00', '00:03')
+        self.assert_totals(rows[1], '00:03', '00:03')
 
     def test_delete_last_completed_hides_and_restore_reveals(self):
         self.history()
@@ -128,7 +154,7 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         restored = self.ok(self.api.restore_entry(1))
         rows = self.render(empty, restored)
         self.assertTrue(rows[0]['hidden'])
-        self.assert_totals(rows[1], '0h 0m', '0h 2m')
+        self.assert_totals(rows[1], '00:00', '00:02')
 
     def test_rename_current_and_completed_entries_refreshes_match(self):
         self.history()
@@ -136,7 +162,7 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         moved = self.ok(self.api.edit_entry(2, task='ELSEWHERE'))
         rows = self.render(other, moved)
         self.assertTrue(rows[0]['hidden'])
-        self.assert_totals(rows[1], '0h 1m', '0h 1m')
+        self.assert_totals(rows[1], '00:01', '00:01')
 
     def test_switching_to_task_without_history_clears_old_values(self):
         self.history()
@@ -173,22 +199,22 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         resumed = self.ok(self.api.stop_and_start_entry('work'))
         rows = self.render(fresh, resumed)
         self.assertTrue(rows[0]['hidden'])
-        self.assert_totals(rows[1], '0h 2m', '0h 4m')
+        self.assert_totals(rows[1], '00:02', '00:04')
 
     def test_unnamed_uses_its_summary_group_not_session_grand_totals(self):
         self.ok(self.api.edit_entry(1, task=''))
         self.advance(61)
         self.ok(self.api.stop_and_start_entry(None))
-        self.assert_totals(self.render()[0], '0h 2m', '0h 2m')
+        self.assert_totals(self.render()[0], '00:02', '00:02')
 
     def test_zero_duration_history_is_visible_and_not_rounded_up_to_one(self):
         self.ok(self.api.stop_and_start_entry('Work'))
-        self.assert_totals(self.render()[0], '0h 0m', '0h 0m')
+        self.assert_totals(self.render()[0], '00:00', '00:00')
 
     def test_hour_format_does_not_wrap_at_one_day(self):
         self.advance(90060)
         self.ok(self.api.stop_and_start_entry('Work'))
-        self.assert_totals(self.render()[0], '25h 1m', '25h 1m')
+        self.assert_totals(self.render()[0], '25:01', '25:01')
 
 
 if __name__ == '__main__':
