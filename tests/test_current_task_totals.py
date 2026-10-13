@@ -96,11 +96,11 @@ class CurrentTaskTotalsTests(unittest.TestCase):
         self.assertFalse(row['hidden'])
         self.assertEqual(row['unlogged'], '(' + unlogged + ' unlogged)')
         self.assertEqual(row['total'], 'Total task time: ' + total)
-        self.assertIn('Unlogged time: ' + unlogged, row['title'])
-        self.assertIn('Total task time: ' + total, row['title'])
-        self.assertIn('current session', row['title'])
-        self.assertIn('completed entries only', row['title'])
-        self.assertIn('running timer is excluded', row['title'])
+        self.assertEqual(
+            row['title'],
+            'Total time of completed entries (not including the currently-running one) '
+            f'for this task in this session: {total}, unlogged time: {unlogged}',
+        )
         self.assertEqual(row['aria'], row['title'])
 
     def test_running_timer_uses_parenthesized_minutes_ago_and_clears_on_stop(self):

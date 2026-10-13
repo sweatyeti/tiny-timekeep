@@ -1,5 +1,9 @@
 # Current-task totals — display revision v1.1
 
+Follow-up: the user supplied the exact tooltip wording after this record. It is
+now documented in README and pinned by an exact-string regression assertion; the
+full 84-test suite and check/syntax gates passed again. Rendering remains unverified.
+
 ## Changes from v1.0
 
 - First row: `Started 08:15 (123 min ago)` — elapsed whole minutes follow the

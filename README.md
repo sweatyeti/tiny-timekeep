@@ -50,7 +50,8 @@ The running timer follows the start time, for example `Started 08:15 (123 min ag
 When the task has completed entries in the current session, a separate line below
 shows `Total task time: 02:30 (01:15 unlogged)`. Both totals use `hh:mm`, with
 zero-padded hours and minutes; durations over 24 hours do not wrap back to zero.
-Hover over the totals for their explanation.
+Hover over the totals for their explanation:
+`Total time of completed entries (not including the currently-running one) for this task in this session: 02:30, unlogged time: 01:15`.
 
 These are the same completed-entry totals shown in Summary, rounded per entry.
 They exclude the running timer, deleted entries, and other sessions. Matching task

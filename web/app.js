@@ -189,8 +189,8 @@ function renderCurrentTaskTotals() {
   unlogged.textContent = visible ? `(${format(group.unloggedMinutes)} unlogged)` : '';
   total.textContent = visible ? `Total task time: ${format(group.totalMinutes)}` : '';
   totals.title = visible
-    ? `Total task time: ${format(group.totalMinutes)}; Unlogged time: ${format(group.unloggedMinutes)}. ` +
-      'This task in the current session; completed entries only, rounded per entry as in Summary. The running timer is excluded.'
+    ? 'Total time of completed entries (not including the currently-running one) ' +
+      `for this task in this session: ${format(group.totalMinutes)}, unlogged time: ${format(group.unloggedMinutes)}`
     : '';
   totals.setAttribute('aria-label', totals.title);
   totals.classList.toggle('hidden', !visible);
