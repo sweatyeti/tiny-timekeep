@@ -1,8 +1,10 @@
 /* Compact layout only; normal panels and their selected tab remain intact. */
 #compact-strip { display: none; }
 /* Expand belongs to the title bar and only shows while collapsed, the inverse
-   of the Compact toggle (shown normally, hidden while collapsed). */
-#compact-expand { display: none; }
+   of the Compact toggle (shown normally, hidden while collapsed). The arrow is
+   the primary return-to-normal affordance, so it is drawn larger than the other
+   title-bar glyphs. */
+#compact-expand { display: none; font-size: 22px; line-height: 1; }
 .compact-now #app, .compact-now #theme-picker,
 .compact-now #compact-toggle { display: none; }
 .compact-now #compact-expand { display: block; }

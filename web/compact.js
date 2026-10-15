@@ -9,6 +9,7 @@ let compactLayoutQueue = Promise.resolve();
 let compactActionBusy = false;
 let compactSwitchOpen = false;
 let compactModeBusy = false;
+let compactStripHeight = 0;
 
 function compactDuration(seconds) {
   const minutes = Number.isFinite(seconds) ? Math.max(0, Math.ceil(seconds / 60)) : 0;
@@ -60,7 +61,8 @@ function queueCompactLayout(refit = false) {
         // Measure actual rendered content, including loaded/fallback fonts. Keep
         // the width the user selected; task names ellipsize, controls never shrink.
         const height = Math.ceil(strip.getBoundingClientRect().bottom + Math.max(0, window.outerHeight - window.innerHeight));
-        await api().resize_window_to(compactFullSize.width, Math.max(80, height));
+        compactStripHeight = Math.max(80, height);
+        await api().resize_window_to(compactFullSize.width, compactStripHeight);
       } else if (compactFullSize) {
         await api().resize_window_to(compactFullSize.width, compactFullSize.height);
       }
@@ -99,11 +101,13 @@ async function setCompactMode(enabled) {
 
 // Width-only resize while compact: keep the content-locked strip height and
 // remember the new width so Expand restores it instead of the pre-collapse width.
+// Reuse the height captured at collapse rather than re-reading window.outerHeight,
+// which the resize itself mutates — reading it live drifts the height on drag.
 function compactResizeWidth(width) {
   if (!compactFullSize) return;
   const targetW = Math.max(300, Math.floor(width));
   compactFullSize.width = targetW;
-  api().resize_window_to(targetW, window.outerHeight);
+  api().resize_window_to(targetW, compactStripHeight || window.outerHeight);
 }
 
 function compactOverlayChanged(open) {

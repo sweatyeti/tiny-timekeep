@@ -42,7 +42,7 @@ class CompactNowTests(unittest.TestCase):
         self.assertIn('id="compact-expand"', titlebar)
         self.assertNotIn('id="compact-expand"', strip)
         css = (ROOT / 'web/compact.css').read_text(encoding='utf-8')
-        self.assertIn('#compact-expand { display: none; }', css)
+        self.assertIn('#compact-expand { display: none; font-size: 22px; line-height: 1; }', css)
         self.assertIn('.compact-now #compact-expand { display: block; }', css)
 
     def test_native_minimum_allows_compact_height(self):
@@ -57,17 +57,19 @@ class CompactNowTests(unittest.TestCase):
         source = ROOT / 'web/compact.js'
         script = (
             "const vm=require('vm'),fs=require('fs'); const calls=[];"
-            "const c={console,Math,Number,window:{outerHeight:90,addEventListener(){}},"
+            # outerHeight is deliberately wrong (120) to prove the resize uses the
+            # stored compactStripHeight (88), not the live outer dimension.
+            "const c={console,Math,Number,window:{outerHeight:120,addEventListener(){}},"
             "api:()=>({resize_window_to:(w,h)=>{calls.push([w,h]);}})};"
             "vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);"
-            "vm.runInContext('compactFullSize={width:380,height:680};compactResizeWidth(500.4);compactResizeWidth(250);',c);"
+            "vm.runInContext('compactFullSize={width:380,height:680};compactStripHeight=88;compactResizeWidth(500.4);compactResizeWidth(250);',c);"
             "console.log(JSON.stringify({width:vm.runInContext('compactFullSize.width',c),calls}));"
         )
         p = subprocess.run(['node', '-e', script, str(source)], capture_output=True,
                            text=True, encoding='utf-8', timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertEqual(json.loads(p.stdout),
-                         {'width': 300, 'calls': [[500, 90], [300, 90]]})
+                         {'width': 300, 'calls': [[500, 88], [300, 88]]})
 
     def test_compact_width_resize_is_wired(self):
         app = (ROOT / 'web/app.js').read_text(encoding='utf-8')
