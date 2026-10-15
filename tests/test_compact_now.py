@@ -14,11 +14,11 @@ class CompactNowTests(unittest.TestCase):
     def test_elapsed_duration_is_not_a_clock_time(self):
         source = ROOT / 'web/compact.js'
         self.assertTrue(source.exists(), 'compact mode script missing')
-        script = "const vm=require('vm'),fs=require('fs'); const c={};vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c); console.log(JSON.stringify([0,1,3599,3600,90061,360000,-1].map(c.compactDuration)));"
+        script = "const vm=require('vm'),fs=require('fs'); const c={};vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c); console.log(JSON.stringify([0,0.01,1,60,60.01,3599,3600,11101,11160,90061,360000,-1].map(c.compactDuration)));"
         p = subprocess.run(['node', '-e', script, str(source)], capture_output=True,
                            text=True, encoding='utf-8', timeout=30)
         self.assertEqual(p.returncode, 0, p.stderr)
-        self.assertEqual(json.loads(p.stdout), ['00:00:00','00:00:01','00:59:59','01:00:00','25:01:01','100:00:00','00:00:00'])
+        self.assertEqual(json.loads(p.stdout), ['0h 0m','0h 1m','0h 1m','0h 1m','0h 2m','1h 0m','1h 0m','3h 6m','3h 6m','25h 2m','100h 0m','0h 0m'])
 
     def test_compact_is_wired_and_uses_only_existing_api(self):
         html = (ROOT / 'web/index.html').read_text(encoding='utf-8')

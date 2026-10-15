@@ -11,9 +11,8 @@ let compactSwitchOpen = false;
 let compactModeBusy = false;
 
 function compactDuration(seconds) {
-  const total = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
-  return [Math.floor(total / 3600), Math.floor(total / 60) % 60, total % 60]
-    .map(n => String(n).padStart(2, '0')).join(':');
+  const minutes = Number.isFinite(seconds) ? Math.max(0, Math.ceil(seconds / 60)) : 0;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 function updateCompactElapsed() {

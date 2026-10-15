@@ -62,7 +62,7 @@ async def run():
                 await page.evaluate('compactLayoutQueue')
             await page.click('#compact-toggle')
             await compact()
-            assert await page.locator('#compact-elapsed').inner_text() >= '25:01:01'
+            assert await page.locator('#compact-elapsed').inner_text() == '25h 2m'
             assert not await page.locator('#app').is_visible()
             assert files() == saved and api.get_state() == before
             # All three cancellation paths must preserve the exact timer and stored bytes.
