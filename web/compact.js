@@ -97,6 +97,15 @@ async function setCompactMode(enabled) {
   document.getElementById(compactApplied ? 'compact-task' : 'compact-toggle').focus();
 }
 
+// Width-only resize while compact: keep the content-locked strip height and
+// remember the new width so Expand restores it instead of the pre-collapse width.
+function compactResizeWidth(width) {
+  if (!compactFullSize) return;
+  const targetW = Math.max(300, Math.floor(width));
+  compactFullSize.width = targetW;
+  api().resize_window_to(targetW, window.outerHeight);
+}
+
 function compactOverlayChanged(open) {
   compactOverlayOpen = open;
   if (!open) compactSwitchOpen = false;

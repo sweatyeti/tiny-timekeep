@@ -352,6 +352,12 @@ function wireResizeGrip() {
   window.addEventListener('mousemove', (e) => {
     if (!resizing) return;
     const targetW = Math.max(300, startW + (e.screenX - startMouseX));
+    if (document.body.classList.contains('compact-now')) {
+      // Compact is height-locked to its strip; only width follows the drag.
+      if (typeof compactResizeWidth === 'function') { compactResizeWidth(targetW); return; }
+      api().resize_window_to(targetW, startH);
+      return;
+    }
     const targetH = Math.max(420, startH + (e.screenY - startMouseY));
     api().resize_window_to(targetW, targetH);
   });

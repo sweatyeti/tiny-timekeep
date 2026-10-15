@@ -1,16 +1,27 @@
 /* Compact layout only; normal panels and their selected tab remain intact. */
 #compact-strip { display: none; }
 .compact-now #app, .compact-now #theme-picker,
-.compact-now #resize-grip, .compact-now #compact-toggle { display: none; }
+.compact-now #compact-toggle { display: none; }
 .compact-now #titlebar { padding: 4px 8px; }
 .compact-now #compact-strip {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 8px 16px 8px 8px;   /* right inset leaves room for the width handle */
   border-bottom: 3px solid var(--border-dark);
   background: var(--panel);
   min-width: 0;
+}
+/* Width-only resize handle along the right edge. The compact strip height is
+   content-locked, so dragging changes width while height stays put. */
+.compact-now #resize-grip {
+  top: 0; bottom: 0; right: 0;
+  width: 8px; height: auto;
+  cursor: ew-resize;
+  -webkit-mask-image: none;
+  mask-image: none;
+  background: var(--panel-row-alt);
+  border-left: 2px solid var(--border-dark);
 }
 #compact-strip button {
   border: 2px solid var(--border-dark);

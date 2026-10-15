@@ -79,7 +79,9 @@ dialog's close button makes no change. After stopping, click **Start task** to
 start a new entry through the same dialog. A failed switch leaves the dialog
 open for retry instead of silently discarding what you typed.
 
-**Expand** restores the previous window size and selected tab. Layout changes
+**Expand** restores the previous window size and selected tab. Drag the narrow
+handle on the right edge of the compact strip to change its width; height stays
+fixed, and the new width carries over when you expand. Layout changes
 never alter session entries or Logged flags. Compact mode is per launch, not a
 saved preference; startup remains expanded. The normal play button's existing
 start-immediately-then-name behavior is unchanged. This feature adds no tray,

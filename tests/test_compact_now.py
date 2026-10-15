@@ -43,6 +43,33 @@ class CompactNowTests(unittest.TestCase):
         self.assertLessEqual(size[1], 80)
         self.assertEqual(size[0], 300)
 
+    def test_compact_width_resize_changes_width_only_and_persists(self):
+        source = ROOT / 'web/compact.js'
+        script = (
+            "const vm=require('vm'),fs=require('fs'); const calls=[];"
+            "const c={console,Math,Number,window:{outerHeight:90,addEventListener(){}},"
+            "api:()=>({resize_window_to:(w,h)=>{calls.push([w,h]);}})};"
+            "vm.createContext(c);vm.runInContext(fs.readFileSync(process.argv[1],'utf8'),c);"
+            "vm.runInContext('compactFullSize={width:380,height:680};compactResizeWidth(500.4);compactResizeWidth(250);',c);"
+            "console.log(JSON.stringify({width:vm.runInContext('compactFullSize.width',c),calls}));"
+        )
+        p = subprocess.run(['node', '-e', script, str(source)], capture_output=True,
+                           text=True, encoding='utf-8', timeout=30)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(json.loads(p.stdout),
+                         {'width': 300, 'calls': [[500, 90], [300, 90]]})
+
+    def test_compact_width_resize_is_wired(self):
+        app = (ROOT / 'web/app.js').read_text(encoding='utf-8')
+        self.assertIn("classList.contains('compact-now')", app)
+        self.assertIn('compactResizeWidth(targetW)', app)
+        css = (ROOT / 'web/compact.css').read_text(encoding='utf-8')
+        self.assertIn('cursor: ew-resize', css)
+        grip_rule = re.search(r'\.compact-now #resize-grip\s*\{([^}]*)\}', css)
+        self.assertIsNotNone(grip_rule, 'compact mode must style the resize grip')
+        self.assertNotIn('display: none', grip_rule.group(1),
+                         'the grip must stay reachable in compact mode, not hidden')
+
 
 if __name__ == '__main__':
     unittest.main()
