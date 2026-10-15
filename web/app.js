@@ -20,6 +20,7 @@ window.addEventListener('pywebviewready', init);
 
 function init() {
   wireTitlebar();
+  wireCompactMode();
   wireResizeGrip();
   wireStartScreen();
   wireActiveScreen();
@@ -79,6 +80,7 @@ function render() {
   }
 
   restoreTaskNameSelection(savedSelection);
+  if (typeof renderCompactMode === 'function') renderCompactMode();
 }
 
 async function refreshDeletedCount() {
@@ -199,6 +201,7 @@ function renderCurrentTaskTotals() {
 let _elapsedTimerId = null;
 
 function updateElapsedCounter() {
+  if (typeof updateCompactElapsed === 'function') updateCompactElapsed();
   const counter = document.getElementById('elapsed-counter');
   if (!counter) return;
   if (!state.currentEntry) {
@@ -596,11 +599,13 @@ function openOverlay(title, bodyHtml) {
   document.getElementById('overlay-body').innerHTML = bodyHtml;
   document.getElementById('overlay').classList.remove('hidden');
   document.getElementById('resize-grip').classList.add('hidden');
+  if (typeof compactOverlayChanged === 'function') compactOverlayChanged(true);
 }
 
 function closeOverlay() {
   document.getElementById('overlay').classList.add('hidden');
   document.getElementById('resize-grip').classList.remove('hidden');
+  if (typeof compactOverlayChanged === 'function') compactOverlayChanged(false);
 }
 
 function wireEnterToSubmit() {

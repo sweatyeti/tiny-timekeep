@@ -63,6 +63,26 @@ The two timing rows span the tracking card below the task controls and avatar. A
 narrow widths their text may wrap instead of being clipped. Summary itself keeps
 its existing time format.
 
+### Compact Now mode
+
+After starting or resuming a session, use **Compact Now mode** in the title bar
+(the small bar icon) to collapse the window. The strip shows the task name, a
+live `hh:mm:ss` timer, Stop, and Expand. Long task names are shortened visually;
+hover to read the full name. Hours do not wrap at 24.
+
+Click the task name to switch tasks. The window temporarily expands for a name
+and confirmation. The old task keeps running until **Switch** is confirmed;
+**Cancel**, Escape, or the dialog's close button makes no change. After stopping,
+click **Start task** to start a new entry through the same confirmation dialog.
+A failed switch leaves the dialog open for retry instead of silently discarding
+what you typed.
+
+**Expand** restores the previous window size and selected tab. Layout changes
+never alter session entries or Logged flags. Compact mode is per launch, not a
+saved preference; startup remains expanded. The normal play button's existing
+start-immediately-then-name behavior is unchanged. This feature adds no tray,
+global shortcuts, task catalogue, or always-on-top behavior.
+
 ## Session files and save location
 
 By default, every installation saves session files on this PC in:

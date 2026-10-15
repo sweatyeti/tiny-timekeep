@@ -1,0 +1,33 @@
+/* Compact layout only; normal panels and their selected tab remain intact. */
+#compact-strip { display: none; }
+.compact-now #app, .compact-now #theme-picker,
+.compact-now #resize-grip, .compact-now #compact-toggle { display: none; }
+.compact-now #titlebar { padding: 4px 8px; }
+.compact-now #compact-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 3px solid var(--border-dark);
+  background: var(--panel);
+  min-width: 0;
+}
+#compact-strip button {
+  border: 2px solid var(--border-dark);
+  background: var(--panel-row);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 20px;
+  min-height: 32px;
+  padding: 2px 6px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+#compact-strip #compact-task { display: flex; align-items: center; flex: 1 1 0; min-width: 0; text-align: left; }
+#compact-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#compact-elapsed { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#compact-strip[data-tracking="true"] #compact-elapsed { color: var(--accent-mint-text); }
+#compact-strip button:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
+#compact-strip button:disabled, #compact-toggle:disabled { opacity: 0.5; cursor: default; }
+#compact-cancel { margin-top: 10px; }
+#compact-switch-error { color: var(--text-main); overflow-wrap: anywhere; }
