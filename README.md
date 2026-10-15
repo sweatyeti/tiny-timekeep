@@ -67,7 +67,8 @@ its existing time format.
 
 After starting or resuming a session, use **Compact Now mode** in the title bar
 (the small bar icon) to collapse the window. The strip shows the task name, a
-live timer in hours and rounded-up minutes (for example `3h 6m`), Stop, and Expand. Long task names are shortened visually;
+live timer in hours and rounded-up minutes (for example `3h 6m`), and Stop. The
+**Expand** button appears in the title bar while collapsed. Long task names are shortened visually;
 hover to read the full name. Hours do not wrap at 24.
 
 Click the task name to switch tasks. The window temporarily expands to show a

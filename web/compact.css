@@ -1,7 +1,11 @@
 /* Compact layout only; normal panels and their selected tab remain intact. */
 #compact-strip { display: none; }
+/* Expand belongs to the title bar and only shows while collapsed, the inverse
+   of the Compact toggle (shown normally, hidden while collapsed). */
+#compact-expand { display: none; }
 .compact-now #app, .compact-now #theme-picker,
 .compact-now #compact-toggle { display: none; }
+.compact-now #compact-expand { display: block; }
 .compact-now #titlebar { padding: 4px 8px; }
 .compact-now #compact-strip {
   display: flex;

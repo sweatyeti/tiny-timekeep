@@ -35,6 +35,16 @@ class CompactNowTests(unittest.TestCase):
         for hook in ['wireCompactMode()', 'renderCompactMode()', 'updateCompactElapsed()', 'compactOverlayChanged(true)', 'compactOverlayChanged(false)']:
             self.assertIn(hook, app)
 
+    def test_expand_control_lives_in_titlebar(self):
+        html = (ROOT / 'web/index.html').read_text(encoding='utf-8')
+        titlebar = html[html.index('<div id="titlebar">'):html.index('</div>', html.index('<div id="titlebar">'))]
+        strip = html[html.index('<section id="compact-strip"'):html.index('</section>')]
+        self.assertIn('id="compact-expand"', titlebar)
+        self.assertNotIn('id="compact-expand"', strip)
+        css = (ROOT / 'web/compact.css').read_text(encoding='utf-8')
+        self.assertIn('#compact-expand { display: none; }', css)
+        self.assertIn('.compact-now #compact-expand { display: block; }', css)
+
     def test_native_minimum_allows_compact_height(self):
         tree = ast.parse((ROOT / 'main.py').read_text(encoding='utf-8'))
         create = [n for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == 'create_window']

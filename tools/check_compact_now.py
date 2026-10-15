@@ -126,9 +126,13 @@ async def run():
             for theme in ['cute','cyber','poolside','evergreen','citrus-pop','dune']:
                 await page.evaluate('(t) => applyTheme(t)', theme)
                 metric = await page.evaluate("""() => {
-                    const ids=['compact-task','compact-elapsed','compact-stop','compact-expand'];
+                    const stripIds=['compact-task','compact-elapsed','compact-stop'];
+                    const box = el => {const r=el.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width};};
+                    const stripBottom = document.getElementById('compact-strip').getBoundingClientRect().bottom;
                     return {theme: document.body.dataset.theme, width: innerWidth, height: innerHeight,
-                        boxes: ids.map(id => {const r=document.getElementById(id).getBoundingClientRect();return {id,x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width};}),
+                        boxes: stripIds.map(id => box(document.getElementById(id))),
+                        expand: box(document.getElementById('compact-expand')),
+                        stripBottom,
                         scroll: document.documentElement.scrollWidth};
                 }""")
                 assert metric['scroll'] <= metric['width'], metric
@@ -136,6 +140,9 @@ async def run():
                     assert b['x'] >= 0 and b['right'] <= metric['width'] and b['bottom'] <= metric['height'] and b['width'] > 0, metric
                 for a, b in zip(metric['boxes'], metric['boxes'][1:]):
                     assert a['right'] <= b['x'], metric
+                # Expand now lives in the title bar, above the compact strip.
+                assert metric['expand']['bottom'] <= metric['stripBottom'], metric
+                assert 0 <= metric['expand']['x'] < metric['width'], metric
                 metrics.append(metric)
             await page.click('#compact-expand')
             await expanded()
