@@ -70,12 +70,14 @@ After starting or resuming a session, use **Compact Now mode** in the title bar
 live timer in hours and rounded-up minutes (for example `3h 6m`), Stop, and Expand. Long task names are shortened visually;
 hover to read the full name. Hours do not wrap at 24.
 
-Click the task name to switch tasks. The window temporarily expands for a name
-and confirmation. The old task keeps running until **Switch** is confirmed;
-**Cancel**, Escape, or the dialog's close button makes no change. After stopping,
-click **Start task** to start a new entry through the same confirmation dialog.
-A failed switch leaves the dialog open for retry instead of silently discarding
-what you typed.
+Click the task name to switch tasks. The window temporarily expands to show a
+list of the session's existing tasks (the same case-insensitive grouping as
+Summary, plus the currently running task), each with a **▶** button that starts
+that task. A **New task** field below the list starts a name that isn't listed.
+The old task keeps running until a task is started; **Cancel**, Escape, or the
+dialog's close button makes no change. After stopping, click **Start task** to
+start a new entry through the same dialog. A failed switch leaves the dialog
+open for retry instead of silently discarding what you typed.
 
 **Expand** restores the previous window size and selected tab. Layout changes
 never alter session entries or Logged flags. Compact mode is per launch, not a

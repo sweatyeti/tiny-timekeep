@@ -31,3 +31,14 @@
 #compact-strip button:disabled, #compact-toggle:disabled { opacity: 0.5; cursor: default; }
 #compact-cancel { margin-top: 10px; }
 #compact-switch-error { color: var(--text-main); overflow-wrap: anywhere; }
+.compact-task-choices { margin-bottom: 14px; }
+.compact-task-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 2px dashed var(--panel-row-alt);
+}
+.compact-task-choice span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.compact-task-choice button { flex: 0 0 auto; }
+.compact-task-choice button:disabled { opacity: 0.5; cursor: default; }

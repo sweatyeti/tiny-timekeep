@@ -106,6 +106,23 @@ function compactOverlayChanged(open) {
   });
 }
 
+// Summary's current-session groups plus the running task (which may not yet
+// have a completed interval). No catalogue or cross-session lookup is involved.
+function compactTaskNames(viewModel) {
+  const names = [];
+  const seen = new Set();
+  const tasks = (viewModel.summary || []).map(group => group.task);
+  if (viewModel.currentEntry) tasks.push(viewModel.currentEntry.task);
+  for (const task of tasks) {
+    const key = task.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      names.push(task);
+    }
+  }
+  return names;
+}
+
 async function openCompactSwitch() {
   if (compactActionBusy || compactSwitchOpen || !(state && state.session)) return;
   compactSwitchOpen = true;
@@ -113,21 +130,23 @@ async function openCompactSwitch() {
   const entryId = state.currentEntry ? state.currentEntry.id : null;
   // Unlike the normal play button, do NOT create an unnamed entry on opening.
   openOverlay(entryId === null ? 'Start task' : 'Switch task', `
-    <div class="field-row"><label for="compact-next-task">Task</label><input id="compact-next-task" placeholder="Task name (optional)"></div>
+    <h2>Existing tasks</h2>
+    <div id="compact-existing-tasks" class="compact-task-choices" aria-label="Existing tasks"></div>
+    <div class="field-row"><label for="compact-next-task">New task</label><input id="compact-next-task" placeholder="Task name (optional)"></div>
     <p class="hint-text">${entryId === null ? 'Tracking starts when you confirm.' : 'The current task keeps running until you confirm.'}</p>
     <p id="compact-switch-error" role="alert"></p>
     <button type="button" class="btn btn-primary overlay-submit" id="compact-confirm">${entryId === null ? 'Start' : 'Switch'}</button>
     <button type="button" class="btn btn-mini" id="compact-cancel">Cancel</button>
   `);
   document.getElementById('compact-cancel').onclick = closeOverlay;
-  document.getElementById('compact-confirm').onclick = async () => {
+  const submitTask = async (task) => {
     if (compactActionBusy) return;
     if (!state.session || state.session.id !== sessionId || (state.currentEntry ? state.currentEntry.id : null) !== entryId) {
       document.getElementById('compact-switch-error').textContent = 'The current task changed. Cancel and try again.';
       return;
     }
-    const task = document.getElementById('compact-next-task').value;
     compactActionBusy = true;
+    document.querySelectorAll('#compact-existing-tasks button').forEach(button => { button.disabled = true; });
     document.getElementById('compact-confirm').disabled = true;
     document.getElementById('compact-cancel').disabled = true;
     document.getElementById('overlay-close').disabled = true;
@@ -145,12 +164,33 @@ async function openCompactSwitch() {
       await refresh();
     } finally {
       compactActionBusy = false;
+      document.querySelectorAll('#compact-existing-tasks button').forEach(button => { button.disabled = false; });
       document.getElementById('compact-confirm').disabled = false;
       document.getElementById('compact-cancel').disabled = false;
       document.getElementById('overlay-close').disabled = false;
       renderCompactMode();
     }
   };
+  document.getElementById('compact-confirm').onclick = () => submitTask(document.getElementById('compact-next-task').value);
+  const choices = document.getElementById('compact-existing-tasks');
+  const names = compactTaskNames(state);
+  if (names.length === 0) choices.textContent = 'No existing tasks yet.';
+  for (const task of names) {
+    const row = document.createElement('div');
+    row.className = 'compact-task-choice';
+    const name = document.createElement('span');
+    name.textContent = task;
+    name.title = task;
+    const play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'icon-btn summary-start-btn play';
+    play.textContent = '▶';
+    play.title = `Start tracking ${task} (stopping whatever's currently running)`;
+    play.setAttribute('aria-label', play.title);
+    play.onclick = () => submitTask(task);
+    row.append(name, play);
+    choices.appendChild(row);
+  }
   await compactLayoutQueue;
   if (compactSwitchOpen) document.getElementById('compact-next-task').focus();
 }
