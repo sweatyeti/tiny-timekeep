@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="compact.css">
 <link rel="stylesheet" href="companions/companion.css">
 <!-- Parked: companions/cat.css is the retired Cute cat artwork, kept in the repository for reference and no longer loaded.
      companions/cozy-cat.css now paints the Cute theme. -->
@@ -32,9 +33,17 @@
 
   <div id="titlebar">
     <span id="titlebar-label">✦ tinyTimeKeep</span>
+    <button id="compact-toggle" class="chrome-btn" type="button" title="Compact Now mode" aria-label="Compact Now mode" aria-pressed="false" disabled>▰</button>
+    <button id="compact-expand" class="chrome-btn" type="button" title="Expand window" aria-label="Expand window">↗</button>
     <button id="min-btn" class="chrome-btn" title="Minimize">-</button>
     <button id="close-btn" class="chrome-btn" title="Stop &amp; exit">✕</button>
   </div>
+
+  <section id="compact-strip" aria-label="Current task">
+    <button id="compact-task" type="button"><span id="compact-task-name">Start task</span><span aria-hidden="true"> ▾</span></button>
+    <span id="compact-elapsed" aria-label="Elapsed time">Stopped</span>
+    <button id="compact-stop" type="button" title="Stop tracking" aria-label="Stop tracking">■</button>
+  </section>
 
   <main id="app">
 
@@ -67,8 +76,10 @@
             <div class="now-tracking-desc hidden" id="current-desc"></div>
           </div>
           <div class="now-tracking-start">
-            <span id="current-start"></span>
-            <span id="elapsed-counter" class="elapsed-counter hidden"></span>
+            <span id="current-start-line"><span id="current-start"></span> <span id="elapsed-counter" class="elapsed-counter hidden"></span></span>
+            <span id="current-task-totals" class="current-task-totals hidden" role="group" tabindex="0">
+              <span id="current-task-total"></span> <span id="current-task-unlogged"></span>
+            </span>
           </div>
           <aside id="companion" class="companion" data-mode="sleeping" role="status" aria-live="polite">
             <div class="companion-scene" aria-hidden="true"></div>
@@ -168,6 +179,7 @@
        No retired Dune file is parked; muaddib-mouse.js is a new addition. -->
   <script src="companions/muaddib-mouse.js"></script>
   <script src="companions/registry.js"></script>
+  <script src="compact.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

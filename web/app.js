@@ -20,6 +20,7 @@ window.addEventListener('pywebviewready', init);
 
 function init() {
   wireTitlebar();
+  wireCompactMode();
   wireResizeGrip();
   wireStartScreen();
   wireActiveScreen();
@@ -70,6 +71,7 @@ function render() {
   refreshDeletedCount();
 
   if (noSession) {
+    renderCurrentTaskTotals(); // Clear hidden state when the session closes.
     renderSessionList();
   } else {
     renderCurrent();
@@ -78,6 +80,7 @@ function render() {
   }
 
   restoreTaskNameSelection(savedSelection);
+  if (typeof renderCompactMode === 'function') renderCompactMode();
 }
 
 async function refreshDeletedCount() {
@@ -158,6 +161,7 @@ function renderCurrent() {
     banner.className = 'status-banner inactive';
   }
   renderCurrentDescription(descEl);
+  renderCurrentTaskTotals();
   updateElapsedCounter();
 }
 
@@ -173,9 +177,31 @@ function renderCurrentDescription(descEl) {
   descEl.classList.toggle('hidden', description === '');
 }
 
+// Reuse the current session's authoritative Summary row: completed, non-deleted
+// entries only, already rounded per entry. Never add the live clock or scan files.
+function renderCurrentTaskTotals() {
+  const totals = document.getElementById('current-task-totals');
+  const unlogged = document.getElementById('current-task-unlogged');
+  const total = document.getElementById('current-task-total');
+  const current = state.session && state.currentEntry;
+  const summary = Array.isArray(state.summary) ? state.summary : [];
+  const group = current && summary.find((g) => g.task.toLowerCase() === current.task.toLowerCase());
+  const visible = Boolean(group && group.count > 0);
+  const format = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  unlogged.textContent = visible ? `(${format(group.unloggedMinutes)} unlogged)` : '';
+  total.textContent = visible ? `Total task time: ${format(group.totalMinutes)}` : '';
+  totals.title = visible
+    ? 'Total time of completed entries (not including the currently-running one) ' +
+      `for this task in this session: ${format(group.totalMinutes)}, unlogged time: ${format(group.unloggedMinutes)}`
+    : '';
+  totals.setAttribute('aria-label', totals.title);
+  totals.classList.toggle('hidden', !visible);
+}
+
 let _elapsedTimerId = null;
 
 function updateElapsedCounter() {
+  if (typeof updateCompactElapsed === 'function') updateCompactElapsed();
   const counter = document.getElementById('elapsed-counter');
   if (!counter) return;
   if (!state.currentEntry) {
@@ -183,7 +209,7 @@ function updateElapsedCounter() {
     counter.classList.add('hidden');
   } else {
     const mins = Math.max(0, Math.floor((Date.now() - Date.parse(state.currentEntry.startTime)) / 60000));
-    const text = mins + ' min';
+    const text = `(${mins} min ago)`;
     counter.textContent = text;
     counter.title = text;
     counter.classList.remove('hidden');
@@ -326,6 +352,12 @@ function wireResizeGrip() {
   window.addEventListener('mousemove', (e) => {
     if (!resizing) return;
     const targetW = Math.max(300, startW + (e.screenX - startMouseX));
+    if (document.body.classList.contains('compact-now')) {
+      // Compact is height-locked to its strip; only width follows the drag.
+      if (typeof compactResizeWidth === 'function') { compactResizeWidth(targetW); return; }
+      api().resize_window_to(targetW, startH);
+      return;
+    }
     const targetH = Math.max(420, startH + (e.screenY - startMouseY));
     api().resize_window_to(targetW, targetH);
   });
@@ -573,11 +605,13 @@ function openOverlay(title, bodyHtml) {
   document.getElementById('overlay-body').innerHTML = bodyHtml;
   document.getElementById('overlay').classList.remove('hidden');
   document.getElementById('resize-grip').classList.add('hidden');
+  if (typeof compactOverlayChanged === 'function') compactOverlayChanged(true);
 }
 
 function closeOverlay() {
   document.getElementById('overlay').classList.add('hidden');
   document.getElementById('resize-grip').classList.remove('hidden');
+  if (typeof compactOverlayChanged === 'function') compactOverlayChanged(false);
 }
 
 function wireEnterToSubmit() {

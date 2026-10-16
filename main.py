@@ -558,7 +558,9 @@ def main(argv=None):
         resizable=True,
         width=380,
         height=680,
-        min_size=(300, 420),
+        # Previously (300, 420): normal resize grip still enforces that floor.
+        # Permit the content-measured Compact Now strip below the normal height.
+        min_size=(300, 80),
         background_color="#1b1330",
         on_top=False,
     )

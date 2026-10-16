@@ -1,0 +1,61 @@
+/* Compact layout only; normal panels and their selected tab remain intact. */
+#compact-strip { display: none; }
+/* Expand belongs to the title bar and only shows while collapsed, the inverse
+   of the Compact toggle (shown normally, hidden while collapsed). The arrow is
+   the primary return-to-normal affordance, so it is drawn larger than the other
+   title-bar glyphs. */
+#compact-expand { display: none; font-size: 22px; line-height: 1; }
+.compact-now #app, .compact-now #theme-picker,
+.compact-now #compact-toggle { display: none; }
+.compact-now #compact-expand { display: block; }
+.compact-now #titlebar { padding: 4px 8px; }
+.compact-now #compact-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 8px 8px;   /* right inset leaves room for the width handle */
+  border-bottom: 3px solid var(--border-dark);
+  background: var(--panel);
+  min-width: 0;
+}
+/* Width-only resize handle along the right edge. The compact strip height is
+   content-locked, so dragging changes width while height stays put. */
+.compact-now #resize-grip {
+  top: 0; bottom: 0; right: 0;
+  width: 8px; height: auto;
+  cursor: ew-resize;
+  -webkit-mask-image: none;
+  mask-image: none;
+  background: var(--panel-row-alt);
+  border-left: 2px solid var(--border-dark);
+}
+#compact-strip button {
+  border: 2px solid var(--border-dark);
+  background: var(--panel-row);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 20px;
+  min-height: 32px;
+  padding: 2px 6px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+#compact-strip #compact-task { display: flex; align-items: center; flex: 1 1 0; min-width: 0; text-align: left; }
+#compact-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#compact-elapsed { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#compact-strip[data-tracking="true"] #compact-elapsed { color: var(--accent-mint-text); }
+#compact-strip button:focus-visible { outline: 2px solid var(--text-main); outline-offset: 1px; }
+#compact-strip button:disabled, #compact-toggle:disabled { opacity: 0.5; cursor: default; }
+#compact-cancel { margin-top: 10px; }
+#compact-switch-error { color: var(--text-main); overflow-wrap: anywhere; }
+.compact-task-choices { margin-bottom: 14px; }
+.compact-task-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 2px dashed var(--panel-row-alt);
+}
+.compact-task-choice span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.compact-task-choice button { flex: 0 0 auto; }
+.compact-task-choice button:disabled { opacity: 0.5; cursor: default; }
