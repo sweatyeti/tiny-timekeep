@@ -27,6 +27,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
+from window_topmost import apply_topmost
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -134,6 +136,7 @@ class Api:
                                  if location_locked is None else location_locked)
         self._pending_source = None
         self._window = None
+        self._topmost_lock = threading.Lock()
 
     def set_window(self, window):
         self._window = window
@@ -186,9 +189,27 @@ class Api:
         return preferences
 
     def set_preference(self, key, value, move_existing=False):
+        if key == "keepOnTop":
+            return self._set_keep_on_top(value)
         if key == "entrySaveLocation":
             return self.set_entry_save_location(value, move_existing)
         return self.prefs.set(key, value)
+
+    def _set_keep_on_top(self, enabled):
+        if type(enabled) is not bool:
+            return {"ok": False, "message": "Keep on top must be true or false."}
+        with self._topmost_lock:
+            previous = self.prefs.get_all()["keepOnTop"]
+            try:
+                apply_topmost(self._window, enabled)
+                self.prefs.set("keepOnTop", enabled)
+            except Exception as exc:
+                try:
+                    apply_topmost(self._window, previous)
+                except Exception as rollback:
+                    return {"ok": False, "message": f"Keep on top failed: {exc}. Could not restore window state: {rollback}"}
+                return {"ok": False, "message": f"Could not change Keep on top: {exc}"}
+            return {"ok": True, "preferences": self.get_preferences()}
 
     def choose_entry_save_location(self):
         if self._location_locked:
@@ -562,7 +583,8 @@ def main(argv=None):
         # Permit the content-measured Compact Now strip below the normal height.
         min_size=(300, 80),
         background_color="#1b1330",
-        on_top=False,
+        # Initial TopMost is applied by WinForms on its UI thread at creation.
+        on_top=api.prefs.get_all()["keepOnTop"],
     )
     api.set_window(window)
     # pywebview 6.2's WinForms backend assigns this ICO to the native Form.Icon. WinForms

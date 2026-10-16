@@ -198,6 +198,14 @@ html, body {
   line-height: 1;
 }
 
+#keep-on-top-btn[aria-pressed="true"] {
+  background: var(--titlebar);
+  color: var(--titlebar-text);
+  outline: 2px solid var(--titlebar-text);
+  outline-offset: -5px;
+}
+#keep-on-top-btn svg { width: 16px; height: 16px; vertical-align: middle; }
+
 #app {
   padding: 14px;
   padding-bottom: 14px;

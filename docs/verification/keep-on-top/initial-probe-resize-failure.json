@@ -1,0 +1,31 @@
+{
+  "phase": "first",
+  "startup_preference": false,
+  "checks": [
+    "startup native style and button",
+    "bridge toggle 0: True",
+    "bridge toggle 1: False",
+    "bridge toggle 2: True",
+    "bridge toggle 3: False",
+    "bridge toggle 4: True",
+    "bridge toggle 5: False",
+    "bridge toggle 6: True",
+    "bridge toggle 7: False",
+    "bridge toggle 8: True",
+    "bridge toggle 9: False",
+    "bridge toggle 10: True",
+    "bridge toggle 11: False",
+    "bridge toggle 12: True",
+    "bridge toggle 13: False",
+    "bridge toggle 14: True",
+    "bridge toggle 15: False",
+    "bridge toggle 16: True",
+    "bridge toggle 17: False",
+    "bridge toggle 18: True",
+    "bridge toggle 19: False",
+    "bridge toggle 20: True"
+  ],
+  "upstream_cross_thread_error": "Cross-thread operation not valid: Control '' accessed from a thread other than the thread it was created on.\r\n   at System.Windows.Forms.Control.get_Handle()\r\n   at System.Windows.Forms.Form.set_TopMost(Boolean value)",
+  "ok": false,
+  "error": "Traceback (most recent call last):\n  File \"<app>\\tests\\native_keep_on_top_probe.py\", line 80, in run\n    w.resize(300,120)\n    ~~~~~~~~^^^^^^^^^\n  File \"<venv>\\Lib\\site-packages\\webview\\window.py\", line 49, in wrapper\n    return function(self, *args, **kwargs)\n  File \"<venv>\\Lib\\site-packages\\webview\\window.py\", line 388, in resize\n    self.gui.resize(width, height, self.uid, fix_point)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<venv>\\Lib\\site-packages\\webview\\platforms\\winforms.py\", line 1012, in resize\n    i.resize(width, height, fix_point)\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<venv>\\Lib\\site-packages\\webview\\platforms\\winforms.py\", line 617, in resize\n    self.Handle.ToInt32(), None, x, y, phys_width, phys_height, 64\n    ^^^^^^^^^^^\nSystem.InvalidOperationException: Cross-thread operation not valid: Control '' accessed from a thread other than the thread it was created on.\r\n   at System.Windows.Forms.Control.get_Handle()\n"
+}
