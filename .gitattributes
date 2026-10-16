@@ -9,3 +9,6 @@
 # on every platform, in the working tree and in the repository alike.
 web/companions/*.js   text eol=lf
 web/companions/*.css  text eol=lf
+
+# Native Windows verification receipts remain portable, reviewable JSON.
+docs/verification/keep-on-top/*.json text eol=lf
