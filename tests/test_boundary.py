@@ -38,24 +38,21 @@ def _imported_top_level_modules(path):
 
 class TestCoreStaysIsolated(unittest.TestCase):
     def test_core_imports_only_the_standard_library(self):
+        # This also enforces UI isolation: main/webview/ui are not stdlib modules.
+        forbidden = {"webview", "main", "pywebview", "ui", "web"}
         offenders = {}
-        for name in sorted(os.listdir(CORE)):
-            if not name.endswith(".py"):
-                continue
+        files = sorted(name for name in os.listdir(CORE) if name.endswith(".py"))
+        self.assertIn("core.py", files, "Core dependency scan must reach the core module")
+        for name in files:
             imported = _imported_top_level_modules(os.path.join(CORE, name))
             outside = {m for m in imported if m not in sys.stdlib_module_names}
             outside -= ALLOWED_THIRD_PARTY
-            if outside:
-                offenders[name] = sorted(outside)
-        assert offenders == {}, f"core imports non-stdlib modules: {offenders}"
-
-    def test_core_never_imports_the_ui_or_its_dependencies(self):
-        forbidden = {"webview", "main", "pywebview", "ui", "web"}
-        for name in sorted(os.listdir(CORE)):
-            if not name.endswith(".py"):
-                continue
-            clash = _imported_top_level_modules(os.path.join(CORE, name)) & forbidden
-            assert not clash, f"{name} imports {sorted(clash)} - the core must not know about the UI"
+            # Keep UI imports forbidden even if another dependency is allowed later.
+            violations = outside | (imported & forbidden)
+            if violations:
+                offenders[name] = sorted(violations)
+        self.assertEqual(offenders, {},
+                         f"core must stay stdlib-only and UI-independent: {offenders}")
 
 
 class TestVersionGate(unittest.TestCase):

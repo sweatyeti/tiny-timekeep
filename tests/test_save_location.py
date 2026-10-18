@@ -247,14 +247,6 @@ class SaveLocationTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         mock_popen.assert_called_once_with(["xdg-open", os.path.abspath(self.source)], shell=False)
 
-    def test_open_folder_posix_argv_is_list_no_shell(self):
-        with patch.object(main.sys, "platform", "linux"), \
-             patch.object(main.subprocess, "Popen") as mock_popen:
-            self.api.open_entry_save_location()
-        args, kwargs = mock_popen.call_args
-        self.assertIsInstance(args[0], list)
-        self.assertEqual(kwargs.get("shell"), False)
-
     def test_open_folder_shell_metacharacters(self):
         tricky = os.path.join(self.tmp, "dir with spaces & $(rm -rf) `echo`")
         os.makedirs(tricky)
