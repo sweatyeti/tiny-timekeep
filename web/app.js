@@ -8,6 +8,9 @@ let state = null;
 const TABS = ['log', 'summary'];
 let activeTab = 'summary';
 let deletedCountRefresh = 0;
+const SESSION_PAGE_SIZE = 5;
+let visibleSessionCount = SESSION_PAGE_SIZE;
+let sessionListRefresh = 0;
 const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop', 'dune'];
 
 function api() {
@@ -74,6 +77,8 @@ function render() {
     renderCurrentTaskTotals(); // Clear hidden state when the session closes.
     renderSessionList();
   } else {
+    visibleSessionCount = SESSION_PAGE_SIZE;
+    sessionListRefresh += 1; // Ignore a list response arriving after a session opens.
     renderCurrent();
     renderEntries();
     renderSummary();
@@ -99,13 +104,16 @@ function setDeletedCount(count) {
 
 async function renderSessionList() {
   const list = document.getElementById('session-list');
+  const request = ++sessionListRefresh;
   const sessions = await api().list_sessions();
+  if (request !== sessionListRefresh) return;
   list.innerHTML = '';
   if (sessions.length === 0) {
     list.innerHTML = '<div class="empty-state">No saved sessions yet.</div>';
     return;
   }
-  for (const s of sessions) {
+  // Preserve the core's newest-first order and expansion across periodic refreshes.
+  for (const s of sessions.slice(0, visibleSessionCount)) {
     const row = document.createElement('div');
     row.className = 'session-item';
     // The core's generated name carries a UTC clock; nothing stored is rewritten here — only the
@@ -121,6 +129,17 @@ async function renderSessionList() {
       handleResult(r);
     };
     list.appendChild(row);
+  }
+  if (sessions.length > visibleSessionCount) {
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'btn btn-mini';
+    more.textContent = 'Show more';
+    more.onclick = async () => {
+      visibleSessionCount += SESSION_PAGE_SIZE;
+      await renderSessionList();
+    };
+    list.appendChild(more);
   }
 }
 
