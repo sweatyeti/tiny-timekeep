@@ -53,6 +53,7 @@ async function loadPreferences() {
     api().set_preference('activeTab', activeTab);
   }
   applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme) ? prefs.theme : 'cute');
+  renderKeepOnTop(prefs);
   renderSaveLocation(prefs);
 }
 
@@ -383,6 +384,13 @@ function wireResizeGrip() {
   window.addEventListener('mouseup', () => { resizing = false; });
 }
 
+function renderKeepOnTop(prefs) {
+  const button = document.getElementById('keep-on-top-btn');
+  button.setAttribute('aria-pressed', String(prefs.keepOnTop === true));
+  button.title = prefs.keepOnTop === true ? 'Keep on top: on' : 'Keep on top: off';
+  button.disabled = false;
+}
+
 function wireTitlebar() {
   const bar = document.getElementById('titlebar');
   let dragging = false;
@@ -404,6 +412,21 @@ function wireTitlebar() {
     api().move_window_to(targetX, targetY);
   });
   window.addEventListener('mouseup', () => { dragging = false; });
+
+  const pin = document.getElementById('keep-on-top-btn');
+  pin.onclick = async () => {
+    if (pin.disabled) return;
+    pin.disabled = true;
+    try {
+      const result = await api().set_preference('keepOnTop', pin.getAttribute('aria-pressed') !== 'true');
+      if (result.ok) renderKeepOnTop(result.preferences);
+      else handleResult(result);
+    } catch (error) {
+      handleResult({ok: false, message: String(error)});
+    } finally {
+      pin.disabled = false;
+    }
+  };
 
   document.getElementById('min-btn').onclick = () => {
     api().minimize_window();

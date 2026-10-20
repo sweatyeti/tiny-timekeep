@@ -1,0 +1,41 @@
+{
+  "phase": "first",
+  "startup_preference": false,
+  "checks": [
+    "startup native style and button",
+    "bridge toggle 0: True",
+    "bridge toggle 1: False",
+    "bridge toggle 2: True",
+    "bridge toggle 3: False",
+    "bridge toggle 4: True",
+    "bridge toggle 5: False",
+    "bridge toggle 6: True",
+    "bridge toggle 7: False",
+    "bridge toggle 8: True",
+    "bridge toggle 9: False",
+    "bridge toggle 10: True",
+    "bridge toggle 11: False",
+    "bridge toggle 12: True",
+    "bridge toggle 13: False",
+    "bridge toggle 14: True",
+    "bridge toggle 15: False",
+    "bridge toggle 16: True",
+    "bridge toggle 17: False",
+    "bridge toggle 18: True",
+    "bridge toggle 19: False",
+    "bridge toggle 20: True",
+    "minimize and restore preserve topmost",
+    "pinned window above activated non-topmost comparison form",
+    "session bytes unchanged"
+  ],
+  "upstream_cross_thread_error": "Cross-thread operation not valid: Control '' accessed from a thread other than the thread it was created on.\r\n   at System.Windows.Forms.Control.get_Handle()\r\n   at System.Windows.Forms.Form.set_TopMost(Boolean value)",
+  "compact_button_metrics": {
+    "left": 192,
+    "right": 220,
+    "width": 28,
+    "inner": 300,
+    "display": "block",
+    "compact": true
+  },
+  "ok": true
+}
