@@ -1,0 +1,21 @@
+{
+  "phase": "restart",
+  "startup_preference": true,
+  "checks": [
+    "startup native style and button",
+    "bridge toggle 0: False",
+    "bridge toggle 1: True",
+    "bridge toggle 2: False",
+    "minimize and restore preserve topmost",
+    "session bytes unchanged"
+  ],
+  "compact_button_metrics": {
+    "left": 192,
+    "right": 220,
+    "width": 28,
+    "inner": 300,
+    "display": "block",
+    "compact": true
+  },
+  "ok": true
+}

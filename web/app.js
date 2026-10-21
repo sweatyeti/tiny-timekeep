@@ -8,6 +8,9 @@ let state = null;
 const TABS = ['log', 'summary'];
 let activeTab = 'summary';
 let deletedCountRefresh = 0;
+const SESSION_PAGE_SIZE = 5;
+let visibleSessionCount = SESSION_PAGE_SIZE;
+let sessionListRefresh = 0;
 const THEMES = ['cute', 'cyber', 'poolside', 'evergreen', 'citrus-pop', 'dune'];
 
 function api() {
@@ -50,6 +53,7 @@ async function loadPreferences() {
     api().set_preference('activeTab', activeTab);
   }
   applyTheme(typeof prefs.theme === 'string' && THEMES.includes(prefs.theme) ? prefs.theme : 'cute');
+  renderKeepOnTop(prefs);
   renderSaveLocation(prefs);
 }
 
@@ -74,6 +78,8 @@ function render() {
     renderCurrentTaskTotals(); // Clear hidden state when the session closes.
     renderSessionList();
   } else {
+    visibleSessionCount = SESSION_PAGE_SIZE;
+    sessionListRefresh += 1; // Ignore a list response arriving after a session opens.
     renderCurrent();
     renderEntries();
     renderSummary();
@@ -99,13 +105,16 @@ function setDeletedCount(count) {
 
 async function renderSessionList() {
   const list = document.getElementById('session-list');
+  const request = ++sessionListRefresh;
   const sessions = await api().list_sessions();
+  if (request !== sessionListRefresh) return;
   list.innerHTML = '';
   if (sessions.length === 0) {
     list.innerHTML = '<div class="empty-state">No saved sessions yet.</div>';
     return;
   }
-  for (const s of sessions) {
+  // Preserve the core's newest-first order and expansion across periodic refreshes.
+  for (const s of sessions.slice(0, visibleSessionCount)) {
     const row = document.createElement('div');
     row.className = 'session-item';
     // The core's generated name carries a UTC clock; nothing stored is rewritten here — only the
@@ -121,6 +130,17 @@ async function renderSessionList() {
       handleResult(r);
     };
     list.appendChild(row);
+  }
+  if (sessions.length > visibleSessionCount) {
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'btn btn-mini';
+    more.textContent = 'Show more';
+    more.onclick = async () => {
+      visibleSessionCount += SESSION_PAGE_SIZE;
+      await renderSessionList();
+    };
+    list.appendChild(more);
   }
 }
 
@@ -364,6 +384,13 @@ function wireResizeGrip() {
   window.addEventListener('mouseup', () => { resizing = false; });
 }
 
+function renderKeepOnTop(prefs) {
+  const button = document.getElementById('keep-on-top-btn');
+  button.setAttribute('aria-pressed', String(prefs.keepOnTop === true));
+  button.title = prefs.keepOnTop === true ? 'Keep on top: on' : 'Keep on top: off';
+  button.disabled = false;
+}
+
 function wireTitlebar() {
   const bar = document.getElementById('titlebar');
   let dragging = false;
@@ -385,6 +412,21 @@ function wireTitlebar() {
     api().move_window_to(targetX, targetY);
   });
   window.addEventListener('mouseup', () => { dragging = false; });
+
+  const pin = document.getElementById('keep-on-top-btn');
+  pin.onclick = async () => {
+    if (pin.disabled) return;
+    pin.disabled = true;
+    try {
+      const result = await api().set_preference('keepOnTop', pin.getAttribute('aria-pressed') !== 'true');
+      if (result.ok) renderKeepOnTop(result.preferences);
+      else handleResult(result);
+    } catch (error) {
+      handleResult({ok: false, message: String(error)});
+    } finally {
+      pin.disabled = false;
+    }
+  };
 
   document.getElementById('min-btn').onclick = () => {
     api().minimize_window();

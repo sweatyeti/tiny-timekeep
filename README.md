@@ -85,8 +85,17 @@ handle on the right edge of the compact strip to change its width; height stays
 fixed, and the new width carries over when you expand. Layout changes
 never alter session entries or Logged flags. Compact mode is per launch, not a
 saved preference; startup remains expanded. The normal play button's existing
-start-immediately-then-name behavior is unchanged. This feature adds no tray,
-global shortcuts, task catalogue, or always-on-top behavior.
+start-immediately-then-name behavior is unchanged. Compact mode adds no tray,
+global shortcuts, or task catalogue. Keep on top is a separate persistent toggle.
+
+### Keep on top
+
+Use the **pin button** in the title bar to keep tinyTimeKeep above normal windows.
+Click it again to turn this off. The outlined/pressed button and its tooltip show
+whether it is enabled. The choice is remembered across launches and works in
+both the full window and Compact Now mode. Existing installations default to off.
+Minimize still minimizes normally; pinning does not change your tracking session.
+Other topmost windows and Windows secure screens can still appear above it.
 
 ## Session files and save location
 

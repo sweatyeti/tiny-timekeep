@@ -16,6 +16,7 @@ import os
 
 DEFAULT_PREFERENCES = {
     "activeTab": "summary",
+    "keepOnTop": False,
     "theme": "cute",
     "entrySaveLocation": None,
 }
@@ -45,6 +46,8 @@ class PreferencesStore:
             # data over — but this isn't session data, so "just reset it" is
             # an acceptable failure mode here (unlike the core's session files).
             pass
+        if type(self._data.get("keepOnTop")) is not bool:
+            self._data["keepOnTop"] = False
         self._validate_theme()
         self._validate_active_tab()
         location = self._data.get("entrySaveLocation")
@@ -75,8 +78,15 @@ class PreferencesStore:
                 value = "summary"
         if key == "entrySaveLocation" and value is not None and (not isinstance(value, str) or not value.strip()):
             return dict(self._data)
+        if key == "keepOnTop" and type(value) is not bool:
+            raise ValueError("keepOnTop must be a boolean")
+        previous = dict(self._data)
         self._data[key] = value
-        self._save()
+        try:
+            self._save()
+        except Exception:
+            self._data = previous
+            raise
         return dict(self._data)
 
     def _save(self):
